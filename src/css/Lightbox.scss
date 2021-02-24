@@ -1,0 +1,47 @@
+@import "Colors";
+
+.lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba($shadow-color, 0.75);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        max-height: 100%;
+        max-width: 100%;
+    }
+
+    &.visible {
+        display: flex;
+    }
+
+    .lightbox-close {
+        position: fixed;
+        top: 0;
+        right: 0;
+        border: 0;
+        margin: 1rem;
+        padding: 0;
+        background: transparent;
+        color: $text-color;
+        font-size: 2rem;
+        height: 1em;
+        width: 1em;
+        line-height: 1em;
+        outline: none;
+
+        svg {
+            vertical-align: baseline;
+        }
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}

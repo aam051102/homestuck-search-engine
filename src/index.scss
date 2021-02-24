@@ -1,0 +1,50 @@
+@import "./css/Colors";
+
+html {
+    font-size: 14px;
+}
+
+body {
+    margin: 0;
+    background-color: $background-color;
+    font-family: "Courier New", Courier, monospace;
+    font-weight: bold;
+    color: $text-color;
+    -webkit-font-smoothing: alias;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-y: scroll;
+}
+
+body,
+aside {
+    scrollbar-width: auto;
+    scrollbar-color: #535353 #c6c6c6;
+
+    &::-webkit-scrollbar {
+        width: 1rem;
+    }
+
+    &::-webkit-scrollbar-track {
+        box-shadow: none;
+        background-color: #535353;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #c6c6c6;
+        outline: none;
+    }
+}
+
+img,
+svg {
+    vertical-align: bottom;
+}
+
+a {
+    text-decoration: none;
+    color: $link-color;
+
+    &:hover {
+        color: $link-hover-color;
+    }
+}

@@ -1,0 +1,25 @@
+@import "Colors";
+
+.main {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    min-height: 100vh;
+
+    .main-middle {
+        margin: 0 auto;
+        padding: 1rem 2rem 2rem 2rem;
+        box-sizing: border-box;
+        width: 100%;
+        flex-grow: 1;
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr #{"min(95ch, 100%)"} 1fr 1fr;
+        grid-template-rows: max-content;
+    }
+
+    .system,
+    .user {
+        display: none;
+    }
+}
