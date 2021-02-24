@@ -21,20 +21,16 @@
         display: flex;
     }
 
-    .lightbox-close {
-        position: fixed;
-        top: 0;
-        right: 0;
-        border: 0;
-        margin: 1rem;
-        padding: 0;
+    .lightbox-btn-clear {
         background: transparent;
         color: $text-color;
-        font-size: 2rem;
+        outline: none;
+        padding: 0;
         height: 1em;
+        border: 0;
         width: 1em;
         line-height: 1em;
-        outline: none;
+        font-size: 2rem;
 
         svg {
             vertical-align: baseline;
@@ -43,5 +39,22 @@
         &:hover {
             cursor: pointer;
         }
+    }
+
+    .lightbox-left {
+        font-size: 3rem;
+        margin: 1rem;
+    }
+
+    .lightbox-right {
+        font-size: 3rem;
+        margin: 1rem;
+    }
+
+    .lightbox-close {
+        position: fixed;
+        top: 0;
+        right: 0;
+        margin: 1rem;
     }
 }

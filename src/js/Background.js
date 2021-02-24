@@ -16,18 +16,35 @@ const Background = (props) => {
                 canvasRef.current
                     .getContext("2d")
                     .clearRect(0, 0, window.innerWidth, window.innerHeight);
-    
-                let heightToRatio = (image.height / image.width) * window.innerWidth;
-                if(heightToRatio < window.innerHeight) {
-                    canvasRef.current.getContext("2d").drawImage(image, 0, 0, (image.width / image.height) * window.innerHeight, window.innerHeight);
+
+                let heightToRatio =
+                    (image.height / image.width) * window.innerWidth;
+                if (heightToRatio < window.innerHeight) {
+                    canvasRef.current
+                        .getContext("2d")
+                        .drawImage(
+                            image,
+                            0,
+                            0,
+                            (image.width / image.height) * window.innerHeight,
+                            window.innerHeight
+                        );
                 } else {
-                    canvasRef.current.getContext("2d").drawImage(image, 0, 0, window.innerWidth, heightToRatio);
+                    canvasRef.current
+                        .getContext("2d")
+                        .drawImage(
+                            image,
+                            0,
+                            0,
+                            window.innerWidth,
+                            heightToRatio
+                        );
                 }
             }
         }
 
         let ev = image.addEventListener("load", rerender);
-        let ev2 = window.addEventListener("resize", rerender)
+        let ev2 = window.addEventListener("resize", rerender);
 
         return () => {
             image.removeEventListener("load", ev);
