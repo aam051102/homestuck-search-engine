@@ -5,9 +5,16 @@ import "../css/Lightbox.scss";
 
 const Lightbox = (props) => {
     return (
-        <div className={`lightbox${props.visible ? " visible" : ""}`}>
+        <div
+            className={`lightbox${props.visible ? " visible" : ""}`}
+            onClick={(e) => {
+                if (e.target.tagName !== "IMG") {
+                    props.hideLightbox();
+                }
+            }}
+        >
             <img src={props.image} alt="Lighthouse" />
-            <button className="lightbox-close" onClick={props.hideLightbox}>
+            <button className="lightbox-close">
                 <MdClose />
             </button>
         </div>

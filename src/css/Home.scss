@@ -24,7 +24,7 @@
         filter: blur(3px) contrast(0.6);
         background-image: url("https://pipe.miroware.io/5bc7665ecc3313406322aba0/dirk_bg_earthC.png");
         background-size: cover;
-        background-color: #c1c1c1;
+        background-color: #5e5e5e;
         background-blend-mode: multiply;
         background-position: center;
     }
@@ -111,6 +111,7 @@
         grid-column: 3;
         grid-row: 2;
         width: 100%;
+        margin-top: 3rem;
 
         .search-term-label {
             position: relative;
@@ -257,6 +258,11 @@
 
         @media screen and (min-width: 760px) {
             grid-template-columns: repeat(4, 1fr);
+        }
+
+        .no-results {
+            position: relative;
+            grid-column: 1 / -1;
         }
 
         .search-result {

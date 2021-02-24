@@ -16,7 +16,10 @@ body {
 }
 
 body,
-aside {
+aside,
+div,
+section,
+article {
     scrollbar-width: auto;
     scrollbar-color: #535353 #c6c6c6;
 

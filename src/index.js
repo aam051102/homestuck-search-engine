@@ -10,14 +10,16 @@ const Login = lazy(() => import("./js/Login"));
 const Edit = lazy(() => import("./js/Edit"));
 const Settings = lazy(() => import("./js/Settings"));
 
+const ENDPOINT = window.location.host === "localhost:3000" ? "" : "/app/hsse";
+
 ReactDOM.render(
     <React.StrictMode>
         <Suspense fallback={<div>Loading...</div>}>
             <Router>
-                <Home path="/" />
-                <Login path="/login" />
-                <Edit path="/edit" />
-                <Settings path="/settings" />
+                <Home path={`${ENDPOINT}/`} />
+                <Login path={`${ENDPOINT}/login`} />
+                <Edit path={`${ENDPOINT}/edit`} />
+                <Settings path={`${ENDPOINT}/settings`} />
             </Router>
         </Suspense>
     </React.StrictMode>,

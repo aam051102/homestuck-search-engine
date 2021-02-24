@@ -14,7 +14,10 @@ import Sidebar from "./Sidebar";
 import StaticCanvas from "./StaticCanvas";
 const Lightbox = lazy(() => import("./Lightbox"));
 
-const ENDPOINT = window.location.hostname === "localhost" ? "http://localhost:4000" : "https://ahlgreen.net";
+let ENDPOINT =
+    window.location.host === "localhost:3000"
+        ? "http://localhost:4000"
+        : "https://ahlgreen.net";
 
 function HomePage() {
     const [results, setResults] = useState([]);
@@ -127,6 +130,7 @@ function HomePage() {
                 }
 
                 setResults(data);
+                setCurrentPage(1);
             });
     };
 
@@ -270,50 +274,54 @@ function HomePage() {
             </div>
 
             <section className="result-grid">
-                {results
-                    .slice(
-                        visibleResults * (currentPage - 1),
-                        visibleResults * (currentPage - 1) + visibleResults
-                    )
-                    .map((result, i) => {
-                        return (
-                            <section className="search-result" key={i}>
-                                <a
-                                    href={result.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {result.type === 0 ? (
-                                        <StaticCanvas
-                                            width="650"
-                                            height="450"
-                                            src={
-                                                result.thumbnail ||
-                                                result.content
-                                            }
-                                        />
-                                    ) : null}
-                                    {result.type === 1 ? (
-                                        <div>
-                                            <p>Flash not functional.</p>
-                                        </div>
-                                    ) : null}
-                                </a>
+                {results.length > 0 ? (
+                    results
+                        .slice(
+                            visibleResults * (currentPage - 1),
+                            visibleResults * (currentPage - 1) + visibleResults
+                        )
+                        .map((result, i) => {
+                            return (
+                                <section className="search-result" key={i}>
+                                    <a
+                                        href={result.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {result.type === 0 ? (
+                                            <StaticCanvas
+                                                width="650"
+                                                height="450"
+                                                src={
+                                                    result.thumbnail ||
+                                                    result.content
+                                                }
+                                            />
+                                        ) : null}
+                                        {result.type === 1 ? (
+                                            <div>
+                                                <p>Flash not functional.</p>
+                                            </div>
+                                        ) : null}
+                                    </a>
 
-                                <div
-                                    className="search-result-link"
-                                    onClick={() => {
-                                        setLightbox({
-                                            image: result.content,
-                                            visible: true,
-                                        });
-                                    }}
-                                >
-                                    <MdFullscreen />
-                                </div>
-                            </section>
-                        );
-                    })}
+                                    <div
+                                        className="search-result-link"
+                                        onClick={() => {
+                                            setLightbox({
+                                                image: result.content,
+                                                visible: true,
+                                            });
+                                        }}
+                                    >
+                                        <MdFullscreen />
+                                    </div>
+                                </section>
+                            );
+                        })
+                ) : (
+                    <p className="no-results">No results</p>
+                )}
             </section>
 
             <div
@@ -325,7 +333,12 @@ function HomePage() {
                 <MdArrowUpward />
             </div>
 
-            <Sidebar title="Tags">
+            <Sidebar
+                title="Tags"
+                clearSearch={() => {
+                    searchRef.current.value = "";
+                }}
+            >
                 {tags.map((tag, i) => {
                     return (
                         <ul key={i}>

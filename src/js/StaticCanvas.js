@@ -9,7 +9,7 @@ const StaticCanvas = (props) => {
         const image = new Image();
         image.src = props.src;
 
-        image.addEventListener("load", () => {
+        let ev = image.addEventListener("load", () => {
             if (canvasRef.current) {
                 canvasRef.current
                     .getContext("2d")
@@ -17,6 +17,10 @@ const StaticCanvas = (props) => {
                 canvasRef.current.getContext("2d").drawImage(image, 0, 0);
             }
         });
+
+        return () => {
+            image.removeEventListener("load", ev);
+        };
     }, [canvasRef, props]);
 
     return (
