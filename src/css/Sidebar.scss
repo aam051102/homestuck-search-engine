@@ -85,14 +85,22 @@
         ul {
             padding-left: 1rem;
             padding-top: 0.5rem;
-            font-size: 1rem;
             border-top: 2px solid #fff;
             margin-bottom: 1rem;
+        }
+    }
 
+    .sidebar-text {
+        font-size: 1rem;
+
+        li {
+            position: relative;
+            color: #c6c6c6;
+            text-transform: capitalize;
+        }
+
+        &.focusable {
             li {
-                position: relative;
-                color: #c6c6c6;
-                text-transform: capitalize;
                 transition: padding 0.25s ease, opacity 0.25s ease;
 
                 &:hover {

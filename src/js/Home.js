@@ -350,7 +350,7 @@ function HomePage() {
                         <ul key={i}>
                             <li>
                                 {tag.category}
-                                <ul>
+                                <ul className="sidebar-text focusable">
                                     {tag.tags.map((tag, i) => {
                                         return (
                                             <li

@@ -3,6 +3,7 @@ import { MdChevronLeft, MdChevronRight, MdClose } from "react-icons/md";
 
 import useEventListener from "./useEventListener";
 import "../css/Lightbox.scss";
+import Sidebar from "./Sidebar";
 
 /**
  * A lightbox to show search results in
@@ -24,7 +25,7 @@ const Lightbox = (props) => {
         document
     );
 
-    return (
+    return props.results.length > props.id ? (
         <div
             className={`lightbox${props.visible ? " visible" : ""}`}
             onClick={(e) => {
@@ -42,25 +43,24 @@ const Lightbox = (props) => {
             >
                 <MdChevronLeft />
             </button>
-            {props.results.length > props.id ? (
-                <a
-                    href={props.results[props.id].url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {props.results[props.id].type === 0 ? (
-                        <img
-                            src={props.results[props.id].content}
-                            alt="Lightbox Panel"
-                        />
-                    ) : null}
-                    {props.results[props.id].type === 1 ? (
-                        <div>
-                            <p>Flash not functional.</p>
-                        </div>
-                    ) : null}
-                </a>
-            ) : null}
+
+            <a
+                href={props.results[props.id].url}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {props.results[props.id].type === 0 ? (
+                    <img
+                        src={props.results[props.id].content}
+                        alt="Lightbox Panel"
+                    />
+                ) : null}
+                {props.results[props.id].type === 1 ? (
+                    <div>
+                        <p>Flash not functional.</p>
+                    </div>
+                ) : null}
+            </a>
 
             <button
                 className="lightbox-btn-clear lightbox-right"
@@ -78,8 +78,16 @@ const Lightbox = (props) => {
             >
                 <MdClose />
             </button>
+
+            <Sidebar title="Tags">
+                <ul className="sidebar-text">
+                    {props.results[props.id].tags.map((tag, i) => {
+                        return <li key={i}>{tag}</li>;
+                    })}
+                </ul>
+            </Sidebar>
         </div>
-    );
+    ) : null;
 };
 
 export default Lightbox;
