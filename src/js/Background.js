@@ -9,16 +9,26 @@ const Background = (props) => {
         const image = new Image();
         image.src = props.src;
 
-        function rerender() {
+        function renderImage() {
             if (canvasRef.current) {
-                canvasRef.current.width = window.innerWidth;
-                canvasRef.current.height = window.innerHeight;
+                // Clear canvas
                 canvasRef.current
                     .getContext("2d")
-                    .clearRect(0, 0, window.innerWidth, window.innerHeight);
+                    .clearRect(
+                        0,
+                        0,
+                        canvasRef.current.width,
+                        canvasRef.current.height
+                    );
 
+                // Resize canvas
+                canvasRef.current.width = window.innerWidth;
+                canvasRef.current.height = window.innerHeight;
+
+                // Draw image at correct scale to cover entire page
                 let heightToRatio =
                     (image.height / image.width) * window.innerWidth;
+
                 if (heightToRatio < window.innerHeight) {
                     canvasRef.current
                         .getContext("2d")
@@ -43,8 +53,9 @@ const Background = (props) => {
             }
         }
 
-        let ev = image.addEventListener("load", rerender);
-        let ev2 = window.addEventListener("resize", rerender);
+        // Rerender background on resize and load
+        let ev = image.addEventListener("load", renderImage);
+        let ev2 = window.addEventListener("resize", renderImage);
 
         return () => {
             image.removeEventListener("load", ev);

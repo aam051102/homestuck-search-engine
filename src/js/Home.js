@@ -23,7 +23,12 @@ let ENDPOINT =
 function HomePage() {
     const [results, setResults] = useState([]);
     const [tags, setTags] = useState([]);
-    const [lightbox, setLightbox] = useState({ image: "", visible: false });
+    const [lightbox, setLightbox] = useState({
+        results: [],
+        id: 0,
+        image: "",
+        visible: false,
+    });
     const [visibleResults, setVisibleResults] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -310,7 +315,7 @@ function HomePage() {
                                         className="search-result-link"
                                         onClick={() => {
                                             setLightbox({
-                                                image: result.content,
+                                                id: i,
                                                 visible: true,
                                             });
                                         }}
@@ -366,11 +371,27 @@ function HomePage() {
             </Sidebar>
 
             <Lightbox
-                image={lightbox.image}
-                visible={lightbox.visible}
                 hideLightbox={() => {
-                    setLightbox({ image: lightbox.image, visible: false });
+                    setLightbox({ visible: false });
                 }}
+                loadPrevious={() => {
+                    if (lightbox.id > 0) {
+                        setLightbox({
+                            id: lightbox.id - 1,
+                            visible: true,
+                        });
+                    }
+                }}
+                loadNext={() => {
+                    if (lightbox.id < results.length - 1) {
+                        setLightbox({
+                            id: lightbox.id + 1,
+                            visible: true,
+                        });
+                    }
+                }}
+                results={results}
+                {...lightbox}
             />
         </Layout>
     );

@@ -44,11 +44,39 @@
     .lightbox-left {
         font-size: 3rem;
         margin: 1rem;
+        transition: transform 0.5s ease;
+
+        &:hover {
+            transform: translateX(-5px);
+        }
+
+        &[disabled] {
+            color: #909090;
+
+            &:hover {
+                cursor: auto;
+                transform: none;
+            }
+        }
     }
 
     .lightbox-right {
         font-size: 3rem;
         margin: 1rem;
+        transition: transform 0.5s ease;
+
+        &:hover {
+            transform: translateX(5px);
+        }
+
+        &[disabled] {
+            color: #909090;
+
+            &:hover {
+                cursor: auto;
+                transform: none;
+            }
+        }
     }
 
     .lightbox-close {
