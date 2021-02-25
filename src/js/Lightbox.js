@@ -79,7 +79,7 @@ const Lightbox = (props) => {
                 <MdClose />
             </button>
 
-            <Sidebar title="Tags">
+            <Sidebar title="Asset Tags">
                 <ul className="sidebar-text">
                     {props.results[props.id].tags.map((tag, i) => {
                         return <li key={i}>{tag}</li>;

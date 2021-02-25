@@ -26,12 +26,14 @@ const Sidebar = (props) => {
                         <h2>{props.title}</h2>
                     </button>
 
-                    <button
-                        className="sidebar-button"
-                        onClick={props.clearSearch}
-                    >
-                        <MdDelete />
-                    </button>
+                    {props.clearSearch ? (
+                        <button
+                            className="sidebar-button"
+                            onClick={props.clearSearch}
+                        >
+                            <MdDelete />
+                        </button>
+                    ) : null}
                 </div>
 
                 <div className="sidebar-inner">{props.children}</div>
