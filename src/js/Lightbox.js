@@ -42,14 +42,26 @@ const Lightbox = (props) => {
             >
                 <MdChevronLeft />
             </button>
-            <img
-                src={
-                    props.results.length > props.id
-                        ? props.results[props.id].content
-                        : ""
-                }
-                alt="Lighthouse"
-            />
+            {props.results.length > props.id ? (
+                <a
+                    href={props.results[props.id].url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {props.results[props.id].type === 0 ? (
+                        <img
+                            src={props.results[props.id].content}
+                            alt="Lightbox Panel"
+                        />
+                    ) : null}
+                    {props.results[props.id].type === 1 ? (
+                        <div>
+                            <p>Flash not functional.</p>
+                        </div>
+                    ) : null}
+                </a>
+            ) : null}
+
             <button
                 className="lightbox-btn-clear lightbox-right"
                 disabled={props.id >= props.results.length - 1 ? true : false}
