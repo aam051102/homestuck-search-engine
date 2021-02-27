@@ -67,12 +67,18 @@ function HomePage() {
         e.preventDefault();
 
         // Get tags from search string
+        const searchTags = searchRef.current.value;
+
         let prevWasSpace = true;
         let actualTags = [];
         let tempTag = "";
-        const searchTags = searchRef.current.value;
+
+        let pageRanges = [];
+        let pageRangePoint = 0;
+        let rangeRef;
 
         for (let i = 0; i <= searchTags.length; i++) {
+            // Separator
             if (searchTags[i] === "," || i === searchTags.length) {
                 actualTags.push(tempTag.trimRight());
 
@@ -81,17 +87,40 @@ function HomePage() {
                 continue;
             }
 
+            // Page range
+            if (searchTags[i] === "(") {
+                pageRangePoint = 1;
+                rangeRef = pageRanges[pageRanges.length];
+                pageRanges.push(["", ""]);
+                continue;
+            } else if (searchTags[i] === "-") {
+                pageRangePoint = 2;
+                continue;
+            } else if (searchTags[i] === ")") {
+                pageRangePoint = 0;
+                rangeRef = null;
+                continue;
+            }
+
+            // Tag reading
             if (searchTags[i] === " " && !prevWasSpace) {
                 tempTag += " ";
                 prevWasSpace = true;
             } else if (searchTags[i] !== " ") {
-                if (
-                    searchTags.charCodeAt(i) <= 90 &&
-                    searchTags.charCodeAt(i) >= 65
-                ) {
-                    tempTag += String.fromCharCode(
-                        searchTags.charCodeAt(i) - 65 + 97
-                    );
+                const charCode = searchTags.charCodeAt(i);
+
+                if (charCode <= 57 && charCode >= 48) {
+                    // Start or end of page range
+                    if (rangeRef) {
+                        if (pageRangePoint == 1) {
+                            rangeRef[0] += searchTags[i];
+                        } else if (pageRangePoint == 2) {
+                            rangeRef[1] += searchTags[i];
+                        }
+                    }
+                } else if (charCode <= 90 && charCode >= 65) {
+                    // Force lowercase
+                    tempTag += String.fromCharCode(charCode - 65 + 97);
                 } else {
                     tempTag += searchTags[i];
                 }
@@ -126,7 +155,7 @@ function HomePage() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ tags: actualTags }),
+            body: JSON.stringify({ tags: actualTags, ranges: pageRanges }),
         })
             .then((e) => e.json())
             .then((data) => {
