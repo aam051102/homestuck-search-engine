@@ -54,12 +54,12 @@ const Background = (props) => {
         }
 
         // Rerender background on resize and load
-        let ev = image.addEventListener("load", renderImage);
-        let ev2 = window.addEventListener("resize", renderImage);
+        image.addEventListener("load", renderImage);
+        window.addEventListener("resize", renderImage);
 
         return () => {
-            image.removeEventListener("load", ev);
-            window.removeEventListener("resize", ev2);
+            image.removeEventListener("load", renderImage);
+            window.removeEventListener("resize", renderImage);
         };
     }, [canvasRef, props]);
 

@@ -80,7 +80,8 @@ function HomePage() {
         for (let i = 0; i <= searchTags.length; i++) {
             // Separator
             if (searchTags[i] === "," || i === searchTags.length) {
-                actualTags.push(tempTag.trimRight());
+                let trimmed = tempTag.trimRight();
+                if (trimmed.length > 0) actualTags.push(trimmed);
 
                 tempTag = "";
                 prevWasSpace = true;
@@ -90,8 +91,8 @@ function HomePage() {
             // Page range
             if (searchTags[i] === "(") {
                 pageRangePoint = 1;
-                rangeRef = pageRanges[pageRanges.length];
                 pageRanges.push(["", ""]);
+                rangeRef = pageRanges[pageRanges.length - 1];
                 continue;
             } else if (searchTags[i] === "-") {
                 pageRangePoint = 2;
@@ -112,9 +113,9 @@ function HomePage() {
                 if (charCode <= 57 && charCode >= 48) {
                     // Start or end of page range
                     if (rangeRef) {
-                        if (pageRangePoint == 1) {
+                        if (pageRangePoint === 1) {
                             rangeRef[0] += searchTags[i];
-                        } else if (pageRangePoint == 2) {
+                        } else if (pageRangePoint === 2) {
                             rangeRef[1] += searchTags[i];
                         }
                     }
