@@ -345,7 +345,10 @@ function HomePage() {
                                         className="search-result-link"
                                         onClick={() => {
                                             setLightbox({
-                                                id: i,
+                                                id:
+                                                    visibleResults *
+                                                        (currentPage - 1) +
+                                                    i,
                                                 visible: true,
                                             });
                                         }}
