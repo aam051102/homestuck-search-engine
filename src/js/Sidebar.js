@@ -21,6 +21,7 @@ const Sidebar = (props) => {
                         onClick={() => {
                             setShowSidebar(!showSidebar);
                         }}
+                        aria-label="Toggle sidebar"
                     >
                         <MdChevronLeft />
                         <h2>{props.title}</h2>

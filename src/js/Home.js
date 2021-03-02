@@ -262,6 +262,9 @@ function HomePage() {
 
             <form className="search-form" onSubmit={handleSubmit}>
                 <label className="search-term-label" htmlFor="search-term">
+                    Search
+                </label>
+                <div className="search-term-wrapper">
                     <input
                         ref={searchRef}
                         id="search-term"
@@ -270,19 +273,24 @@ function HomePage() {
                         autoComplete="off"
                         placeholder="Search (ex. 'john, act 1, dad')"
                     />
-                    <button className="search-button" type="submit">
+                    <button
+                        className="search-button"
+                        aria-label="Search"
+                        type="submit"
+                    >
                         <MdSearch />
                     </button>
-                </label>
+                </div>
             </form>
 
             <div className="results-info">
                 <p className="total-results">Found {results.length} results</p>
 
                 <div className="results-per-page">
-                    <label>Results per page:</label>
+                    <label htmlFor="results-input">Results per page:</label>
                     <div className="results-input-wrapper">
                         <input
+                            id="results-input"
                             className="results-input"
                             ref={visibleResultsRef}
                             type="number"

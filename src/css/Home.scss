@@ -96,8 +96,16 @@
         grid-row: 2;
         width: 100%;
         margin-top: 3rem;
+        position: relative;
 
         .search-term-label {
+            position: absolute;
+            left: 0;
+            font-size: 1.5em;
+            width: 100%;
+        }
+
+        .search-term-wrapper {
             position: relative;
             display: block;
             background-color: #ff9b00;
