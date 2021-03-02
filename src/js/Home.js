@@ -16,7 +16,7 @@ import StaticCanvas from "./StaticCanvas";
 const Lightbox = lazy(() => import("./Lightbox"));
 
 let ENDPOINT =
-    window.location.host === "localhost:3000"
+    window.location.hostname === "localhost"
         ? "http://localhost:4000"
         : "https://ahlgreen.net";
 

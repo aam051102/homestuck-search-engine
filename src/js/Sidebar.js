@@ -31,6 +31,7 @@ const Sidebar = (props) => {
                         <button
                             className="sidebar-button"
                             onClick={props.clearSearch}
+                            aria-label="Clear search"
                         >
                             <MdDelete />
                         </button>
