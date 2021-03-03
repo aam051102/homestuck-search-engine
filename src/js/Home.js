@@ -8,7 +8,6 @@ import {
 } from "react-icons/md";
 
 import "../css/Home.scss";
-import Background from "./Background";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
@@ -172,8 +171,6 @@ function HomePage() {
 
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
-            <Background src="https://pipe.miroware.io/5bc7665ecc3313406322aba0/dirk_bg_earthC.png" />
-
             <nav className="page-nav">
                 <ul>
                     <li

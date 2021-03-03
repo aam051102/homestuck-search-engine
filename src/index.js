@@ -6,6 +6,7 @@ import { Router } from "@reach/router";
 import "./index.scss";
 
 import Home from "./js/Home";
+import { HelmetProvider } from "react-helmet-async";
 const Login = lazy(() => import("./js/Login"));
 const Edit = lazy(() => import("./js/Edit"));
 const Settings = lazy(() => import("./js/Settings"));
@@ -15,12 +16,14 @@ const ENDPOINT = window.location.host === "localhost:3000" ? "" : "/app/hsse";
 ReactDOM.render(
     <React.StrictMode>
         <Suspense fallback={<div>Loading...</div>}>
-            <Router>
-                <Home path={`${ENDPOINT}/`} />
-                <Login path={`${ENDPOINT}/login`} />
-                <Edit path={`${ENDPOINT}/edit`} />
-                <Settings path={`${ENDPOINT}/settings`} />
-            </Router>
+            <HelmetProvider>
+                <Router>
+                    <Home path={`${ENDPOINT}/`} />
+                    <Login path={`${ENDPOINT}/login`} />
+                    <Edit path={`${ENDPOINT}/edit`} />
+                    <Settings path={`${ENDPOINT}/settings`} />
+                </Router>
+            </HelmetProvider>
         </Suspense>
     </React.StrictMode>,
     document.getElementById("root")
