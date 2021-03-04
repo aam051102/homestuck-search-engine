@@ -1,13 +1,29 @@
-import React, { createRef } from "react";
+import React, { createRef, useEffect, useState } from "react";
 import { MdChevronRight } from "react-icons/md";
+import { navigate } from "@reach/router";
 
 import "../css/Login.scss";
 
 import ENDPOINT from "./Endpoint";
 import Layout from "./Layout";
+import checkSignedIn from "./Utility";
 
 function LoginPage() {
     const passwordInputRef = createRef();
+    const [signedIn, setSignedIn] = useState(false);
+
+    useEffect(() => {
+        async function fetchData() {
+            setSignedIn(await checkSignedIn());
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        if (signedIn) {
+            navigate("/");
+        }
+    }, [signedIn]);
 
     return (
         <Layout className="login-page" title="Homestuck Search Engine | Login">
@@ -41,16 +57,18 @@ function LoginPage() {
                             })
                                 .then((e) => e.json())
                                 .then((data) => {
+                                    // Reset field
+                                    passwordInputRef.current.value = "";
+
                                     if (data.valid) {
                                         document.cookie = `hsse_token=${
                                             data.token
                                         }; expires=${new Date(data.expires)}`;
+
+                                        setSignedIn(true);
                                     } else {
                                         // TODO: Error stuff
                                     }
-
-                                    // Reset field
-                                    passwordInputRef.current.value = "";
                                 });
                         }}
                     >
