@@ -8,20 +8,18 @@ import "./index.scss";
 import Home from "./js/Home";
 import { HelmetProvider } from "react-helmet-async";
 const Login = lazy(() => import("./js/Login"));
-const Edit = lazy(() => import("./js/Edit"));
 const Settings = lazy(() => import("./js/Settings"));
 
-const ENDPOINT = window.location.host === "localhost:3000" ? "" : "/app/hsse";
+const STARTPOINT = window.location.hostname === "localhost" ? "" : "/app/hsse";
 
 ReactDOM.render(
     <React.StrictMode>
         <Suspense fallback={<div>Loading...</div>}>
             <HelmetProvider>
                 <Router>
-                    <Home path={`${ENDPOINT}/`} />
-                    <Login path={`${ENDPOINT}/login`} />
-                    <Edit path={`${ENDPOINT}/edit`} />
-                    <Settings path={`${ENDPOINT}/settings`} />
+                    <Home path={`${STARTPOINT}/`} />
+                    <Login path={`${STARTPOINT}/login`} />
+                    <Settings path={`${STARTPOINT}/settings`} />
                 </Router>
             </HelmetProvider>
         </Suspense>

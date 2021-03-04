@@ -1,0 +1,22 @@
+.themed-input-wrapper {
+    position: relative;
+    display: block;
+    background-color: #ff9b00;
+    padding: 0.4rem 0.3rem;
+    border: 0.1rem solid #0004;
+    box-shadow: 1px 1px #af4b00, 2px 2px #af4b00, 3px 3px #af4b00,
+        4px 4px #af4b00, 5px 5px #af4b00;
+
+    .themed-input {
+        width: 100%;
+        outline: none;
+        background-color: black;
+        color: #fff;
+        box-sizing: border-box;
+        border: 0.2rem solid #ffe000;
+        padding: 0.5rem;
+        font-family: "Courier New";
+        font-weight: bold;
+        font-size: 1rem;
+    }
+}

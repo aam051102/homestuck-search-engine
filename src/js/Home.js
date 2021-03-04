@@ -8,16 +8,12 @@ import {
 } from "react-icons/md";
 
 import "../css/Home.scss";
+import ENDPOINT from "./Endpoint";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
 import StaticCanvas from "./StaticCanvas";
 const Lightbox = lazy(() => import("./Lightbox"));
-
-let ENDPOINT =
-    window.location.hostname === "localhost"
-        ? "http://localhost:4000"
-        : "https://ahlgreen.net";
 
 function HomePage() {
     const [results, setResults] = useState([]);
@@ -285,10 +281,10 @@ function HomePage() {
 
                 <div className="results-per-page">
                     <label htmlFor="results-input">Results per page:</label>
-                    <div className="results-input-wrapper">
+                    <div className="results-input-wrapper themed-input-wrapper">
                         <input
                             id="results-input"
-                            className="results-input"
+                            className="results-input themed-input"
                             ref={visibleResultsRef}
                             type="number"
                             defaultValue={visibleResults}
