@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     MdCancel,
     MdChevronLeft,
@@ -20,8 +20,19 @@ import { getCookie } from "./Utility";
  */
 const Lightbox = (props) => {
     const [isEditMode, setIsEditMode] = useState(false);
+    const [resultTags, setResultTags] = useState([]);
 
     const result = props.results[props.id];
+
+    useEffect(() => {
+        if(result) {
+            if(result.tags.length > 0) {
+                setResultTags(result.tags);
+            } else {
+                setResultTags([""]);
+            }
+        }
+    }, [result]);
 
     const focusElement = (el) => {
         el.focus();
@@ -41,27 +52,12 @@ const Lightbox = (props) => {
                     }
                 } else {
                     if(e.key === "Enter") {
-                        const list = e.target.parentNode.parentNode;
+                        const tags = resultTags.slice();
+                        const index = parseInt(e.target.getAttribute("data-index")) + 1;
+                        tags.splice(index, 0, "");
+                        setResultTags(tags);
 
-                        const inputWrapper_el = document.createElement("li");
-                        inputWrapper_el.className = "temp-tag";
-
-                        const input_el = document.createElement("input");
-                        input_el.className = "tag-input";
-                        
-                        inputWrapper_el.appendChild(input_el);
-
-                        if(e.target.selectionStart === 0) {
-                            list.insertBefore(inputWrapper_el, e.target.parentNode);
-                        } else {
-                            if(e.target.parentNode.nextSibling) {
-                                list.insertBefore(inputWrapper_el, e.target.parentNode.nextSibling);
-                            } else {
-                                list.appendChild(inputWrapper_el);
-                            }
-                        }
-
-                        input_el.focus();
+                        focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
                     } else if(e.key === "ArrowUp") {
                         e.preventDefault();
 
@@ -78,13 +74,15 @@ const Lightbox = (props) => {
                         if(e.target.value.length === 0) {
                             e.preventDefault();
 
-                            if(e.target.parentNode.previousSibling) {
-                                focusElement(e.target.parentNode.previousSibling.children[0]);
-                            } else if(e.target.parentNode.nextSibling) {
-                                focusElement(e.target.parentNode.nextSibling.children[0]);
-                            }
+                            if(resultTags.length > 1) {
+                                const tags = resultTags.slice();
+                                const index = parseInt(e.target.getAttribute("data-index"));
+                                tags.splice(index, 1);
+                                setResultTags(tags);
 
-                            e.target.parentNode.remove();
+                                // Not great code, but the only way I could think of to do autofocusing properly
+                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ? 0 : index - 1}"]`));
+                            }
                         }
                     }
                 }
@@ -162,11 +160,10 @@ const Lightbox = (props) => {
                             <button
                                 className="lightbox-btn-clear lightbox-save"
                                 onClick={() => {
-                                    // TOOD: Save edits
                                     const tags = [];
 
-                                    document.querySelectorAll(".tag-input").forEach((field) => {
-                                        tags.push(field.value);
+                                    document.querySelectorAll(".tag-input").forEach((tag) => {
+                                        tags.push(tag.value);
                                     });
 
                                     fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
@@ -187,11 +184,11 @@ const Lightbox = (props) => {
                                         if(res.error) {
                                             console.error(res.error);
                                         } else {
-                                            result.tags = tags;
+                                            result.tags = tags.slice();
+                                            setResultTags(tags);
+                                            setIsEditMode(false);
                                         }
-                                    });
-                                    
-                                    setIsEditMode(false);
+                                    });                                    
                                 }}
                                 aria-label="Save edits"
                                 title="Save"
@@ -213,10 +210,10 @@ const Lightbox = (props) => {
 
             <Sidebar title="Asset Tags">
                 <ul className="sidebar-text">
-                    {result.tags.map((tag) => {
-                        return <li key={tag}>
+                    {resultTags.map((tag, i) => {
+                        return <li key={tag + i}>
                             {isEditMode ? (
-                                <input className="tag-input" defaultValue={tag} />
+                                <input className="tag-input" data-index={i} defaultValue={tag} />
                             ) : tag}
                         </li>;
                     })}
