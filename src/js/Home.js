@@ -13,6 +13,7 @@ import ENDPOINT from "./Endpoint";
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
 import StaticCanvas from "./StaticCanvas";
+import { checkSignedIn } from "./Utility";
 const Lightbox = lazy(() => import("./Lightbox"));
 
 function HomePage() {
@@ -30,7 +31,16 @@ function HomePage() {
     const searchRef = createRef();
     const visibleResultsRef = createRef();
 
+    const [signedIn, setSignedIn] = useState(false);
+    // TODO: Implement editing features
+
     useEffect(() => {
+        // Get signed in state
+        async function fetchData() {
+            setSignedIn(await checkSignedIn());
+        }
+        fetchData();
+
         // Get tags
         fetch(`${ENDPOINT}/api/app/1/tags`)
             .then((e) => e.json())
@@ -424,6 +434,7 @@ function HomePage() {
                         });
                     }
                 }}
+                signedIn={signedIn}
                 results={results}
                 {...lightbox}
             />

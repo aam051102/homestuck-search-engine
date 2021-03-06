@@ -6,7 +6,7 @@ import "../css/Login.scss";
 
 import ENDPOINT from "./Endpoint";
 import Layout from "./Layout";
-import checkSignedIn from "./Utility";
+import { checkSignedIn } from "./Utility";
 
 function LoginPage() {
     const passwordInputRef = createRef();

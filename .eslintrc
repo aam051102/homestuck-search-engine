@@ -1,0 +1,60 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
+    "plugins": [
+        "react"
+    ],
+    "env": {
+        "es6": true,
+        "node": true,
+        "browser": true
+    },
+    "settings": {
+		"react": {
+			"version": "detect"
+		}
+	},
+    "rules": {
+        "react/prop-types": [ "off" ],
+        "react/jsx-space-before-closing": [ "warn" ],
+        "react/jsx-indent": [
+            "warn",
+            4,
+            {
+                "checkAttributes": false,
+                "indentLogicalExpressions": true
+            }
+        ],
+        "react/jsx-indent-props": [
+            "warn",
+            4
+        ],
+        "lines-between-class-members": "warn",
+        "no-multiple-empty-lines": [
+			"warn",
+			{
+				"max": 1,
+				"maxEOF": 1,
+				"maxBOF": 0
+			}
+		],
+        "no-multi-spaces": "warn",
+        "indent": [
+			"warn",
+			4,
+			{
+				"SwitchCase": 1
+			}
+		],
+        "semi": ["warn", "always", { "omitLastInOneLineBlock": true }]
+    },
+    "parserOptions": {
+        "ecmaVersion": 11,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    }
+}

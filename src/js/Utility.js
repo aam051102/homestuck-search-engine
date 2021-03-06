@@ -1,16 +1,20 @@
 import ENDPOINT from "./Endpoint";
 
-export default async function checkSignedIn() {
+export function getCookie(name) {
     const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${"hsse_token"}=`);
-
-    let cookieData;
+    const parts = value.split(`; ${name}=`);
 
     if (parts.length === 2) {
-        cookieData = parts.pop().split(";").shift();
+        return parts.pop().split(";").shift();
     }
 
-    return new Promise((resolve, reject) => {
+    return undefined;
+}
+
+export async function checkSignedIn() {
+    let cookieData = getCookie("hsse_token");
+
+    return new Promise((resolve) => {
         if (cookieData) {
             return fetch(`${ENDPOINT}/api/validate`, {
                 method: "POST",

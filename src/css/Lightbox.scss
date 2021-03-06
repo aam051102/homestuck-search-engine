@@ -21,6 +21,18 @@
         display: flex;
     }
 
+    .tag-input {
+        font: inherit;
+        color: inherit;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #c6c6c6;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+    }
+
     .lightbox-btn-clear {
         background: transparent;
         color: $text-color;
@@ -28,7 +40,6 @@
         padding: 0;
         height: 1em;
         border: 0;
-        width: 1em;
         line-height: 1em;
         font-size: 2rem;
 
@@ -77,6 +88,20 @@
                 transform: none;
             }
         }
+    }
+
+    .lightbox-edit {
+        position: fixed;
+        top: 0;
+        right: 1.5em;
+        margin: 1rem;
+    }
+
+    .lightbox-save {
+        position: fixed;
+        top: 0;
+        right: 3em;
+        margin: 1rem;
     }
 
     .lightbox-close {
