@@ -41,19 +41,24 @@ const Lightbox = (props) => {
                     }
                 } else {
                     if(e.key === "Enter") {
-                        // TODO: Perform tag separation
                         const list = e.target.parentNode.parentNode;
 
                         const inputWrapper_el = document.createElement("li");
+                        inputWrapper_el.className = "temp-tag";
+
                         const input_el = document.createElement("input");
                         input_el.className = "tag-input";
                         
                         inputWrapper_el.appendChild(input_el);
 
-                        if(e.target.parentNode.nextSibling) {
-                            list.insertBefore(inputWrapper_el, e.target.parentNode.nextSibling);
+                        if(e.target.selectionStart === 0) {
+                            list.insertBefore(inputWrapper_el, e.target.parentNode);
                         } else {
-                            list.appendChild(inputWrapper_el);
+                            if(e.target.parentNode.nextSibling) {
+                                list.insertBefore(inputWrapper_el, e.target.parentNode.nextSibling);
+                            } else {
+                                list.appendChild(inputWrapper_el);
+                            }
                         }
 
                         input_el.focus();
@@ -72,7 +77,7 @@ const Lightbox = (props) => {
                     } else if(e.key === "Backspace") {                        
                         if(e.target.value.length === 0) {
                             e.preventDefault();
-                            
+
                             if(e.target.parentNode.previousSibling) {
                                 focusElement(e.target.parentNode.previousSibling.children[0]);
                             } else if(e.target.parentNode.nextSibling) {
@@ -181,9 +186,11 @@ const Lightbox = (props) => {
                                     }).then((res) => {
                                         if(res.error) {
                                             console.error(res.error);
+                                        } else {
+                                            result.tags = tags;
                                         }
                                     });
-
+                                    
                                     setIsEditMode(false);
                                 }}
                                 aria-label="Save edits"
@@ -205,23 +212,15 @@ const Lightbox = (props) => {
             </button>
 
             <Sidebar title="Asset Tags">
-                {isEditMode ? (
-                    <ul className="sidebar-text">
-                        {result.tags.map((tag, i) => {
-                            return (
-                                <li key={i}>
-                                    <input className="tag-input" defaultValue={tag} />
-                                </li>
-                            );
-                        })}
-                    </ul>
-                ) : (
-                    <ul className="sidebar-text">
-                        {result.tags.map((tag, i) => {
-                            return <li key={i}>{tag}</li>;
-                        })}
-                    </ul>
-                )}
+                <ul className="sidebar-text">
+                    {result.tags.map((tag) => {
+                        return <li key={tag}>
+                            {isEditMode ? (
+                                <input className="tag-input" defaultValue={tag} />
+                            ) : tag}
+                        </li>;
+                    })}
+                </ul>
             </Sidebar>
         </div>
     ) : null;
