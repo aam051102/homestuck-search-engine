@@ -21,7 +21,7 @@ function LoginPage() {
 
     useEffect(() => {
         if (signedIn) {
-            navigate("/");
+            navigate(window.location.hostname === "localhost" ? "/" : "/app/hsse/");
         }
     }, [signedIn]);
 
