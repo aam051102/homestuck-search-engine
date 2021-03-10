@@ -28,9 +28,17 @@
         outline: none;
         width: 100%;
         box-sizing: border-box;
-        border: 1px solid #c6c6c6;
-        padding: 0.5rem;
-        margin: 0.5rem 0;
+        border: 0;
+        padding: 0;
+        margin: 0;
+
+        &.empty {
+            border-bottom: 1px solid #c6c6c6;
+        }
+        
+        &:hover, &:focus {
+            color: #fff;
+        }
     }
 
     .lightbox-btn-clear {

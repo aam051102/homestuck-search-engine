@@ -18,7 +18,12 @@
 	},
     "rules": {
         "react/prop-types": [ "off" ],
-        "react/jsx-space-before-closing": [ "warn" ],
+        "react/jsx-tag-spacing": [ "warn", {
+            "closingSlash": "never",
+            "beforeSelfClosing": "always",
+            "afterOpening": "never",
+            "beforeClosing": "never"
+        }],
         "react/jsx-indent": [
             "warn",
             4,
@@ -48,7 +53,46 @@
 				"SwitchCase": 1
 			}
 		],
-        "semi": ["warn", "always", { "omitLastInOneLineBlock": true }]
+        "semi": ["warn", "always", { "omitLastInOneLineBlock": true }],
+        "keyword-spacing": [ "warn", {
+            "before": true,
+            "after": true
+        }],
+        "block-spacing": ["warn", "always"],
+        "space-infix-ops": ["warn", {
+            "int32Hint": true
+        }],
+        "space-unary-ops": ["warn", {
+            "words": true,
+            "nonwords": true,
+            "overrides": {
+                "--": false,
+                "++": false,
+                "!": false
+            }
+        }],
+        "no-whitespace-before-property": ["warn"],
+        "object-curly-spacing": [ "warn", "always", {
+            "arraysInObjects": true,
+            "objectsInObjects": true
+        }],
+        "space-before-blocks": [ "warn", "always" ],
+        "comma-spacing": ["warn", {
+            "before": false,
+            "after": true
+        }],
+        "comma-dangle": ["warn", {
+            "objects": "always",
+            "arrays": "always",
+            "functions": "never"
+        }],
+        "padding-line-between-statements": ["warn",
+            { "blankLine": "always", "prev": "*", "next": ["export", "function"] }
+        ],
+        "padded-blocks": ["warn", "never"],
+        "object-curly-newline":[ "warn", { "multiline": true } ],
+        "array-element-newline" : [ "warn", { "multiline": true } ],
+        "array-bracket-newline": [ "warn", { "multiline": true }]
     },
     "parserOptions": {
         "ecmaVersion": 11,

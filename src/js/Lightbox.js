@@ -5,7 +5,7 @@ import {
     MdChevronRight,
     MdClose,
     MdEdit,
-    MdSave,
+    MdSave
 } from "react-icons/md";
 
 import useEventListener from "./useEventListener";
@@ -13,68 +13,158 @@ import "../css/Lightbox.scss";
 import Sidebar from "./Sidebar";
 import ENDPOINT from "./Endpoint";
 import { getCookie } from "./Utility";
+import Dialog from "./Dialog";
 
 /**
  * A lightbox to show search results in
  * @param {Object} props
  */
 const Lightbox = (props) => {
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [resultTags, setResultTags] = useState([]);
+    // State
+    const [isEditMode, setIsEditMode, ] = useState(false);
+    const [resultTags, setResultTags, ] = useState([]);
+    const [dialog, setDialog, ] = useState({ visible: false, title: "", content: "", });
 
+    // Variables
     const result = props.results[props.id];
-
-    useEffect(() => {
-        if(result) {
-            if(result.tags.length > 0) {
-                setResultTags(result.tags);
-            } else {
-                setResultTags([""]);
-            }
-        }
-    }, [result]);
-
-    const focusElement = (el) => {
+    
+    // Functions
+    function focusElement(el) {
         el.focus();
         el.selectionStart = el.selectionEnd = el.value.length;
-    };
+    }
 
-    // Shortcut listener
+    function closeLightbox() {
+        setIsEditMode(false);
+        props.hideLightbox();
+    }
+
+    function showOutdatedSessionDialog() {
+        setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
+    }
+
+    function closeDialog() {
+        setDialog({ visible: false, });
+    }
+
+    async function saveData() {
+        if (!getCookie("hsse_token")) {
+            showOutdatedSessionDialog();
+
+            return;
+        }
+
+        const tags = [];
+
+        document.querySelectorAll(".tag-input").forEach((tag) => {
+            tags.push(tag.value);
+        });
+
+        return await fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getCookie("hsse_token")}`,
+            },
+            body: JSON.stringify({ tags: tags, }),
+        }).then(e => {
+            if (e.status === 403 || e.status === 401) {
+                showOutdatedSessionDialog();
+
+                return {};
+            } else {
+                return e.json();
+            }
+        }).then((res) => {
+            if (res.error) {
+                console.error(res.error);
+            } else {
+                result.tags = tags.slice();
+                setResultTags(tags);
+                setIsEditMode(false);
+            }
+        });
+    }
+
+    function exitEditMode(callback) {
+        if (!callback) callback = () => {};
+
+        if (isEditMode && resultTags !== result.tags) {
+            setDialog({
+                visible: true,
+                title: "Warning",
+                content: "Performing this action will disable edit mode. Would you like to save?",
+                buttons: [
+                    {
+                        title: "Save",
+                        callbacks: [saveData, callback, ],
+                    },
+                    {
+                        title: "Don't Save",
+                        callbacks: [callback, () => { setIsEditMode(false) }, ],
+                    },
+                    { title: "Cancel", }, 
+                ],
+            });
+        } else {
+            callback();
+            setIsEditMode(false);
+        }
+    }
+
+    // Effects
+    useEffect(() => {
+        if (result) {
+            if (result.tags.length > 0) {
+                setResultTags(result.tags);
+            } else {
+                setResultTags(["", ]);
+            }
+        }
+    }, [result, ]);
+
+    // Event listeners
     useEventListener(
         "keydown",
         (e) => {
             if (props.visible) {
-                if(!e.target.classList.contains("tag-input")) {
+                if (!e.target.classList.contains("tag-input")) {
                     if (e.key === "ArrowLeft") {
-                        props.loadPrevious();
+                        exitEditMode(props.loadPrevious);
                     } else if (e.key === "ArrowRight") {
-                        props.loadNext();
+                        exitEditMode(props.loadNext);
+                    } else if (e.key === "e") {
+                        if (isEditMode) {
+                            exitEditMode();
+                        } else {
+                            setIsEditMode(true);
+                        }
                     }
                 } else {
-                    if(e.key === "Enter") {
+                    if (e.key === "Enter") {
                         const tags = resultTags.slice();
                         const index = parseInt(e.target.getAttribute("data-index")) + 1;
                         tags.splice(index, 0, "");
                         setResultTags(tags);
 
                         focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
-                    } else if(e.key === "ArrowUp") {
+                    } else if (e.key === "ArrowUp") {
                         e.preventDefault();
 
-                        if(e.target.parentNode.previousSibling) {
+                        if (e.target.parentNode.previousSibling) {
                             focusElement(e.target.parentNode.previousSibling.children[0]);
                         }
-                    } else if(e.key === "ArrowDown") {
+                    } else if (e.key === "ArrowDown") {
                         e.preventDefault();
 
-                        if(e.target.parentNode.nextSibling) {
+                        if (e.target.parentNode.nextSibling) {
                             focusElement(e.target.parentNode.nextSibling.children[0]);
                         }
-                    } else if(e.key === "Backspace") {                        
-                        if(e.target.value.length === 0) {
+                    } else if (e.key === "Backspace") {                        
+                        if (e.target.value.length === 0) {
                             e.preventDefault();
 
-                            if(resultTags.length > 1) {
+                            if (resultTags.length > 1) {
                                 const tags = resultTags.slice();
                                 const index = parseInt(e.target.getAttribute("data-index"));
                                 tags.splice(index, 1);
@@ -96,7 +186,7 @@ const Lightbox = (props) => {
             className={`lightbox${props.visible ? " visible" : ""}`}
             onClick={(e) => {
                 if (e.target.classList.contains("lightbox")) {
-                    props.hideLightbox();
+                    exitEditMode(closeLightbox);
                 }
             }}
         >
@@ -104,7 +194,7 @@ const Lightbox = (props) => {
                 className={`lightbox-btn-clear lightbox-left`}
                 disabled={props.id <= 0 ? true : false}
                 onClick={() => {
-                    props.loadPrevious();
+                    exitEditMode(props.loadPrevious);
                 }}
                 aria-label="Previous asset"
             >
@@ -133,7 +223,7 @@ const Lightbox = (props) => {
                 className="lightbox-btn-clear lightbox-right"
                 disabled={props.id >= props.results.length - 1 ? true : false}
                 onClick={() => {
-                    props.loadNext();
+                    exitEditMode(props.loadNext);
                 }}
                 aria-label="Next asset"
             >
@@ -145,7 +235,11 @@ const Lightbox = (props) => {
                     <button
                         className="lightbox-btn-clear lightbox-edit"
                         onClick={() => {
-                            setIsEditMode(!isEditMode);
+                            if (isEditMode) {
+                                exitEditMode();
+                            } else {
+                                setIsEditMode(true);
+                            }
                         }}
                         aria-label="Edit tags"
                         title="Edit"
@@ -159,37 +253,7 @@ const Lightbox = (props) => {
                         isEditMode ?
                             <button
                                 className="lightbox-btn-clear lightbox-save"
-                                onClick={() => {
-                                    const tags = [];
-
-                                    document.querySelectorAll(".tag-input").forEach((tag) => {
-                                        tags.push(tag.value);
-                                    });
-
-                                    fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            Authorization: `Bearer ${getCookie("hsse_token")}`,
-                                        },
-                                        body: JSON.stringify({ tags: tags }),
-                                    }).then(e => {
-                                        if(e.status === 403 || e.status === 401) {
-                                            // TODO: Alert user of outdated session
-                                            return {};
-                                        } else {
-                                            return e.json();
-                                        }
-                                    }).then((res) => {
-                                        if(res.error) {
-                                            console.error(res.error);
-                                        } else {
-                                            result.tags = tags.slice();
-                                            setResultTags(tags);
-                                            setIsEditMode(false);
-                                        }
-                                    });                                    
-                                }}
+                                onClick={saveData}
                                 aria-label="Save edits"
                                 title="Save"
                             >
@@ -201,7 +265,9 @@ const Lightbox = (props) => {
 
             <button
                 className="lightbox-btn-clear lightbox-close"
-                onClick={props.hideLightbox}
+                onClick={() => {
+                    exitEditMode(closeLightbox);
+                }}
                 aria-label="Close sidebar"
                 title="Close"
             >
@@ -209,6 +275,8 @@ const Lightbox = (props) => {
             </button>
 
             <Sidebar title="Asset Tags">
+                {isEditMode && <p>Type and press enter.</p>}
+
                 <ul className="sidebar-text">
                     {resultTags.map((tag, i) => {
                         return <li key={tag + i}>
@@ -219,6 +287,8 @@ const Lightbox = (props) => {
                     })}
                 </ul>
             </Sidebar>
+
+            <Dialog {...dialog} closeDialog={closeDialog} />
         </div>
     ) : null;
 };
