@@ -71,7 +71,7 @@ const Lightbox = (props) => {
             if (e.status === 403 || e.status === 401) {
                 showOutdatedSessionDialog();
 
-                return {};
+                return { error: "Session outdated.", };
             } else {
                 return e.json();
             }
@@ -130,18 +130,22 @@ const Lightbox = (props) => {
             if (props.visible) {
                 if (!e.target.classList.contains("tag-input")) {
                     if (e.key === "ArrowLeft") {
+                        // Previous asset
                         exitEditMode(props.loadPrevious);
                     } else if (e.key === "ArrowRight") {
+                        // Next asset
                         exitEditMode(props.loadNext);
                     } else if (e.key === "e") {
+                        // Shortcut for edit mode
                         if (isEditMode) {
                             exitEditMode();
                         } else {
                             setIsEditMode(true);
                         }
                     }
-                } else {
+                } else if (isEditMode) {
                     if (e.key === "Enter") {
+                        // Add tag
                         const tags = resultTags.slice();
                         const index = parseInt(e.target.getAttribute("data-index")) + 1;
                         tags.splice(index, 0, "");
@@ -149,18 +153,21 @@ const Lightbox = (props) => {
 
                         focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
                     } else if (e.key === "ArrowUp") {
+                        // Move up
                         e.preventDefault();
 
                         if (e.target.parentNode.previousSibling) {
                             focusElement(e.target.parentNode.previousSibling.children[0]);
                         }
                     } else if (e.key === "ArrowDown") {
+                        // Move down
                         e.preventDefault();
 
                         if (e.target.parentNode.nextSibling) {
                             focusElement(e.target.parentNode.nextSibling.children[0]);
                         }
-                    } else if (e.key === "Backspace") {                        
+                    } else if (e.key === "Backspace") {     
+                        // Remove tag                   
                         if (e.target.value.length === 0) {
                             e.preventDefault();
 
@@ -171,8 +178,20 @@ const Lightbox = (props) => {
                                 setResultTags(tags);
 
                                 // Not great code, but the only way I could think of to do autofocusing properly
-                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ? 0 : index - 1}"]`));
+                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
+                                    0 :
+                                    index - 1}"]`));
                             }
+                        } else if (e.target.selectionStart + e.target.selectionEnd === e.target.value.length || e.target.value.length === 1) {
+                            e.target.classList.add("empty");
+                        }
+                    } else if (e.key === "Delete") {
+                        if (e.target.selectionStart + e.target.selectionEnd === e.target.value.length || e.target.value.length === 1) {
+                            e.target.classList.add("empty");
+                        }
+                    } else {
+                        if ((e.key.length === 1 || (e.key.ctrl && e.key === "v")) && e.target.classList.contains("empty")) {
+                            e.target.classList.remove("empty");
                         }
                     }
                 }
@@ -183,7 +202,9 @@ const Lightbox = (props) => {
 
     return props.results.length > props.id ? (
         <div
-            className={`lightbox${props.visible ? " visible" : ""}`}
+            className={`lightbox${props.visible ?
+                " visible" : 
+                ""}`}
             onClick={(e) => {
                 if (e.target.classList.contains("lightbox")) {
                     exitEditMode(closeLightbox);
@@ -192,7 +213,9 @@ const Lightbox = (props) => {
         >
             <button
                 className={`lightbox-btn-clear lightbox-left`}
-                disabled={props.id <= 0 ? true : false}
+                disabled={props.id <= 0 ? 
+                    true : 
+                    false}
                 onClick={() => {
                     exitEditMode(props.loadPrevious);
                 }}
@@ -221,7 +244,9 @@ const Lightbox = (props) => {
 
             <button
                 className="lightbox-btn-clear lightbox-right"
-                disabled={props.id >= props.results.length - 1 ? true : false}
+                disabled={props.id >= props.results.length - 1 ?
+                    true :
+                    false}
                 onClick={() => {
                     exitEditMode(props.loadNext);
                 }}
@@ -245,12 +270,14 @@ const Lightbox = (props) => {
                         title="Edit"
                     >
                         {
-                            isEditMode ? <MdCancel /> : <MdEdit />
+                            isEditMode ? 
+                                <MdCancel /> :
+                                <MdEdit />
                         }
                     </button>
 
                     {
-                        isEditMode ?
+                        isEditMode ? (
                             <button
                                 className="lightbox-btn-clear lightbox-save"
                                 onClick={saveData}
@@ -258,7 +285,8 @@ const Lightbox = (props) => {
                                 title="Save"
                             >
                                 <MdSave />
-                            </button> : null
+                            </button>
+                        ) : null
                     }
                 </>
             ) : null}
@@ -279,11 +307,15 @@ const Lightbox = (props) => {
 
                 <ul className="sidebar-text">
                     {resultTags.map((tag, i) => {
-                        return <li key={tag + i}>
-                            {isEditMode ? (
-                                <input className="tag-input" data-index={i} defaultValue={tag} />
-                            ) : tag}
-                        </li>;
+                        return (
+                            <li key={tag + i}>
+                                {isEditMode ? (
+                                    <input className={`tag-input${tag.length === 0 ? 
+                                        " empty" :
+                                        ""}`} data-index={i} defaultValue={tag} />
+                                ) : tag}
+                            </li>
+                        );
                     })}
                 </ul>
             </Sidebar>

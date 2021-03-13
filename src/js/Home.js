@@ -4,7 +4,7 @@ import {
     MdChevronLeft,
     MdChevronRight,
     MdFullscreen,
-    MdSearch,
+    MdSearch
 } from "react-icons/md";
 
 import "../css/Home.scss";
@@ -17,21 +17,22 @@ import { checkSignedIn } from "./Utility";
 const Lightbox = lazy(() => import("./Lightbox"));
 
 function HomePage() {
-    const [results, setResults] = useState([]);
-    const [tags, setTags] = useState([]);
-    const [lightbox, setLightbox] = useState({
+    const [results, setResults, ] = useState([]);
+    const [tags, setTags, ] = useState([]);
+    const [lightbox, setLightbox, ] = useState({
         results: [],
         id: 0,
         image: "",
         visible: false,
     });
-    const [visibleResults, setVisibleResults] = useState(20);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [visibleResults, setVisibleResults, ] = useState(20);
+    const [currentPage, setCurrentPage, ] = useState(1);
+    const [resultTags, setResultTags, ] = useState({});
 
     const searchRef = createRef();
     const visibleResultsRef = createRef();
 
-    const [signedIn, setSignedIn] = useState(false);
+    const [signedIn, setSignedIn, ] = useState(false);
     // TODO: Implement editing features
 
     useEffect(() => {
@@ -53,6 +54,29 @@ function HomePage() {
             });
     }, []);
 
+    /**
+     * Updates the list of all result tags
+     */
+    const updateResultTags = async (data) => {
+        const thisResultTags = {};
+
+        data.forEach((result) => {
+            result.tags.forEach((tag) => {
+                if (!thisResultTags[tag]) {
+                    thisResultTags[tag] = 1;
+                } else {
+                    thisResultTags[tag]++;
+                }
+            });
+        });
+
+        setResultTags(thisResultTags);
+    };
+
+    /**
+     * Adds a tag to the search bar
+     * @param {string} tag 
+     */
     const addTagToSearch = (tag) => {
         for (let i = searchRef.current.value.length - 1; i >= 0; i--) {
             if (searchRef.current.value[i] === ",") {
@@ -68,6 +92,10 @@ function HomePage() {
         searchRef.current.scrollLeft = searchRef.current.scrollWidth;
     };
 
+    /**
+     * Handles submit event
+     * @param {Event} e 
+     */
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -96,7 +124,7 @@ function HomePage() {
             // Page range
             if (searchTags[i] === "(") {
                 pageRangePoint = 1;
-                pageRanges.push(["", ""]);
+                pageRanges.push(["", "", ]);
                 rangeRef = pageRanges[pageRanges.length - 1];
                 continue;
             } else if (searchTags[i] === "-") {
@@ -158,10 +186,8 @@ function HomePage() {
         // Perform search
         fetch(`${ENDPOINT}/api/app/1/search`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ tags: actualTags, ranges: pageRanges }),
+            headers: { "Content-Type": "application/json", },
+            body: JSON.stringify({ tags: actualTags, ranges: pageRanges, }),
         })
             .then((e) => e.json())
             .then((data) => {
@@ -172,6 +198,7 @@ function HomePage() {
 
                 setResults(data);
                 setCurrentPage(1);
+                updateResultTags(data);
             });
     };
 
@@ -180,7 +207,9 @@ function HomePage() {
             <nav className="page-nav">
                 <ul>
                     <li
-                        className={currentPage > 1 ? "enabled" : ""}
+                        className={currentPage > 1 
+                            ? "enabled" 
+                            : ""}
                         onClick={(e) => {
                             if (e.target.classList.contains("enabled")) {
                                 setCurrentPage(currentPage - 1);
@@ -377,7 +406,7 @@ function HomePage() {
             <div
                 className="to-top"
                 onClick={() => {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.scrollTo({ top: 0, behavior: "smooth", });
                 }}
             >
                 <MdArrowUpward />
@@ -389,34 +418,56 @@ function HomePage() {
                     searchRef.current.value = "";
                 }}
             >
+                <details>
+                    <summary>
+                        <h2>Used Tags</h2>
+                    </summary>
+                    
+                    <ul className="sidebar-text">
+                        {Object.entries(resultTags).map((tag, i) => {
+                            return (
+                                <li key={tag[0] + i}>
+                                    {signedIn ? (
+                                        <input className={`tag-input${tag[0].length === 0 ?
+                                            " empty" :
+                                            ""}`} data-index={i} defaultValue={tag[0]} />
+                                    ) :
+                                        tag[0]} ({tag[1]})
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </details>
+
                 {tags.map((tag, i) => {
                     return (
-                        <ul key={i}>
-                            <li>
-                                {tag.category}
-                                <ul className="sidebar-text focusable">
-                                    {tag.tags.map((tag, i) => {
-                                        return (
-                                            <li
-                                                key={i}
-                                                onClick={() => {
-                                                    addTagToSearch(tag.title);
-                                                }}
-                                            >
-                                                {tag.title}
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </li>
-                        </ul>
+                        <details key={i} open>
+                            <summary>
+                                <h2>{tag.category}</h2>
+                            </summary>
+
+                            <ul className="sidebar-text focusable">
+                                {tag.tags.map((tag, i) => {
+                                    return (
+                                        <li
+                                            key={i}
+                                            onClick={() => {
+                                                addTagToSearch(tag.title);
+                                            }}
+                                        >
+                                            {tag.title}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </details>
                     );
                 })}
             </Sidebar>
 
             <Lightbox
                 hideLightbox={() => {
-                    setLightbox({ visible: false });
+                    setLightbox({ visible: false, });
                 }}
                 loadPrevious={() => {
                     if (lightbox.id > 0) {

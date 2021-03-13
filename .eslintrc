@@ -36,6 +36,16 @@
             "warn",
             4
         ],
+        "react/jsx-wrap-multilines": ["warn", {
+            "declaration": "parens-new-line",
+            "assignment": "parens-new-line",
+            "return": "parens-new-line",
+            "arrow": "parens-new-line",
+            "condition": "parens-new-line",
+            "logical": "parens-new-line",
+            "prop": "parens-new-line"
+        }],
+
         "lines-between-class-members": "warn",
         "no-multiple-empty-lines": [
 			"warn",
@@ -92,7 +102,8 @@
         "padded-blocks": ["warn", "never"],
         "object-curly-newline":[ "warn", { "multiline": true } ],
         "array-element-newline" : [ "warn", { "multiline": true } ],
-        "array-bracket-newline": [ "warn", { "multiline": true }]
+        "array-bracket-newline": [ "warn", { "multiline": true }],
+        "multiline-ternary": ["warn", "always"]
     },
     "parserOptions": {
         "ecmaVersion": 11,

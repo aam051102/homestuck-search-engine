@@ -23,7 +23,7 @@ const Dialog = (props) => {
                     {
                         props.buttons ? 
                             props.buttons.map((button) => (
-                                <button className="dialog-close" onClick={async (e) => {
+                                <button className="dialog-close" onClick={async () => {
                                     if (button.callbacks) {
                                         for (let i = 0; i < button.callbacks.length; i++) {
                                             await button.callbacks[i]();

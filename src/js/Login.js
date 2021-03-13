@@ -10,7 +10,7 @@ import { checkSignedIn } from "./Utility";
 
 function LoginPage() {
     const passwordInputRef = createRef();
-    const [signedIn, setSignedIn] = useState(false);
+    const [signedIn, setSignedIn, ] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -23,7 +23,7 @@ function LoginPage() {
         if (signedIn) {
             navigate(window.location.hostname === "localhost" ? "/" : "/app/hsse/");
         }
-    }, [signedIn]);
+    }, [signedIn, ]);
 
     return (
         <Layout className="login-page" title="Homestuck Search Engine | Login">
@@ -48,12 +48,8 @@ function LoginPage() {
 
                             fetch(`${ENDPOINT}/api/app/1/login`, {
                                 method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    password: passwordInputRef.current.value,
-                                }),
+                                headers: { "Content-Type": "application/json", },
+                                body: JSON.stringify({ password: passwordInputRef.current.value, }),
                             })
                                 .then((e) => e.json())
                                 .then((data) => {

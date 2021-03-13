@@ -112,4 +112,29 @@
             }
         }
     }
+
+    details {
+        summary {
+            border-bottom: 2px solid white;
+            margin-bottom: 0.5rem;
+            outline: none;
+            user-select: none;
+
+            h2 {
+                margin: 0;
+            }
+
+            h2, &::marker {
+                display: inline-block;
+            }
+
+            &:hover {
+                cursor: pointer;
+            }
+        }
+
+        &:not(:last-child) {
+            margin-bottom: 1rem;
+        }
+    }
 }

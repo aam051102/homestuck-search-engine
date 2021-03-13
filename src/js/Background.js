@@ -61,7 +61,7 @@ const Background = (props) => {
             image.removeEventListener("load", renderImage);
             window.removeEventListener("resize", renderImage);
         };
-    }, [canvasRef, props]);
+    }, [canvasRef, props, ]);
 
     return (
         <div className="background">
