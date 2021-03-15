@@ -1,0 +1,34 @@
+@import "Colors";
+
+.control-btn {
+	background: transparent;
+	color: $text-color;
+	outline: none;
+	padding: 0;
+	height: 1em;
+	border: 0;
+	line-height: 1em;
+	font-size: 2rem;
+
+	svg {
+		vertical-align: baseline;
+	}
+
+	&:hover {
+		cursor: pointer;
+	}
+}
+
+.control-edit {
+	position: fixed;
+	top: 0;
+	right: 1.5em;
+	margin: 1rem;
+}
+
+.control-save {
+	position: fixed;
+	top: 0;
+	right: 3em;
+	margin: 1rem;
+}

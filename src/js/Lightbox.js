@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
-    MdCancel,
     MdChevronLeft,
     MdChevronRight,
-    MdClose,
-    MdEdit,
-    MdSave
+    MdClose
 } from "react-icons/md";
 
 import useEventListener from "./useEventListener";
@@ -14,13 +11,14 @@ import Sidebar from "./Sidebar";
 import ENDPOINT from "./Endpoint";
 import { getCookie } from "./Utility";
 import Dialog from "./Dialog";
+import Controls from "./Controls";
 
 /**
  * A lightbox to show search results in
  * @param {Object} props
  */
 const Lightbox = (props) => {
-    // State
+    // States
     const [isEditMode, setIsEditMode, ] = useState(false);
     const [resultTags, setResultTags, ] = useState([]);
     const [dialog, setDialog, ] = useState({ visible: false, title: "", content: "", });
@@ -255,41 +253,7 @@ const Lightbox = (props) => {
                 <MdChevronRight />
             </button>
 
-            {props.signedIn ? (
-                <>
-                    <button
-                        className="lightbox-btn-clear lightbox-edit"
-                        onClick={() => {
-                            if (isEditMode) {
-                                exitEditMode();
-                            } else {
-                                setIsEditMode(true);
-                            }
-                        }}
-                        aria-label="Edit tags"
-                        title="Edit"
-                    >
-                        {
-                            isEditMode ? 
-                                <MdCancel /> :
-                                <MdEdit />
-                        }
-                    </button>
-
-                    {
-                        isEditMode ? (
-                            <button
-                                className="lightbox-btn-clear lightbox-save"
-                                onClick={saveData}
-                                aria-label="Save edits"
-                                title="Save"
-                            >
-                                <MdSave />
-                            </button>
-                        ) : null
-                    }
-                </>
-            ) : null}
+            <Controls save={saveData} />
 
             <button
                 className="lightbox-btn-clear lightbox-close"

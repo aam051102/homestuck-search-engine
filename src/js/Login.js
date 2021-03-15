@@ -1,4 +1,4 @@
-import React, { createRef, useEffect, useState } from "react";
+import React, { createRef, useEffect } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { navigate } from "@reach/router";
 
@@ -6,24 +6,27 @@ import "../css/Login.scss";
 
 import ENDPOINT from "./Endpoint";
 import Layout from "./Layout";
-import { checkSignedIn } from "./Utility";
+import { checkIsSignedIn } from "./Utility";
+import { setIsSignedIn, useIsSignedIn } from "./SignedIn";
 
 function LoginPage() {
     const passwordInputRef = createRef();
-    const [signedIn, setSignedIn, ] = useState(false);
+    const [isSignedIn, ] = useIsSignedIn();
 
     useEffect(() => {
         async function fetchData() {
-            setSignedIn(await checkSignedIn());
+            setIsSignedIn(await checkIsSignedIn());
         }
         fetchData();
     }, []);
 
     useEffect(() => {
-        if (signedIn) {
-            navigate(window.location.hostname === "localhost" ? "/" : "/app/hsse/");
+        if (isSignedIn) {
+            navigate(window.location.hostname === "localhost" ? 
+                "/" :
+                "/app/hsse/");
         }
-    }, [signedIn, ]);
+    }, [isSignedIn, ]);
 
     return (
         <Layout className="login-page" title="Homestuck Search Engine | Login">
@@ -61,7 +64,7 @@ function LoginPage() {
                                             data.token
                                         }; expires=${new Date(data.expires)}`;
 
-                                        setSignedIn(true);
+                                        setIsSignedIn(true);
                                     } else {
                                         // TODO: Error stuff
                                     }

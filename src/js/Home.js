@@ -8,15 +8,19 @@ import {
 } from "react-icons/md";
 
 import "../css/Home.scss";
+import Controls from "./Controls";
 import ENDPOINT from "./Endpoint";
+import { setIsSignedIn } from "./SignedIn";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
+import { useIsSignedIn } from "./SignedIn";
 import StaticCanvas from "./StaticCanvas";
-import { checkSignedIn } from "./Utility";
+import { checkIsSignedIn } from "./Utility";
 const Lightbox = lazy(() => import("./Lightbox"));
 
 function HomePage() {
+    // States
     const [results, setResults, ] = useState([]);
     const [tags, setTags, ] = useState([]);
     const [lightbox, setLightbox, ] = useState({
@@ -29,31 +33,12 @@ function HomePage() {
     const [currentPage, setCurrentPage, ] = useState(1);
     const [resultTags, setResultTags, ] = useState({});
 
+    const [isSignedIn, ] = useIsSignedIn();
+
     const searchRef = createRef();
     const visibleResultsRef = createRef();
 
-    const [signedIn, setSignedIn, ] = useState(false);
-    // TODO: Implement editing features
-
-    useEffect(() => {
-        // Get signed in state
-        async function fetchData() {
-            setSignedIn(await checkSignedIn());
-        }
-        fetchData();
-
-        // Get tags
-        fetch(`${ENDPOINT}/api/app/1/tags`)
-            .then((e) => e.json())
-            .then((data) => {
-                data.sort((a, b) => {
-                    return a.position - b.position;
-                });
-
-                setTags(data);
-            });
-    }, []);
-
+    // Functions
     /**
      * Updates the list of all result tags
      */
@@ -202,8 +187,30 @@ function HomePage() {
             });
     };
 
+    // Efects
+    useEffect(() => {
+        // Get signed in state
+        async function fetchData() {
+            setIsSignedIn(await checkIsSignedIn());
+        }
+        fetchData();
+
+        // Get tags
+        fetch(`${ENDPOINT}/api/app/1/tags`)
+            .then((e) => e.json())
+            .then((data) => {
+                data.sort((a, b) => {
+                    return a.position - b.position;
+                });
+
+                setTags(data);
+            });
+    }, []);
+
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
+            <Controls />
+
             <nav className="page-nav">
                 <ul>
                     <li
@@ -427,7 +434,7 @@ function HomePage() {
                         {Object.entries(resultTags).map((tag, i) => {
                             return (
                                 <li key={tag[0] + i}>
-                                    {signedIn ? (
+                                    {isSignedIn ? (
                                         <input className={`tag-input${tag[0].length === 0 ?
                                             " empty" :
                                             ""}`} data-index={i} defaultValue={tag[0]} />
@@ -485,7 +492,7 @@ function HomePage() {
                         });
                     }
                 }}
-                signedIn={signedIn}
+                isIsSignedIn={isSignedIn}
                 results={results}
                 {...lightbox}
             />

@@ -20,7 +20,7 @@ export function getCookie(name) {
  * Checks whether or not the user is currently signed in with a valid token
  * @returns {Promise<boolean>}
  */
-export async function checkSignedIn() {
+export async function checkIsSignedIn() {
     let cookieData = getCookie("hsse_token");
 
     return new Promise((resolve) => {
