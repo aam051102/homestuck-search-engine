@@ -67,6 +67,7 @@ function LoginPage() {
                                         setIsSignedIn(true);
                                     } else {
                                         // TODO: Error stuff
+                                        console.error(data);
                                     }
                                 });
                         }}

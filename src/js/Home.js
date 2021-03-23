@@ -10,7 +10,9 @@ import {
 import "../css/Home.scss";
 import Controls from "./Controls";
 import ENDPOINT from "./Endpoint";
+
 import { setIsSignedIn } from "./SignedIn";
+import { useIsEditMode } from "./EditMode";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
@@ -34,6 +36,7 @@ function HomePage() {
     const [resultTags, setResultTags, ] = useState({});
 
     const [isSignedIn, ] = useIsSignedIn();
+    const [isEditMode, ] = useIsEditMode();
 
     const searchRef = createRef();
     const visibleResultsRef = createRef();
@@ -433,10 +436,10 @@ function HomePage() {
                     <ul className="sidebar-text">
                         {Object.entries(resultTags).map((tag, i) => {
                             return (
-                                <li key={tag[0] + i}>
-                                    {isSignedIn ? (
-                                        <input className={`tag-input${tag[0].length === 0 ?
-                                            " empty" :
+                                <li className="sidebar-text-input" key={tag[0] + i}>
+                                    {isEditMode ? (
+                                        <input className={`${tag[0].length === 0 ?
+                                            "empty" :
                                             ""}`} data-index={i} defaultValue={tag[0]} />
                                     ) :
                                         tag[0]} ({tag[1]})

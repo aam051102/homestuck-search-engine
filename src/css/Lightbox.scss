@@ -21,26 +21,6 @@
         display: flex;
     }
 
-    .tag-input {
-        font: inherit;
-        color: inherit;
-        background: transparent;
-        outline: none;
-        width: 100%;
-        box-sizing: border-box;
-        border: 0;
-        padding: 0;
-        margin: 0;
-
-        &.empty {
-            border-bottom: 1px solid #c6c6c6;
-        }
-        
-        &:hover, &:focus {
-            color: #fff;
-        }
-    }
-
     .lightbox-btn-clear {
         background: transparent;
         color: $text-color;

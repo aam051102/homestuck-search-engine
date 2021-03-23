@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
 import "../css/Controls.scss";
+import { useIsEditMode } from "./EditMode";
+import { useIsSignedIn } from "./SignedIn";
 
 const Controls = (props) => {
-    const [isEditMode, setIsEditMode, ] = useState(false);
-    const isSignedIn = true;
+    const [isEditMode, setIsEditMode, ] = useIsEditMode();
+    const [isSignedIn, ] = useIsSignedIn();
 
     return (
         <>

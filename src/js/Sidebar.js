@@ -8,15 +8,21 @@ const Sidebar = (props) => {
 
     return (
         <>
-            <aside className={`sidebar${showSidebar ? " visible" : ""}`}>
+            <aside className={`sidebar${showSidebar ? 
+                " visible" :
+                ""}`}>
                 <div
                     className={`sidebar-controls ${
-                        showSidebar ? "close" : "open"
+                        showSidebar ?
+                            "close" : 
+                            "open"
                     }`}
                 >
                     <button
                         className={`sidebar-button ${
-                            showSidebar ? "close" : "open"
+                            showSidebar ?
+                                "close" :
+                                "open"
                         }`}
                         onClick={() => {
                             setShowSidebar(!showSidebar);

@@ -12,6 +12,7 @@ import ENDPOINT from "./Endpoint";
 import { getCookie } from "./Utility";
 import Dialog from "./Dialog";
 import Controls from "./Controls";
+import { useIsEditMode } from "./EditMode";
 
 /**
  * A lightbox to show search results in
@@ -19,7 +20,7 @@ import Controls from "./Controls";
  */
 const Lightbox = (props) => {
     // States
-    const [isEditMode, setIsEditMode, ] = useState(false);
+    const [isEditMode, setIsEditMode, ] = useIsEditMode();
     const [resultTags, setResultTags, ] = useState([]);
     const [dialog, setDialog, ] = useState({ visible: false, title: "", content: "", });
 
@@ -99,14 +100,13 @@ const Lightbox = (props) => {
                     },
                     {
                         title: "Don't Save",
-                        callbacks: [callback, () => { setIsEditMode(false) }, ],
+                        callbacks: [callback, ],
                     },
                     { title: "Cancel", }, 
                 ],
             });
         } else {
             callback();
-            setIsEditMode(false);
         }
     }
 
@@ -272,10 +272,10 @@ const Lightbox = (props) => {
                 <ul className="sidebar-text">
                     {resultTags.map((tag, i) => {
                         return (
-                            <li key={tag + i}>
+                            <li className="sidebar-text-input" key={tag + i}>
                                 {isEditMode ? (
-                                    <input className={`tag-input${tag.length === 0 ? 
-                                        " empty" :
+                                    <input className={`${tag.length === 0 ? 
+                                        "empty" :
                                         ""}`} data-index={i} defaultValue={tag} />
                                 ) : tag}
                             </li>
