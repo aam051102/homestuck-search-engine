@@ -1,6 +1,7 @@
 import React from "react";
 
 import "../css/Dialog.scss";
+import { setDialog } from "./useDialog";
 
 /**
  * A basic dialog with info
@@ -8,9 +9,7 @@ import "../css/Dialog.scss";
  */
 const Dialog = (props) => {
     function handleCloseBtnClick() {
-        if (props.closeDialog) {
-            props.closeDialog();
-        }
+        setDialog({ visible: false, });
     }
 
     return props.visible && (

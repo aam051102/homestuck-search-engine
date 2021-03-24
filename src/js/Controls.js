@@ -2,12 +2,43 @@ import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
 import "../css/Controls.scss";
-import { useIsEditMode } from "./EditMode";
-import { useIsSignedIn } from "./SignedIn";
+import { setDialog, useDialog } from "./useDialog";
+import { useIsEditMode } from "./useIsEditMode";
+import { useIsSignedIn } from "./useIsSignedIn";
 
 const Controls = (props) => {
     const [isEditMode, setIsEditMode, ] = useIsEditMode();
     const [isSignedIn, ] = useIsSignedIn();
+    const [dialog, ] = useDialog();
+
+    function saveData() {
+
+    }
+
+    function exitEditMode(callback) {
+        if (!callback) callback = () => {};
+
+        if (isEditMode /*&& resultTags !== result.tags*/) {
+            setDialog({
+                visible: true,
+                title: "Warning",
+                content: "Performing this action will disable edit mode. Would you like to save?",
+                buttons: [
+                    {
+                        title: "Save",
+                        callbacks: [saveData, callback, ],
+                    },
+                    {
+                        title: "Don't Save",
+                        callbacks: [callback, ],
+                    },
+                    { title: "Cancel", }, 
+                ],
+            });
+        } else {
+            callback();
+        }
+    }
 
     return (
         <>
@@ -17,8 +48,7 @@ const Controls = (props) => {
                         className="control-btn control-edit"
                         onClick={() => {
                             if (isEditMode) {
-                                if (props.exit) props.exit();
-                                setIsEditMode(false);
+                                exitEditMode(props.exit);
                             } else {
                                 setIsEditMode(true);
                             }

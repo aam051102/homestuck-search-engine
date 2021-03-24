@@ -11,14 +11,16 @@ import "../css/Home.scss";
 import Controls from "./Controls";
 import ENDPOINT from "./Endpoint";
 
-import { setIsSignedIn } from "./SignedIn";
-import { useIsEditMode } from "./EditMode";
+import { setIsSignedIn, useIsSignedIn } from "./useIsSignedIn";
+import { setIsEditMode, useIsEditMode } from "./useIsEditMode";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
-import { useIsSignedIn } from "./SignedIn";
 import StaticCanvas from "./StaticCanvas";
 import { checkIsSignedIn } from "./Utility";
+import useEventListener from "./useEventListener";
+import { useDialog } from "./useDialog";
+import Dialog from "./Dialog";
 const Lightbox = lazy(() => import("./Lightbox"));
 
 function HomePage() {
@@ -37,6 +39,7 @@ function HomePage() {
 
     const [isSignedIn, ] = useIsSignedIn();
     const [isEditMode, ] = useIsEditMode();
+    const [dialog, ] = useDialog();
 
     const searchRef = createRef();
     const visibleResultsRef = createRef();
@@ -209,6 +212,24 @@ function HomePage() {
                 setTags(data);
             });
     }, []);
+
+    // Event listeners
+    useEventListener(
+        "keydown",
+        (e) => {
+            if (dialog.visible) {
+                if (e.target.tagName !== "INPUT") {
+                    if (e.key === "e") {
+                        // Shortcut for edit mode
+                        if (isEditMode) {
+                            setIsEditMode(false);
+                        } else {
+                            setIsEditMode(true);
+                        }
+                    }
+                }
+            }
+        });
 
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
@@ -499,6 +520,8 @@ function HomePage() {
                 results={results}
                 {...lightbox}
             />
+
+            <Dialog {...dialog} />
         </Layout>
     );
 }

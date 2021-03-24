@@ -10,9 +10,8 @@ import "../css/Lightbox.scss";
 import Sidebar from "./Sidebar";
 import ENDPOINT from "./Endpoint";
 import { getCookie } from "./Utility";
-import Dialog from "./Dialog";
-import Controls from "./Controls";
-import { useIsEditMode } from "./EditMode";
+import { useIsEditMode } from "./useIsEditMode";
+import { setDialog } from "./useDialog";
 
 /**
  * A lightbox to show search results in
@@ -20,9 +19,8 @@ import { useIsEditMode } from "./EditMode";
  */
 const Lightbox = (props) => {
     // States
-    const [isEditMode, setIsEditMode, ] = useIsEditMode();
+    const [isEditMode,  ] = useIsEditMode();
     const [resultTags, setResultTags, ] = useState([]);
-    const [dialog, setDialog, ] = useState({ visible: false, title: "", content: "", });
 
     // Variables
     const result = props.results[props.id];
@@ -34,16 +32,12 @@ const Lightbox = (props) => {
     }
 
     function closeLightbox() {
-        setIsEditMode(false);
         props.hideLightbox();
     }
 
     function showOutdatedSessionDialog() {
+        // TODO: Move somewhere else and make dialog global
         setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
-    }
-
-    function closeDialog() {
-        setDialog({ visible: false, });
     }
 
     async function saveData() {
@@ -80,34 +74,8 @@ const Lightbox = (props) => {
             } else {
                 result.tags = tags.slice();
                 setResultTags(tags);
-                setIsEditMode(false);
             }
         });
-    }
-
-    function exitEditMode(callback) {
-        if (!callback) callback = () => {};
-
-        if (isEditMode && resultTags !== result.tags) {
-            setDialog({
-                visible: true,
-                title: "Warning",
-                content: "Performing this action will disable edit mode. Would you like to save?",
-                buttons: [
-                    {
-                        title: "Save",
-                        callbacks: [saveData, callback, ],
-                    },
-                    {
-                        title: "Don't Save",
-                        callbacks: [callback, ],
-                    },
-                    { title: "Cancel", }, 
-                ],
-            });
-        } else {
-            callback();
-        }
     }
 
     // Effects
@@ -129,17 +97,10 @@ const Lightbox = (props) => {
                 if (!e.target.classList.contains("tag-input")) {
                     if (e.key === "ArrowLeft") {
                         // Previous asset
-                        exitEditMode(props.loadPrevious);
+                        props.loadPrevious();
                     } else if (e.key === "ArrowRight") {
                         // Next asset
-                        exitEditMode(props.loadNext);
-                    } else if (e.key === "e") {
-                        // Shortcut for edit mode
-                        if (isEditMode) {
-                            exitEditMode();
-                        } else {
-                            setIsEditMode(true);
-                        }
+                        props.loadNext();
                     }
                 } else if (isEditMode) {
                     if (e.key === "Enter") {
@@ -205,7 +166,7 @@ const Lightbox = (props) => {
                 ""}`}
             onClick={(e) => {
                 if (e.target.classList.contains("lightbox")) {
-                    exitEditMode(closeLightbox);
+                    closeLightbox();
                 }
             }}
         >
@@ -215,7 +176,7 @@ const Lightbox = (props) => {
                     true : 
                     false}
                 onClick={() => {
-                    exitEditMode(props.loadPrevious);
+                    props.loadPrevious();
                 }}
                 aria-label="Previous asset"
             >
@@ -246,19 +207,17 @@ const Lightbox = (props) => {
                     true :
                     false}
                 onClick={() => {
-                    exitEditMode(props.loadNext);
+                    props.loadNext();
                 }}
                 aria-label="Next asset"
             >
                 <MdChevronRight />
             </button>
 
-            <Controls save={saveData} />
-
             <button
                 className="lightbox-btn-clear lightbox-close"
                 onClick={() => {
-                    exitEditMode(closeLightbox);
+                    closeLightbox();
                 }}
                 aria-label="Close sidebar"
                 title="Close"
@@ -283,8 +242,6 @@ const Lightbox = (props) => {
                     })}
                 </ul>
             </Sidebar>
-
-            <Dialog {...dialog} closeDialog={closeDialog} />
         </div>
     ) : null;
 };
