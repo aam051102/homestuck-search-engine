@@ -1,4 +1,4 @@
-import ENDPOINT from "./Endpoint";
+import ENDPOINT from "./endpoint";
 
 /**
  * Gets a cookie by name

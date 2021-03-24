@@ -5,13 +5,11 @@ import {
     MdClose
 } from "react-icons/md";
 
-import useEventListener from "./useEventListener";
-import "../css/Lightbox.scss";
 import Sidebar from "./Sidebar";
-import ENDPOINT from "./Endpoint";
-import { getCookie } from "./Utility";
-import { useIsEditMode } from "./useIsEditMode";
-import { setDialog } from "./useDialog";
+import useEventListener from "../useEventListener";
+import { useIsEditMode } from "../globalState";
+
+import "../../css/Lightbox.scss";
 
 /**
  * A lightbox to show search results in
@@ -19,7 +17,7 @@ import { setDialog } from "./useDialog";
  */
 const Lightbox = (props) => {
     // States
-    const [isEditMode,  ] = useIsEditMode();
+    const [isEditMode, ] = useIsEditMode();
     const [resultTags, setResultTags, ] = useState([]);
 
     // Variables
@@ -33,49 +31,6 @@ const Lightbox = (props) => {
 
     function closeLightbox() {
         props.hideLightbox();
-    }
-
-    function showOutdatedSessionDialog() {
-        // TODO: Move somewhere else and make dialog global
-        setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
-    }
-
-    async function saveData() {
-        if (!getCookie("hsse_token")) {
-            showOutdatedSessionDialog();
-
-            return;
-        }
-
-        const tags = [];
-
-        document.querySelectorAll(".tag-input").forEach((tag) => {
-            tags.push(tag.value);
-        });
-
-        return await fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getCookie("hsse_token")}`,
-            },
-            body: JSON.stringify({ tags: tags, }),
-        }).then(e => {
-            if (e.status === 403 || e.status === 401) {
-                showOutdatedSessionDialog();
-
-                return { error: "Session outdated.", };
-            } else {
-                return e.json();
-            }
-        }).then((res) => {
-            if (res.error) {
-                console.error(res.error);
-            } else {
-                result.tags = tags.slice();
-                setResultTags(tags);
-            }
-        });
     }
 
     // Effects

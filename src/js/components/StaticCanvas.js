@@ -1,7 +1,8 @@
 import React, { createRef } from "react";
 
-import "../css/StaticCanvas.scss";
-import useEventListener from "./useEventListener";
+import useEventListener from "../useEventListener";
+
+import "../../css/StaticCanvas.scss";
 
 const StaticCanvas = (props) => {
     const canvasRef = createRef();

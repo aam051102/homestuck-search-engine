@@ -1,6 +1,6 @@
 import React from "react";
 
-import "../css/Settings.scss";
+import "../../css/Settings.scss";
 
 import Layout from "./Layout";
 

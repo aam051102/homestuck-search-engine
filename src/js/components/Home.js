@@ -7,19 +7,16 @@ import {
     MdSearch
 } from "react-icons/md";
 
-import "../css/Home.scss";
+import "../../css/Home.scss";
 import Controls from "./Controls";
-import ENDPOINT from "./Endpoint";
+import ENDPOINT from "../endpoint";
 
-import { setIsSignedIn, useIsSignedIn } from "./useIsSignedIn";
-import { setIsEditMode, useIsEditMode } from "./useIsEditMode";
+import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog } from "../globalState";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
 import StaticCanvas from "./StaticCanvas";
-import { checkIsSignedIn } from "./Utility";
-import useEventListener from "./useEventListener";
-import { useDialog } from "./useDialog";
+import { checkIsSignedIn } from "../utility";
 import Dialog from "./Dialog";
 const Lightbox = lazy(() => import("./Lightbox"));
 
@@ -213,28 +210,8 @@ function HomePage() {
             });
     }, []);
 
-    // Event listeners
-    useEventListener(
-        "keydown",
-        (e) => {
-            if (dialog.visible) {
-                if (e.target.tagName !== "INPUT") {
-                    if (e.key === "e") {
-                        // Shortcut for edit mode
-                        if (isEditMode) {
-                            setIsEditMode(false);
-                        } else {
-                            setIsEditMode(true);
-                        }
-                    }
-                }
-            }
-        });
-
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
-            <Controls />
-
             <nav className="page-nav">
                 <ul>
                     <li
@@ -522,6 +499,8 @@ function HomePage() {
             />
 
             <Dialog {...dialog} />
+
+            <Controls />
         </Layout>
     );
 }

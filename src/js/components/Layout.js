@@ -1,8 +1,8 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 
-import "../css/Layout.scss";
 import Background from "./Background";
+import "../../css/Layout.scss";
 
 function Layout(props) {
     return (

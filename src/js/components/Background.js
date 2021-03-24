@@ -1,6 +1,6 @@
 import React, { createRef, useLayoutEffect } from "react";
 
-import "../css/Background.scss";
+import "../../css/Background.scss";
 
 const Background = (props) => {
     const canvasRef = createRef();

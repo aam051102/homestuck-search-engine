@@ -1,7 +1,7 @@
 import React from "react";
 
-import "../css/Dialog.scss";
-import { setDialog } from "./useDialog";
+import "../../css/Dialog.scss";
+import { setDialog } from "../globalState";
 
 /**
  * A basic dialog with info

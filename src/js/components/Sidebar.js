@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { MdChevronLeft, MdDelete } from "react-icons/md";
 
-import "../css/Sidebar.scss";
+import "../../css/Sidebar.scss";
 
 const Sidebar = (props) => {
     const [showSidebar, setShowSidebar, ] = useState(false);
