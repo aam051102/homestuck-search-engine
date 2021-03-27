@@ -7,7 +7,7 @@ import {
 
 import Sidebar from "./Sidebar";
 import useEventListener from "../useEventListener";
-import { useIsEditMode } from "../globalState";
+import { useEdits, setEdits, useIsEditMode } from "../globalState";
 
 import "../../css/Lightbox.scss";
 
@@ -18,31 +18,62 @@ import "../../css/Lightbox.scss";
 const Lightbox = (props) => {
     // States
     const [isEditMode, ] = useIsEditMode();
+    const [edits, ] = useEdits();
+
     const [resultTags, setResultTags, ] = useState([]);
 
     // Variables
     const result = props.results[props.id];
     
     // Functions
+    /**
+     * Focuses on an element
+     * @param {HTMLElement} el 
+     */
     function focusElement(el) {
         el.focus();
         el.selectionStart = el.selectionEnd = el.value.length;
     }
 
+    /**
+     * Closes lightbox
+     */
     function closeLightbox() {
+        rememberLocalData();
         props.hideLightbox();
+    }
+
+    /**
+     * Saves tag changes to global state
+     * @param {Event} event 
+     */
+    function rememberLocalData() {
+        const editsLocal = Object.assign({}, edits);
+        
+        const tags = [];
+
+        document.querySelectorAll(".tag-input").forEach((tag) => {
+            tags.push(tag.value);
+        });
+
+        editsLocal[props.id] = tags;
+    
+        setEdits(editsLocal);
     }
 
     // Effects
     useEffect(() => {
-        if (result) {
-            if (result.tags.length > 0) {
-                setResultTags(result.tags);
-            } else {
-                setResultTags(["", ]);
-            }
+        if (edits[props.id] && edits[props.id].length > 0) {
+            // Use edits, if made
+            setResultTags(edits[props.id]);
+        } else if (result && result.tags.length > 0) {
+            // Otherwise, use results
+            setResultTags(result.tags);
+        } else {
+            // If neither is loaded, use blank line
+            setResultTags(["", ]);
         }
-    }, [result, ]);
+    }, [result, edits, props.id, ]);
 
     // Event listeners
     useEventListener(
@@ -188,8 +219,8 @@ const Lightbox = (props) => {
                         return (
                             <li className="sidebar-text-input" key={tag + i}>
                                 {isEditMode ? (
-                                    <input className={`${tag.length === 0 ? 
-                                        "empty" :
+                                    <input className={`tag-input${tag.length === 0 ? 
+                                        " empty" :
                                         ""}`} data-index={i} defaultValue={tag} />
                                 ) : tag}
                             </li>

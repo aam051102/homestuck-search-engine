@@ -1,10 +1,11 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import "../../css/Controls.scss";
 import { setDialog, useIsEditMode, useIsSignedIn } from "../globalState";
 import useEventListener from "../useEventListener";
 import { getCookie } from "../utility";
+
+import "../../css/Controls.scss";
 
 const Controls = () => {
     // Variables

@@ -3,7 +3,7 @@ import createGlobalState from "global-react-state";
 /**
  * Contains editing information
  */
-export const [useEdits, setEdits, ] = createGlobalState([]);
+export const [useEdits, setEdits, ] = createGlobalState({});
 
 /**
  * Whether or not user is in edit mode
