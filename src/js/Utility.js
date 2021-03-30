@@ -1,4 +1,5 @@
 import ENDPOINT from "./endpoint";
+import { setDialog } from "./globalState";
 
 /**
  * Gets a cookie by name
@@ -42,4 +43,53 @@ export async function checkIsSignedIn() {
             return false;
         }
     });
+}
+
+/**
+ * Shows warning of outdated session.
+ */
+export function showOutdatedSessionDialog() {
+    setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
+}
+
+/**
+ * Saves edited data.
+ */
+export async function saveData() {
+    if (!getCookie("hsse_token")) {
+        showOutdatedSessionDialog();
+        return;
+    }
+
+    // TODO: Move individual edits to global editing system.
+    /*
+    const tags = [];
+
+    document.querySelectorAll(".tag-input").forEach((tag) => {
+        tags.push(tag.value);
+    });
+    
+    return await fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getCookie("hsse_token")}`,
+        },
+        body: JSON.stringify({ tags: tags, }),
+    }).then(e => {
+        if (e.status === 403 || e.status === 401) {
+            showOutdatedSessionDialog();
+            return { error: "Session outdated.", };
+        } else {
+            return e.json();
+        }
+    }).then((res) => {
+        if (res.error) {
+            console.error(res.error);
+        } else {
+            result.tags = tags.slice();
+            setResultTags(tags);
+        }
+    });
+    */
 }

@@ -3,9 +3,9 @@ import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
 import { setDialog, useIsEditMode, useIsSignedIn } from "../globalState";
 import useEventListener from "../useEventListener";
-import { getCookie } from "../utility";
 
 import "../../css/Controls.scss";
+import { saveData } from "../utility";
 
 const Controls = () => {
     // Variables
@@ -16,49 +16,6 @@ const Controls = () => {
     const [isSignedIn, ] = useIsSignedIn();
 
     // Functions
-    function showOutdatedSessionDialog() {
-        setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
-    }
-
-    async function saveData() {
-        if (!getCookie("hsse_token")) {
-            showOutdatedSessionDialog();
-            return;
-        }
-
-        // TODO: Move individual edits to global editing system.
-        /*
-        const tags = [];
-
-        document.querySelectorAll(".tag-input").forEach((tag) => {
-            tags.push(tag.value);
-        });
-        
-        return await fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getCookie("hsse_token")}`,
-            },
-            body: JSON.stringify({ tags: tags, }),
-        }).then(e => {
-            if (e.status === 403 || e.status === 401) {
-                showOutdatedSessionDialog();
-                return { error: "Session outdated.", };
-            } else {
-                return e.json();
-            }
-        }).then((res) => {
-            if (res.error) {
-                console.error(res.error);
-            } else {
-                result.tags = tags.slice();
-                setResultTags(tags);
-            }
-        });
-        */
-    }
-
     function exitEditMode(callback) {
         if (!callback) callback = () => {};
 
@@ -90,7 +47,7 @@ const Controls = () => {
         "keydown",
         (e) => {
             if (e.target.tagName !== "INPUT") {
-                if (e.key === "e") {
+                if (e.key === "e" && isSignedIn) {
                     // Shortcut for edit mode
                     if (isEditMode) {
                         exitEditMode();
