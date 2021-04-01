@@ -54,28 +54,21 @@ export function showOutdatedSessionDialog() {
 
 /**
  * Saves edited data.
+ * @param {Record<string, Array<string>>} edits Object where keys are ids and values are string arrays of tags
  */
-export async function saveData() {
+export async function saveData(edits) {
     if (!getCookie("hsse_token")) {
         showOutdatedSessionDialog();
         return;
     }
 
-    // TODO: Move individual edits to global editing system.
-    /*
-    const tags = [];
-
-    document.querySelectorAll(".tag-input").forEach((tag) => {
-        tags.push(tag.value);
-    });
-    
-    return await fetch(`${ENDPOINT}/api/app/1/edit/${result._id}`, {
+    fetch(`${ENDPOINT}/api/app/1/edit`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${getCookie("hsse_token")}`,
         },
-        body: JSON.stringify({ tags: tags, }),
+        body: JSON.stringify({ edits: edits, }),
     }).then(e => {
         if (e.status === 403 || e.status === 401) {
             showOutdatedSessionDialog();
@@ -86,10 +79,6 @@ export async function saveData() {
     }).then((res) => {
         if (res.error) {
             console.error(res.error);
-        } else {
-            result.tags = tags.slice();
-            setResultTags(tags);
         }
     });
-    */
 }

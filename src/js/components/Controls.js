@@ -1,17 +1,15 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import { setDialog, useIsEditMode, useIsSignedIn } from "../globalState";
+import { setDialog, useEdits, useIsEditMode, useIsSignedIn } from "../globalState";
 import useEventListener from "../useEventListener";
 
 import "../../css/Controls.scss";
 import { saveData } from "../utility";
 
 const Controls = () => {
-    // Variables
-    let editsMade = false;
-
     // States
+    const [edits, ] = useEdits();
     const [isEditMode, setIsEditMode, ] = useIsEditMode();
     const [isSignedIn, ] = useIsSignedIn();
 
@@ -19,7 +17,7 @@ const Controls = () => {
     function exitEditMode(callback) {
         if (!callback) callback = () => {};
 
-        if (isEditMode && editsMade/*&& resultTags !== result.tags*/) {
+        if (isEditMode && Object.keys(edits).length > 0) {
             setDialog({
                 visible: true,
                 title: "Warning",
@@ -27,11 +25,11 @@ const Controls = () => {
                 buttons: [
                     {
                         title: "Save",
-                        callbacks: [saveData, callback, ],
+                        callbacks: [() => { saveData(edits) }, callback, () => { setIsEditMode(false) }, ],
                     },
                     {
                         title: "Don't Save",
-                        callbacks: [callback, ],
+                        callbacks: [callback, () => { setIsEditMode(false) }, ],
                     },
                     { title: "Cancel", }, 
                 ],
@@ -86,7 +84,7 @@ const Controls = () => {
                             <button
                                 className="control-btn control-save"
                                 onClick={async () => {
-                                    await saveData();
+                                    await saveData(edits);
                                     exitEditMode();
                                 }}
                                 aria-label="Save edits"

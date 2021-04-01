@@ -21,6 +21,7 @@ const Lightbox = (props) => {
     const [edits, ] = useEdits();
 
     const [resultTags, setResultTags, ] = useState([]);
+    const [focused, setFocused, ] = useState(0);
 
     // Variables
     const result = props.results[props.id];
@@ -39,7 +40,6 @@ const Lightbox = (props) => {
      * Closes lightbox
      */
     function closeLightbox() {
-        rememberLocalData();
         props.hideLightbox();
     }
 
@@ -52,23 +52,29 @@ const Lightbox = (props) => {
         
         const tags = [];
 
+        // TODO: Improve speed
         document.querySelectorAll(".tag-input").forEach((tag) => {
             tags.push(tag.value);
         });
 
-        editsLocal[props.id] = tags;
-    
+        editsLocal[result._id] = tags;
+
         setEdits(editsLocal);
     }
 
     // Effects
     useEffect(() => {
-        if (edits[props.id] && edits[props.id].length > 0) {
-            // Use edits, if made
-            setResultTags(edits[props.id]);
-        } else if (result && result.tags.length > 0) {
-            // Otherwise, use results
-            setResultTags(result.tags);
+        if (result && result.tags.length > 0) {
+            const index = parseInt(document.activeElement.getAttribute("data-index"));
+            setFocused(index);
+
+            if (edits[result._id] && edits[result._id].length > 0) {
+                // Use edits, if made
+                setResultTags(edits[result._id]);
+            } else {
+                // Otherwise, use results
+                setResultTags(result.tags);
+            }
         } else {
             // If neither is loaded, use blank line
             setResultTags(["", ]);
@@ -76,6 +82,12 @@ const Lightbox = (props) => {
     }, [result, edits, props.id, ]);
 
     // Event listeners
+    useEventListener("keyup", (e) => {
+        if (e.target.classList.contains("tag-input")) {
+            rememberLocalData();
+        }
+    }, document);
+
     useEventListener(
         "keydown",
         (e) => {
@@ -123,6 +135,7 @@ const Lightbox = (props) => {
                                 setResultTags(tags);
 
                                 // Not great code, but the only way I could think of to do autofocusing properly
+                                // Note: New method discovered. Pass this index along to the useEffect
                                 focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
                                     0 :
                                     index - 1}"]`));
@@ -221,7 +234,7 @@ const Lightbox = (props) => {
                                 {isEditMode ? (
                                     <input className={`tag-input${tag.length === 0 ? 
                                         " empty" :
-                                        ""}`} data-index={i} defaultValue={tag} />
+                                        ""}`} data-index={i} defaultValue={tag} autoFocus={i === focused} />
                                 ) : tag}
                             </li>
                         );
