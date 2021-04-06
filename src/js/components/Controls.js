@@ -1,11 +1,12 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import { setDialog, useEdits, useIsEditMode, useIsSignedIn } from "../globalState";
+import { setDialog, setEdits, useEdits, useIsEditMode, useIsSignedIn } from "../globalState";
 import useEventListener from "../useEventListener";
 
 import "../../css/Controls.scss";
-import { saveData } from "../utility";
+import { getCookie, showOutdatedSessionDialog } from "../utility";
+import ENDPOINT from "../endpoint";
 
 const Controls = () => {
     // States
@@ -14,6 +15,39 @@ const Controls = () => {
     const [isSignedIn, ] = useIsSignedIn();
 
     // Functions
+    /**
+     * Saves edited data.
+     * @param {Record<string, Array<string>>} edits Object where keys are ids and values are string arrays of tags
+     */
+    async function saveData() {
+        if (!getCookie("hsse_token")) {
+            showOutdatedSessionDialog();
+            return;
+        }
+
+        await fetch(`${ENDPOINT}/api/app/1/edit`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getCookie("hsse_token")}`,
+            },
+            body: JSON.stringify({ edits: edits, }),
+        }).then(e => {
+            if (e.status === 403 || e.status === 401) {
+                showOutdatedSessionDialog();
+                return { error: "Session outdated.", };
+            } else {
+                return e.json();
+            }
+        }).then((res) => {
+            if (res.error) {
+                console.error(res.error);
+            } else {
+                setEdits({});
+            }
+        });
+    }
+
     function exitEditMode(callback) {
         if (!callback) callback = () => {};
 
@@ -25,11 +59,11 @@ const Controls = () => {
                 buttons: [
                     {
                         title: "Save",
-                        callbacks: [() => { saveData(edits) }, callback, () => { setIsEditMode(false) }, ],
+                        callbacks: [saveData, callback, () => { setIsEditMode(false) }, ],
                     },
                     {
                         title: "Don't Save",
-                        callbacks: [callback, () => { setIsEditMode(false) }, ],
+                        callbacks: [callback, () => { setEdits({}); setIsEditMode(false) }, ],
                     },
                     { title: "Cancel", }, 
                 ],
@@ -84,7 +118,7 @@ const Controls = () => {
                             <button
                                 className="control-btn control-save"
                                 onClick={async () => {
-                                    await saveData(edits);
+                                    await saveData();
                                     exitEditMode();
                                 }}
                                 aria-label="Save edits"

@@ -12,6 +12,11 @@ import { useEdits, setEdits, useIsEditMode } from "../globalState";
 import "../../css/Lightbox.scss";
 
 /**
+ * Global counter for tag 
+ */
+let tagKeyCounter = 0;
+
+/**
  * A lightbox to show search results in
  * @param {Object} props
  */
@@ -21,7 +26,8 @@ const Lightbox = (props) => {
     const [edits, ] = useEdits();
 
     const [resultTags, setResultTags, ] = useState([]);
-    const [focused, setFocused, ] = useState(0);
+    const [ignoreKeyUp, setIgnoreKeyUp, ] = useState(false);
+    //const [tagKeys, setTagKeys, ] = useState([]);
 
     // Variables
     const result = props.results[props.id];
@@ -48,42 +54,59 @@ const Lightbox = (props) => {
      * @param {Event} event 
      */
     function rememberLocalData() {
-        const editsLocal = Object.assign({}, edits);
+        const activeElement = document.activeElement;
+        const resultId = result._id;
+
+        setEdits((editsThis) => {
+            const editsLocal = Object.assign({}, editsThis);
         
-        const tags = [];
+            if (!editsLocal[resultId]) {
+                const tags = [];
 
-        // TODO: Improve speed
-        document.querySelectorAll(".tag-input").forEach((tag) => {
-            tags.push(tag.value);
+                document.querySelectorAll(".tag-input").forEach((tag) => {
+                    tags.push([tagKeyCounter++, tag.value, ]);
+                });
+            } else {
+                editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
+            }
+
+            return editsLocal;
         });
-
-        editsLocal[result._id] = tags;
-
-        setEdits(editsLocal);
     }
 
     // Effects
     useEffect(() => {
         if (result && result.tags.length > 0) {
-            const index = parseInt(document.activeElement.getAttribute("data-index"));
-            setFocused(index);
-
             if (edits[result._id] && edits[result._id].length > 0) {
                 // Use edits, if made
                 setResultTags(edits[result._id]);
             } else {
                 // Otherwise, use results
-                setResultTags(result.tags);
+                setResultTags(result.tags.map((tag) => [tagKeyCounter++, tag, ]));
+                //setTagKeys(result.tags.map(() => tagKeyCounter++)); // Initial key values
             }
         } else {
             // If neither is loaded, use blank line
-            setResultTags(["", ]);
+            setResultTags([[0, "", ], ]);
         }
-    }, [result, edits, props.id, ]);
+    }, [result, edits, props.id, isEditMode, ]);
 
     // Event listeners
     useEventListener("keyup", (e) => {
         if (e.target.classList.contains("tag-input")) {
+            if (e.target.value.length === 0) {
+                e.target.classList.add("empty");
+            } else {
+                e.target.classList.remove("empty");
+            }
+
+            /*if (ignoreKeyUp) {
+                console.log("Ignored key up");
+                setIgnoreKeyUp(false);
+                return;
+            }
+            console.log("PERFORMED key up");*/
+
             rememberLocalData();
         }
     }, document);
@@ -102,13 +125,31 @@ const Lightbox = (props) => {
                     }
                 } else if (isEditMode) {
                     if (e.key === "Enter") {
-                        // Add tag
-                        const tags = resultTags.slice();
-                        const index = parseInt(e.target.getAttribute("data-index")) + 1;
-                        tags.splice(index, 0, "");
-                        setResultTags(tags);
+                        //setIgnoreKeyUp(true);
 
-                        focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
+                        // Add tag
+                        const resultId = result._id;
+
+                        setEdits((editsThis) => {
+                            const index = parseInt(e.target.getAttribute("data-index")) + 1;
+                            const editsLocal = Object.assign({}, editsThis);
+
+                            if (!editsLocal[resultId]) {
+                                const tags = [];
+            
+                                document.querySelectorAll(".tag-input").forEach((tag) => {
+                                    tags.push([tagKeyCounter++, tag.value, ]);
+                                });
+
+                                editsLocal[resultId] = tags;
+                            }
+
+                            editsLocal[resultId].splice(index, 0, [tagKeyCounter++, "", ]);
+
+                            // Figure out how to focus now
+                            //focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
+                            return editsLocal;
+                        });
                     } else if (e.key === "ArrowUp") {
                         // Move up
                         e.preventDefault();
@@ -124,32 +165,25 @@ const Lightbox = (props) => {
                             focusElement(e.target.parentNode.nextSibling.children[0]);
                         }
                     } else if (e.key === "Backspace") {     
-                        // Remove tag                   
                         if (e.target.value.length === 0) {
                             e.preventDefault();
-
+                            
                             if (resultTags.length > 1) {
-                                const tags = resultTags.slice();
+                                //setIgnoreKeyUp(true);
                                 const index = parseInt(e.target.getAttribute("data-index"));
-                                tags.splice(index, 1);
-                                setResultTags(tags);
+                                
+                                // Remove tag
+                                const resultId = result._id;
+                                setEdits((editsThis) => {
+                                    const editsLocal = Object.assign({}, editsThis);       
+                                    editsLocal[resultId].splice(index, 1);
+                                    return editsLocal;
+                                });
 
-                                // Not great code, but the only way I could think of to do autofocusing properly
-                                // Note: New method discovered. Pass this index along to the useEffect
                                 focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
                                     0 :
                                     index - 1}"]`));
                             }
-                        } else if (e.target.selectionStart + e.target.selectionEnd === e.target.value.length || e.target.value.length === 1) {
-                            e.target.classList.add("empty");
-                        }
-                    } else if (e.key === "Delete") {
-                        if (e.target.selectionStart + e.target.selectionEnd === e.target.value.length || e.target.value.length === 1) {
-                            e.target.classList.add("empty");
-                        }
-                    } else {
-                        if ((e.key.length === 1 || (e.key.ctrl && e.key === "v")) && e.target.classList.contains("empty")) {
-                            e.target.classList.remove("empty");
                         }
                     }
                 }
@@ -228,14 +262,16 @@ const Lightbox = (props) => {
                 {isEditMode && <p>Type and press enter.</p>}
 
                 <ul className="sidebar-text">
+                    {console.log("___________________________________________")}
                     {resultTags.map((tag, i) => {
+                        //console.log(i, tag);
                         return (
-                            <li className="sidebar-text-input" key={tag + i}>
+                            <li className="sidebar-text-input" key={tag[0] || i}>
                                 {isEditMode ? (
-                                    <input className={`tag-input${tag.length === 0 ? 
+                                    <input className={`tag-input${tag[1].length === 0 ? 
                                         " empty" :
-                                        ""}`} data-index={i} defaultValue={tag} autoFocus={i === focused} />
-                                ) : tag}
+                                        ""}`} data-index={i} defaultValue={tag[1]} />
+                                ) : tag[1]}
                             </li>
                         );
                     })}

@@ -51,34 +51,3 @@ export async function checkIsSignedIn() {
 export function showOutdatedSessionDialog() {
     setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
 }
-
-/**
- * Saves edited data.
- * @param {Record<string, Array<string>>} edits Object where keys are ids and values are string arrays of tags
- */
-export async function saveData(edits) {
-    if (!getCookie("hsse_token")) {
-        showOutdatedSessionDialog();
-        return;
-    }
-
-    fetch(`${ENDPOINT}/api/app/1/edit`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getCookie("hsse_token")}`,
-        },
-        body: JSON.stringify({ edits: edits, }),
-    }).then(e => {
-        if (e.status === 403 || e.status === 401) {
-            showOutdatedSessionDialog();
-            return { error: "Session outdated.", };
-        } else {
-            return e.json();
-        }
-    }).then((res) => {
-        if (res.error) {
-            console.error(res.error);
-        }
-    });
-}
