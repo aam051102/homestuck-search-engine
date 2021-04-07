@@ -26,8 +26,8 @@ const Lightbox = (props) => {
     const [edits, ] = useEdits();
 
     const [resultTags, setResultTags, ] = useState([]);
-    const [ignoreKeyUp, setIgnoreKeyUp, ] = useState(false);
-    //const [tagKeys, setTagKeys, ] = useState([]);
+    const [focused, setFocused, ] = useState(- 1);
+    //const [ignoreKeyUp, setIgnoreKeyUp, ] = useState(false);
 
     // Variables
     const result = props.results[props.id];
@@ -50,6 +50,22 @@ const Lightbox = (props) => {
     }
 
     /**
+     * Loads previous asset
+     */
+    function loadPrevious() {
+        setFocused(- 1);
+        props.loadPrevious();
+    }
+
+    /**
+     * Loads next asset
+     */
+    function loadNext() {
+        setFocused(- 1);
+        props.loadNext();
+    }
+
+    /**
      * Saves tag changes to global state
      * @param {Event} event 
      */
@@ -61,11 +77,7 @@ const Lightbox = (props) => {
             const editsLocal = Object.assign({}, editsThis);
         
             if (!editsLocal[resultId]) {
-                const tags = [];
-
-                document.querySelectorAll(".tag-input").forEach((tag) => {
-                    tags.push([tagKeyCounter++, tag.value, ]);
-                });
+                editsLocal[resultId] = resultTags;
             } else {
                 editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
             }
@@ -83,7 +95,6 @@ const Lightbox = (props) => {
             } else {
                 // Otherwise, use results
                 setResultTags(result.tags.map((tag) => [tagKeyCounter++, tag, ]));
-                //setTagKeys(result.tags.map(() => tagKeyCounter++)); // Initial key values
             }
         } else {
             // If neither is loaded, use blank line
@@ -118,10 +129,10 @@ const Lightbox = (props) => {
                 if (!e.target.classList.contains("tag-input")) {
                     if (e.key === "ArrowLeft") {
                         // Previous asset
-                        props.loadPrevious();
+                        loadPrevious();
                     } else if (e.key === "ArrowRight") {
                         // Next asset
-                        props.loadNext();
+                        loadNext();
                     }
                 } else if (isEditMode) {
                     if (e.key === "Enter") {
@@ -135,18 +146,13 @@ const Lightbox = (props) => {
                             const editsLocal = Object.assign({}, editsThis);
 
                             if (!editsLocal[resultId]) {
-                                const tags = [];
-            
-                                document.querySelectorAll(".tag-input").forEach((tag) => {
-                                    tags.push([tagKeyCounter++, tag.value, ]);
-                                });
-
-                                editsLocal[resultId] = tags;
+                                editsLocal[resultId] = resultTags;
                             }
 
                             editsLocal[resultId].splice(index, 0, [tagKeyCounter++, "", ]);
 
                             // Figure out how to focus now
+                            setFocused(index);
                             //focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
                             return editsLocal;
                         });
@@ -185,6 +191,26 @@ const Lightbox = (props) => {
                                     index - 1}"]`));
                             }
                         }
+                    } else if (e.key === "Delete") {     
+                        const index = parseInt(e.target.getAttribute("data-index"));
+
+                        if (resultTags.length > index + 1) {
+                            const target = document.querySelector(`.tag-input[data-index="${index + 1}"]`);
+
+                            if (target.value.length === 0) {
+                                e.preventDefault();
+                                
+                                //setIgnoreKeyUp(true);
+                                
+                                // Remove tag
+                                const resultId = result._id;
+                                setEdits((editsThis) => {
+                                    const editsLocal = Object.assign({}, editsThis);       
+                                    editsLocal[resultId].splice(index + 1, 1);
+                                    return editsLocal;
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -209,7 +235,7 @@ const Lightbox = (props) => {
                     true : 
                     false}
                 onClick={() => {
-                    props.loadPrevious();
+                    loadPrevious();
                 }}
                 aria-label="Previous asset"
             >
@@ -240,7 +266,7 @@ const Lightbox = (props) => {
                     true :
                     false}
                 onClick={() => {
-                    props.loadNext();
+                    loadNext();
                 }}
                 aria-label="Next asset"
             >
@@ -262,7 +288,7 @@ const Lightbox = (props) => {
                 {isEditMode && <p>Type and press enter.</p>}
 
                 <ul className="sidebar-text">
-                    {console.log("___________________________________________")}
+                    {/*console.log("___________________________________________")*/}
                     {resultTags.map((tag, i) => {
                         //console.log(i, tag);
                         return (
@@ -270,7 +296,7 @@ const Lightbox = (props) => {
                                 {isEditMode ? (
                                     <input className={`tag-input${tag[1].length === 0 ? 
                                         " empty" :
-                                        ""}`} data-index={i} defaultValue={tag[1]} />
+                                        ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
                                 ) : tag[1]}
                             </li>
                         );
