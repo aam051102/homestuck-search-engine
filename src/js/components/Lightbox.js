@@ -7,7 +7,7 @@ import {
 
 import Sidebar from "./Sidebar";
 import useEventListener from "../useEventListener";
-import { useEdits, setEdits, useIsEditMode } from "../globalState";
+import { useEdits, setEdits, useIsEditMode, useResults } from "../globalState";
 
 import "../../css/Lightbox.scss";
 
@@ -23,6 +23,7 @@ let tagKeyCounter = 0;
 const Lightbox = (props) => {
     // States
     const [isEditMode, ] = useIsEditMode();
+    const [results, ] = useResults();
     const [edits, ] = useEdits();
 
     const [resultTags, setResultTags, ] = useState([]);
@@ -30,7 +31,7 @@ const Lightbox = (props) => {
     //const [ignoreKeyUp, setIgnoreKeyUp, ] = useState(false);
 
     // Variables
-    const result = props.results[props.id];
+    const result = results[props.id];
     
     // Functions
     /**
@@ -218,7 +219,7 @@ const Lightbox = (props) => {
         document
     );
 
-    return props.results.length > props.id ? (
+    return results.length > props.id ? (
         <div
             className={`lightbox${props.visible ?
                 " visible" : 
@@ -262,7 +263,7 @@ const Lightbox = (props) => {
 
             <button
                 className="lightbox-btn-clear lightbox-right"
-                disabled={props.id >= props.results.length - 1 ?
+                disabled={props.id >= results.length - 1 ?
                     true :
                     false}
                 onClick={() => {

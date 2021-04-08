@@ -11,7 +11,7 @@ import "../../css/Home.scss";
 import Controls from "./Controls";
 import ENDPOINT from "../endpoint";
 
-import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog } from "../globalState";
+import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults } from "../globalState";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
@@ -22,7 +22,6 @@ const Lightbox = lazy(() => import("./Lightbox"));
 
 function HomePage() {
     // States
-    const [results, setResults, ] = useState([]);
     const [tags, setTags, ] = useState([]);
     const [lightbox, setLightbox, ] = useState({
         results: [],
@@ -34,6 +33,7 @@ function HomePage() {
     const [currentPage, setCurrentPage, ] = useState(1);
     const [resultTags, setResultTags, ] = useState({});
 
+    const [results, ] = useResults();
     const [isSignedIn, ] = useIsSignedIn();
     const [isEditMode, ] = useIsEditMode();
     const [dialog, ] = useDialog();
@@ -131,16 +131,14 @@ function HomePage() {
             } else if (searchTags[i] !== " ") {
                 const charCode = searchTags.charCodeAt(i);
 
-                if (charCode <= 57 && charCode >= 48) {
+                if (rangeRef && charCode >= 48 && charCode <= 57) {
                     // Start or end of page range
-                    if (rangeRef) {
-                        if (pageRangePoint === 1) {
-                            rangeRef[0] += searchTags[i];
-                        } else if (pageRangePoint === 2) {
-                            rangeRef[1] += searchTags[i];
-                        }
+                    if (pageRangePoint === 1) {
+                        rangeRef[0] += searchTags[i];
+                    } else if (pageRangePoint === 2) {
+                        rangeRef[1] += searchTags[i];
                     }
-                } else if (charCode <= 90 && charCode >= 65) {
+                } else if (charCode >= 65 && charCode <= 90) {
                     // Force lowercase
                     tempTag += String.fromCharCode(charCode - 65 + 97);
                 } else {
@@ -494,7 +492,6 @@ function HomePage() {
                     }
                 }}
                 isIsSignedIn={isSignedIn}
-                results={results}
                 {...lightbox}
             />
 

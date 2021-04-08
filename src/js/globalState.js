@@ -1,6 +1,11 @@
 import createGlobalState from "global-react-state";
 
 /**
+ * Contains result information
+ */
+export const [useResults, setResults, ] = createGlobalState([]);
+
+/**
  * Contains editing information
  */
 export const [useEdits, setEdits, ] = createGlobalState({});

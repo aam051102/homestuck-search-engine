@@ -1,7 +1,7 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import { setDialog, setEdits, useEdits, useIsEditMode, useIsSignedIn } from "../globalState";
+import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults } from "../globalState";
 import useEventListener from "../useEventListener";
 
 import "../../css/Controls.scss";
@@ -10,6 +10,7 @@ import ENDPOINT from "../endpoint";
 
 const Controls = () => {
     // States
+    const [results, ] = useResults();
     const [edits, ] = useEdits();
     const [isEditMode, setIsEditMode, ] = useIsEditMode();
     const [isSignedIn, ] = useIsSignedIn();
@@ -17,9 +18,9 @@ const Controls = () => {
     // Functions
     /**
      * Saves edited data.
-     * @param {Record<string, Array<string>>} edits Object where keys are ids and values are string arrays of tags
+     * @param {Function} onSuccess Optional success callback
      */
-    async function saveData() {
+    async function saveData(onSuccess) {
         if (!getCookie("hsse_token")) {
             showOutdatedSessionDialog();
             return;
@@ -43,7 +44,20 @@ const Controls = () => {
             if (res.error) {
                 console.error(res.error);
             } else {
+                const resultsLocal = results.map((result) => {
+                    if (edits[result._id]) {
+                        return edits[result._id].map((tag) => {
+                            return tag[1];
+                        });
+                    }
+                    
+                    return result;
+                });
+
+                setResults(resultsLocal);
+
                 setEdits({});
+                if (onSuccess) onSuccess();
             }
         });
     }
@@ -118,8 +132,7 @@ const Controls = () => {
                             <button
                                 className="control-btn control-save"
                                 onClick={async () => {
-                                    await saveData();
-                                    exitEditMode();
+                                    await saveData(exitEditMode);
                                 }}
                                 aria-label="Save edits"
                                 title="Save"
