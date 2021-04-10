@@ -59,12 +59,12 @@ function HomePage() {
         const thisResultTags = {};
 
         data.forEach((result) => {
-            result.tags.forEach((tag) => {
+            result.tags.forEach((tag, i) => {
                 if (!thisResultTags[tag]) {
-                    thisResultTags[tag] = [tagKeyCounter++, 1, ];
-                } else {
-                    thisResultTags[tag][1]++;
+                    thisResultTags[tag] = { key: tagKeyCounter++, pointers: {}, };
                 }
+
+                thisResultTags[tag].pointers[result._id] = i; // Instead of using index, use tagKeyCounter
             });
         });
 
@@ -204,20 +204,25 @@ function HomePage() {
      */
     function rememberLocalData() {
         const activeElement = document.activeElement;
-        /*const resultId = result._id;
         
         setEdits((editsThis) => {
             const editsLocal = Object.assign({}, editsThis);
-        
-            if (!editsLocal[resultId]) {
-                editsLocal[resultId] = resultTags;
-            } else {
-                editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
-            }
             
+            results.forEach((result) => {
+                const resultId = result._id;
+
+                if (!editsLocal[resultId]) {
+                    editsLocal[resultId] = result.map((tag) => {
+                        return [tagKeyCounter++, tag, ];
+                    });
+                }
+                
+                editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
+            });
+                        
             setIsEdited(true);
             return editsLocal;
-        });*/
+        });
     }
 
     // Efects
@@ -258,8 +263,6 @@ function HomePage() {
         (e) => {
             if (isEditMode && e.target.classList.contains("tag-input")) {
                 if (e.key === "Enter") {
-                    //setIgnoreKeyUp(true);
-
                     // Add tag
                     /*const resultId = result._id;
 
@@ -296,21 +299,32 @@ function HomePage() {
                     if (e.target.value.length === 0) {
                         e.preventDefault();
                             
-                        if (resultTags.length > 1) {
+                        if (resultTags.length > 1) {                                
                             const index = parseInt(e.target.getAttribute("data-index"));
-                                
+                    
                             // Remove tag
-                            /*const resultId = result._id;
-                                setEdits((editsThis) => {
-                                    const editsLocal = Object.assign({}, editsThis);       
-                                    editsLocal[resultId].splice(index, 1);
-                                    setIsEdited(true);
-                                    return editsLocal;
-                                });*/
+                            /*setEdits((editsThis) => {
+                                const editsLocal = Object.assign({}, editsThis);       
+
+                                results.forEach((result) => {
+                                    const resultId = result._id;
+
+                                    if (!editsLocal[resultId]) {
+                                        editsLocal[resultId] = result.map((tag) => {
+                                            return [tagKeyCounter++, tag, ];
+                                        });
+                                    }
+                                    
+                                    editsLocal[resultId].splice(0, 1);
+                                });
+                                
+                                setIsEdited(true);
+                                return editsLocal;
+                            });
 
                             focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
                                 0 :
-                                index - 1}"]`));
+                                index - 1}"]`));*/
                         }
                     }
                 } else if (e.key === "Delete") {     

@@ -122,8 +122,6 @@ const Lightbox = (props) => {
                     }
                 } else if (isEditMode) {
                     if (e.key === "Enter") {
-                        //setIgnoreKeyUp(true);
-
                         // Add tag
                         const resultId = result._id;
 
