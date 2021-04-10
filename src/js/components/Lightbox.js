@@ -10,6 +10,7 @@ import useEventListener from "../useEventListener";
 import { useEdits, setEdits, useIsEditMode, useResults } from "../globalState";
 
 import "../../css/Lightbox.scss";
+import { focusElement, setIsEdited } from "../utility";
 
 /**
  * Global counter for tag 
@@ -28,21 +29,11 @@ const Lightbox = (props) => {
 
     const [resultTags, setResultTags, ] = useState([]);
     const [focused, setFocused, ] = useState(- 1);
-    //const [ignoreKeyUp, setIgnoreKeyUp, ] = useState(false);
 
     // Variables
     const result = results[props.id];
     
     // Functions
-    /**
-     * Focuses on an element
-     * @param {HTMLElement} el 
-     */
-    function focusElement(el) {
-        el.focus();
-        el.selectionStart = el.selectionEnd = el.value.length;
-    }
-
     /**
      * Closes lightbox
      */
@@ -73,7 +64,7 @@ const Lightbox = (props) => {
     function rememberLocalData() {
         const activeElement = document.activeElement;
         const resultId = result._id;
-
+        
         setEdits((editsThis) => {
             const editsLocal = Object.assign({}, editsThis);
         
@@ -82,7 +73,8 @@ const Lightbox = (props) => {
             } else {
                 editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
             }
-
+            
+            setIsEdited(true);
             return editsLocal;
         });
     }
@@ -111,13 +103,6 @@ const Lightbox = (props) => {
             } else {
                 e.target.classList.remove("empty");
             }
-
-            /*if (ignoreKeyUp) {
-                console.log("Ignored key up");
-                setIgnoreKeyUp(false);
-                return;
-            }
-            console.log("PERFORMED key up");*/
 
             rememberLocalData();
         }
@@ -151,10 +136,10 @@ const Lightbox = (props) => {
                             }
 
                             editsLocal[resultId].splice(index, 0, [tagKeyCounter++, "", ]);
-
-                            // Figure out how to focus now
+                            
                             setFocused(index);
-                            //focusElement(document.querySelector(`.tag-input[data-index="${index}"]`));
+
+                            setIsEdited(true);
                             return editsLocal;
                         });
                     } else if (e.key === "ArrowUp") {
@@ -176,7 +161,6 @@ const Lightbox = (props) => {
                             e.preventDefault();
                             
                             if (resultTags.length > 1) {
-                                //setIgnoreKeyUp(true);
                                 const index = parseInt(e.target.getAttribute("data-index"));
                                 
                                 // Remove tag
@@ -184,6 +168,7 @@ const Lightbox = (props) => {
                                 setEdits((editsThis) => {
                                     const editsLocal = Object.assign({}, editsThis);       
                                     editsLocal[resultId].splice(index, 1);
+                                    setIsEdited(true);
                                     return editsLocal;
                                 });
 
@@ -200,14 +185,13 @@ const Lightbox = (props) => {
 
                             if (target.value.length === 0) {
                                 e.preventDefault();
-                                
-                                //setIgnoreKeyUp(true);
-                                
+                                                                
                                 // Remove tag
                                 const resultId = result._id;
                                 setEdits((editsThis) => {
                                     const editsLocal = Object.assign({}, editsThis);       
                                     editsLocal[resultId].splice(index + 1, 1);
+                                    setIsEdited(true);
                                     return editsLocal;
                                 });
                             }
@@ -289,9 +273,7 @@ const Lightbox = (props) => {
                 {isEditMode && <p>Type and press enter.</p>}
 
                 <ul className="sidebar-text">
-                    {/*console.log("___________________________________________")*/}
                     {resultTags.map((tag, i) => {
-                        //console.log(i, tag);
                         return (
                             <li className="sidebar-text-input" key={tag[0] || i}>
                                 {isEditMode ? (

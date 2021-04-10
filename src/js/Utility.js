@@ -51,3 +51,25 @@ export async function checkIsSignedIn() {
 export function showOutdatedSessionDialog() {
     setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
 }
+
+/**
+ * Whether or not edits have been made.
+ */
+export let isEdited = false;
+
+/**
+ * Sets isEdited.
+ * @param {boolean} value 
+ */
+export function setIsEdited(value) {
+    isEdited = value;
+}
+
+/**
+ * Focuses on an element.
+ * @param {HTMLElement} el 
+ */
+export function focusElement(el) {
+    el.focus();
+    el.selectionStart = el.selectionEnd = el.value.length;
+}

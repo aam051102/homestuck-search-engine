@@ -11,15 +11,24 @@ import "../../css/Home.scss";
 import Controls from "./Controls";
 import ENDPOINT from "../endpoint";
 
-import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults } from "../globalState";
+import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits } from "../globalState";
 
 import Layout from "./Layout";
 import Sidebar from "./Sidebar";
 import StaticCanvas from "./StaticCanvas";
-import { checkIsSignedIn } from "../utility";
+import { checkIsSignedIn, focusElement, setIsEdited } from "../utility";
 import Dialog from "./Dialog";
+import useEventListener from "../useEventListener";
 const Lightbox = lazy(() => import("./Lightbox"));
 
+/**
+ * Global counter for tag 
+ */
+let tagKeyCounter = 0;
+
+/**
+ * Represents the home page.
+ */
 function HomePage() {
     // States
     const [tags, setTags, ] = useState([]);
@@ -32,6 +41,7 @@ function HomePage() {
     const [visibleResults, setVisibleResults, ] = useState(20);
     const [currentPage, setCurrentPage, ] = useState(1);
     const [resultTags, setResultTags, ] = useState({});
+    const [focused, setFocused, ] = useState(- 1);
 
     const [results, ] = useResults();
     const [isSignedIn, ] = useIsSignedIn();
@@ -51,9 +61,9 @@ function HomePage() {
         data.forEach((result) => {
             result.tags.forEach((tag) => {
                 if (!thisResultTags[tag]) {
-                    thisResultTags[tag] = 1;
+                    thisResultTags[tag] = [tagKeyCounter++, 1, ];
                 } else {
-                    thisResultTags[tag]++;
+                    thisResultTags[tag][1]++;
                 }
             });
         });
@@ -188,6 +198,28 @@ function HomePage() {
             });
     };
 
+    /**
+     * Saves tag changes to global state
+     * @param {Event} event 
+     */
+    function rememberLocalData() {
+        const activeElement = document.activeElement;
+        /*const resultId = result._id;
+        
+        setEdits((editsThis) => {
+            const editsLocal = Object.assign({}, editsThis);
+        
+            if (!editsLocal[resultId]) {
+                editsLocal[resultId] = resultTags;
+            } else {
+                editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
+            }
+            
+            setIsEdited(true);
+            return editsLocal;
+        });*/
+    }
+
     // Efects
     useEffect(() => {
         // Get signed in state
@@ -207,6 +239,104 @@ function HomePage() {
                 setTags(data);
             });
     }, []);
+
+    // Event listeners
+    useEventListener("keyup", (e) => {
+        if (e.target.classList.contains("tag-input")) {
+            if (e.target.value.length === 0) {
+                e.target.classList.add("empty");
+            } else {
+                e.target.classList.remove("empty");
+            }
+
+            rememberLocalData();
+        }
+    }, document);
+
+    useEventListener(
+        "keydown",
+        (e) => {
+            if (isEditMode && e.target.classList.contains("tag-input")) {
+                if (e.key === "Enter") {
+                    //setIgnoreKeyUp(true);
+
+                    // Add tag
+                    /*const resultId = result._id;
+
+                    setEdits((editsThis) => {
+                        const index = parseInt(e.target.getAttribute("data-index")) + 1;
+                        const editsLocal = Object.assign({}, editsThis);
+
+                        if (!editsLocal[resultId]) {
+                            editsLocal[resultId] = resultTags;
+                        }
+
+                        editsLocal[resultId].splice(index, 0, [tagKeyCounter++, "", ]);
+                            
+                        setFocused(index);
+
+                        setIsEdited(true);
+                        return editsLocal;
+                    });*/
+                } else if (e.key === "ArrowUp") {
+                    // Move up
+                    e.preventDefault();
+
+                    if (e.target.parentNode.previousSibling) {
+                        focusElement(e.target.parentNode.previousSibling.children[0]);
+                    }
+                } else if (e.key === "ArrowDown") {
+                    // Move down
+                    e.preventDefault();
+
+                    if (e.target.parentNode.nextSibling) {
+                        focusElement(e.target.parentNode.nextSibling.children[0]);
+                    }
+                } else if (e.key === "Backspace") {     
+                    if (e.target.value.length === 0) {
+                        e.preventDefault();
+                            
+                        if (resultTags.length > 1) {
+                            const index = parseInt(e.target.getAttribute("data-index"));
+                                
+                            // Remove tag
+                            /*const resultId = result._id;
+                                setEdits((editsThis) => {
+                                    const editsLocal = Object.assign({}, editsThis);       
+                                    editsLocal[resultId].splice(index, 1);
+                                    setIsEdited(true);
+                                    return editsLocal;
+                                });*/
+
+                            focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
+                                0 :
+                                index - 1}"]`));
+                        }
+                    }
+                } else if (e.key === "Delete") {     
+                    const index = parseInt(e.target.getAttribute("data-index"));
+
+                    if (resultTags.length > index + 1) {
+                        const target = document.querySelector(`.tag-input[data-index="${index + 1}"]`);
+
+                        if (target.value.length === 0) {
+                            e.preventDefault();
+                                                                
+                            // Remove tag
+                            /*const resultId = result._id;
+                                setEdits((editsThis) => {
+                                    const editsLocal = Object.assign({}, editsThis);       
+                                    editsLocal[resultId].splice(index + 1, 1);
+                                    setIsEdited(true);
+                                    return editsLocal;
+                                });*/
+                        }
+                    }
+                }
+            }
+        },
+        document
+    );
 
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
@@ -432,13 +562,13 @@ function HomePage() {
                     <ul className="sidebar-text">
                         {Object.entries(resultTags).map((tag, i) => {
                             return (
-                                <li className="sidebar-text-input" key={tag[0] + i}>
+                                <li className="sidebar-text-input" key={tag[1][0] || i}>
                                     {isEditMode ? (
                                         <input className={`${tag[0].length === 0 ?
                                             "empty" :
-                                            ""}`} data-index={i} defaultValue={tag[0]} />
+                                            ""}`} data-index={i} defaultValue={tag[0]} autoFocus={focused === i} />
                                     ) :
-                                        tag[0]} ({tag[1]})
+                                        tag[0]} ({tag[1][1]})
                                 </li>
                             );
                         })}

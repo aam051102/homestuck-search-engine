@@ -5,7 +5,7 @@ import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn
 import useEventListener from "../useEventListener";
 
 import "../../css/Controls.scss";
-import { getCookie, showOutdatedSessionDialog } from "../utility";
+import { getCookie, isEdited, setIsEdited, showOutdatedSessionDialog } from "../utility";
 import ENDPOINT from "../endpoint";
 
 const Controls = () => {
@@ -46,17 +46,17 @@ const Controls = () => {
             } else {
                 const resultsLocal = results.map((result) => {
                     if (edits[result._id]) {
-                        return edits[result._id].map((tag) => {
+                        result.tags = edits[result._id].map((tag) => {
                             return tag[1];
                         });
                     }
                     
                     return result;
                 });
-
                 setResults(resultsLocal);
 
                 setEdits({});
+                setIsEdited(false);
                 if (onSuccess) onSuccess();
             }
         });
@@ -65,7 +65,7 @@ const Controls = () => {
     function exitEditMode(callback) {
         if (!callback) callback = () => {};
 
-        if (isEditMode && Object.keys(edits).length > 0) {
+        if (isEditMode && isEdited) {
             setDialog({
                 visible: true,
                 title: "Warning",
@@ -132,7 +132,9 @@ const Controls = () => {
                             <button
                                 className="control-btn control-save"
                                 onClick={async () => {
-                                    await saveData(exitEditMode);
+                                    await saveData(() => {
+                                        setIsEditMode(false);
+                                    });
                                 }}
                                 aria-label="Save edits"
                                 title="Save"
