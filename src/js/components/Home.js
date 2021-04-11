@@ -72,8 +72,12 @@ function HomePage() {
         
         //console.log(data);
 
-        data.forEach((result) => {
-            result.tags.forEach((tag) => {
+        for (let i = 0; i < data.length; i++) {
+            const result = data[i];
+
+            for (let j = 0; j < result.tags.length; j++) {
+                const tag = result.tags[j];
+
                 if (tag.startsWith("http")) {
                     console.log(tag, result);
                 }
@@ -88,8 +92,8 @@ function HomePage() {
 
                 thisResultTags[tag].resultIndices[result._id] = tagKeyCounter++;
                 thisResultTags[tag].appearances++;
-            });
-        });
+            }
+        }
 
         //console.log(thisResultTags);
 
@@ -260,7 +264,8 @@ function HomePage() {
         setEdits((editsThis) => {
             const editsLocal = Object.assign({}, editsThis);
             
-            results.forEach((result) => {
+            for (let i = 0; i < results.length; i++) {
+                const result = results[i];
                 const resultId = result._id;
 
                 if (!editsLocal[resultId]) {
@@ -270,7 +275,7 @@ function HomePage() {
                 }
                 
                 editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
-            });
+            }
                         
             setIsEdited(true);
             return editsLocal;
@@ -358,7 +363,8 @@ function HomePage() {
                             /*setEdits((editsThis) => {
                                 const editsLocal = Object.assign({}, editsThis);       
 
-                                results.forEach((result) => {
+                                for(let i = 0; i < results.length; i++) {
+                                    const result = results[i];
                                     const resultId = result._id;
 
                                     if (!editsLocal[resultId]) {
@@ -368,7 +374,7 @@ function HomePage() {
                                     }
                                     
                                     editsLocal[resultId].splice(0, 1);
-                                });
+                                };
                                 
                                 setIsEdited(true);
                                 return editsLocal;
