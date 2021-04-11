@@ -226,7 +226,7 @@ const Lightbox = (props) => {
             </button>
 
             <a
-                href={result.url}
+                href={`https://homestuck.com/story/${result.page}`}
                 target="_blank"
                 rel="noopener noreferrer"
             >

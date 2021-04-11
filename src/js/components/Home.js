@@ -40,8 +40,8 @@ function HomePage() {
     });
     const [visibleResults, setVisibleResults, ] = useState(20);
     const [currentPage, setCurrentPage, ] = useState(1);
-    const [resultTags, setResultTags, ] = useState({});
     const [focused, setFocused, ] = useState(- 1);
+    const [resultTags, setResultTags, ] = useState({});
 
     const [results, ] = useResults();
     const [isSignedIn, ] = useIsSignedIn();
@@ -53,22 +53,74 @@ function HomePage() {
 
     // Functions
     /**
-     * Updates the list of all result tags
+     * Updates the list of all result tags to use following structure:
+     * 
+     * ```
+     * {
+     *   name: {
+     *     key: uniqueId,
+     *     appearances: resultIndices.length,
+     *     resultIndices: {
+     *       resultId: uniqueId
+     *     },
+     *   }
+     * }
+     * ```
      */
     const updateResultTags = async (data) => {
         const thisResultTags = {};
+        
+        //console.log(data);
 
         data.forEach((result) => {
-            result.tags.forEach((tag, i) => {
-                if (!thisResultTags[tag]) {
-                    thisResultTags[tag] = { key: tagKeyCounter++, pointers: {}, };
+            result.tags.forEach((tag) => {
+                if (tag.startsWith("http")) {
+                    console.log(tag, result);
                 }
 
-                thisResultTags[tag].pointers[result._id] = i; // Instead of using index, use tagKeyCounter
+                if (!thisResultTags[tag]) {
+                    thisResultTags[tag] = {
+                        key: tagKeyCounter++,
+                        appearances: 0,
+                        resultIndices: {},
+                    };
+                }
+
+                thisResultTags[tag].resultIndices[result._id] = tagKeyCounter++;
+                thisResultTags[tag].appearances++;
             });
         });
 
+        //console.log(thisResultTags);
+
         setResultTags(thisResultTags);
+    };
+
+    /**
+     * Returns array of elements, containing used tags.
+     */
+    const getUsedTagsElements = () => {
+        const res = [];
+        let index = 0;
+
+        for (const tag in resultTags) {
+            const tagInfo = resultTags[tag];
+
+            res.push(
+                <li className="sidebar-text-input" key={tagInfo.key || index}>
+                    {isEditMode ? (
+                        <input className={`${tag.length === 0 ?
+                            "empty" :
+                            ""}`} data-index={index} defaultValue={tag} autoFocus={focused === index} />
+                    ) :
+                        tag} ({tagInfo.appearances})
+                </li>
+            );
+
+            index++;
+        }
+
+        return res;
     };
 
     /**
@@ -510,7 +562,7 @@ function HomePage() {
                             return (
                                 <section className="search-result" key={i}>
                                     <a
-                                        href={result.url}
+                                        href={`https://homestuck.com/story/${result.page}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
@@ -574,18 +626,7 @@ function HomePage() {
                     </summary>
                     
                     <ul className="sidebar-text">
-                        {Object.entries(resultTags).map((tag, i) => {
-                            return (
-                                <li className="sidebar-text-input" key={tag[1][0] || i}>
-                                    {isEditMode ? (
-                                        <input className={`${tag[0].length === 0 ?
-                                            "empty" :
-                                            ""}`} data-index={i} defaultValue={tag[0]} autoFocus={focused === i} />
-                                    ) :
-                                        tag[0]} ({tag[1][1]})
-                                </li>
-                            );
-                        })}
+                        {getUsedTagsElements()}
                     </ul>
                 </details>
 
