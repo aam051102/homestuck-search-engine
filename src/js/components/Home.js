@@ -269,9 +269,11 @@ function HomePage() {
                 const resultId = result._id;
 
                 if (!editsLocal[resultId]) {
-                    editsLocal[resultId] = result.map((tag) => {
-                        return [tagKeyCounter++, tag, ];
-                    });
+                    editsLocal[resultId] = [];
+
+                    for (let j = 0; j < result.length; j++) {
+                        editsLocal[resultId].push([tagKeyCounter, result[j], ]);
+                    }
                 }
                 
                 editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
