@@ -69,8 +69,6 @@ function HomePage() {
      */
     const updateResultTags = async (data) => {
         const thisResultTags = {};
-        
-        //console.log(data);
 
         for (let i = 0; i < data.length; i++) {
             const result = data[i];
@@ -95,8 +93,6 @@ function HomePage() {
             }
         }
 
-        //console.log(thisResultTags);
-
         setResultTags(thisResultTags);
     };
 
@@ -113,8 +109,8 @@ function HomePage() {
             res.push(
                 <li className="sidebar-text-input" key={tagInfo.key || index}>
                     {isEditMode ? (
-                        <input className={`${tag.length === 0 ?
-                            "empty" :
+                        <input className={`tag-input${tag.length === 0 ?
+                            " empty" :
                             ""}`} data-index={index} defaultValue={tag} autoFocus={focused === index} />
                     ) :
                         tag} ({tagInfo.appearances})
@@ -271,14 +267,15 @@ function HomePage() {
                 if (!editsLocal[resultId]) {
                     editsLocal[resultId] = [];
 
-                    for (let j = 0; j < result.length; j++) {
-                        editsLocal[resultId].push([tagKeyCounter, result[j], ]);
+                    for (let j = 0; j < result.tags.length; j++) {
+                        editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
                     }
                 }
                 
-                editsLocal[resultId][parseInt(activeElement.getAttribute("data-index"))][1] = activeElement.value;
+                editsLocal[resultId][0x000000][1] = activeElement.value;
             }
-                        
+            
+            console.log(editsLocal, results);
             setIsEdited(true);
             return editsLocal;
         });
@@ -306,7 +303,7 @@ function HomePage() {
 
     // Event listeners
     useEventListener("keyup", (e) => {
-        if (e.target.classList.contains("tag-input")) {
+        if (!lightbox.visible && e.target.classList.contains("tag-input")) {
             if (e.target.value.length === 0) {
                 e.target.classList.add("empty");
             } else {

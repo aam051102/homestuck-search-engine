@@ -97,7 +97,7 @@ const Lightbox = (props) => {
 
     // Event listeners
     useEventListener("keyup", (e) => {
-        if (e.target.classList.contains("tag-input")) {
+        if (props.visible && e.target.classList.contains("tag-input")) {
             if (e.target.value.length === 0) {
                 e.target.classList.add("empty");
             } else {
