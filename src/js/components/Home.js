@@ -88,7 +88,7 @@ function HomePage() {
                     };
                 }
 
-                thisResultTags[tag].resultIndices[result._id] = tagKeyCounter++;
+                thisResultTags[tag].resultIndices[result._id] = j;
                 thisResultTags[tag].appearances++;
             }
         }
@@ -111,7 +111,7 @@ function HomePage() {
                     {isEditMode ? (
                         <input className={`tag-input${tag.length === 0 ?
                             " empty" :
-                            ""}`} data-index={index} defaultValue={tag} autoFocus={focused === index} />
+                            ""}`} data-index={index} data-original={tag} defaultValue={tag} autoFocus={focused === index} />
                     ) :
                         tag} ({tagInfo.appearances})
                 </li>
@@ -256,9 +256,11 @@ function HomePage() {
      */
     function rememberLocalData() {
         const activeElement = document.activeElement;
+        const originalTag = activeElement.getAttribute("data-original");
         
         setEdits((editsThis) => {
             const editsLocal = Object.assign({}, editsThis);
+            console.log(editsLocal, results, resultTags, "original: ", originalTag);
             
             for (let i = 0; i < results.length; i++) {
                 const result = results[i];
@@ -268,14 +270,20 @@ function HomePage() {
                     editsLocal[resultId] = [];
 
                     for (let j = 0; j < result.tags.length; j++) {
-                        editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                        let tag = result.tags[j];
+
+                        if (tag === originalTag) {
+                            tag = activeElement.value;
+                        }
+
+                        editsLocal[resultId].push([tagKeyCounter++, tag, ]);
                     }
+                } else {
+                    const tagIndex = resultTags[originalTag].resultIndices[resultId];
+                    if (tagIndex != undefined) editsLocal[resultId][tagIndex][1] = activeElement.value;
                 }
-                
-                editsLocal[resultId][0x000000][1] = activeElement.value;
             }
             
-            console.log(editsLocal, results);
             setIsEdited(true);
             return editsLocal;
         });
