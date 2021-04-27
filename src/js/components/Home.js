@@ -143,6 +143,36 @@ function HomePage() {
     };
 
     /**
+     * Scrolls to the top of the page
+     */
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    /**
+     * Loads previous page
+     */
+    const loadPreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((currentPageThis) => currentPageThis - 1);
+            scrollToTop();
+        }
+    };
+
+    /**
+     * Loads next page
+     */
+    const loadNextPage = () => {
+        if (currentPage < Math.ceil(results.length / visibleResults)) {
+            setCurrentPage((currentPageThis) => currentPageThis + 1);
+            scrollToTop();
+        }
+    };
+
+    /**
      * Handles submit event
      * @param {Event} e 
      */
@@ -272,16 +302,12 @@ function HomePage() {
                     for (let j = 0; j < result.tags.length; j++) {
                         let tag = result.tags[j];
 
-                        if (tag === originalTag) {
-                            tag = activeElement.value;
-                        }
-
                         editsLocal[resultId].push([tagKeyCounter++, tag, ]);
                     }
-                } else {
-                    const tagIndex = resultTags[originalTag].resultIndices[resultId];
-                    if (tagIndex != undefined) editsLocal[resultId][tagIndex][1] = activeElement.value;
                 }
+
+                const tagIndex = resultTags[originalTag].resultIndices[resultId];
+                if (tagIndex !== undefined) editsLocal[resultId][tagIndex][1] = activeElement.value;
             }
             
             setIsEdited(true);
@@ -328,23 +354,43 @@ function HomePage() {
             if (isEditMode && e.target.classList.contains("tag-input")) {
                 if (e.key === "Enter") {
                     // Add tag
-                    /*const resultId = result._id;
+                    const newIndex = parseInt(document.activeElement.getAttribute("data-index")) + 1;
 
                     setEdits((editsThis) => {
-                        const index = parseInt(e.target.getAttribute("data-index")) + 1;
                         const editsLocal = Object.assign({}, editsThis);
 
-                        if (!editsLocal[resultId]) {
-                            editsLocal[resultId] = resultTags;
-                        }
+                        for (const resultId in results) {
+                            const result = results[resultId];
 
-                        editsLocal[resultId].splice(index, 0, [tagKeyCounter++, "", ]);
+                            if (!editsLocal[resultId]) {
+                                editsLocal[resultId] = [];
+            
+                                for (let j = 0; j < result.tags.length; j++) {           
+                                    editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                                }
+                            }
                             
-                        setFocused(index);
+                            let tagIndex = 0;
+
+                            editsLocal[resultId].splice(tagIndex, 0, [tagKeyCounter++, "", ]);
+                        }
 
                         setIsEdited(true);
                         return editsLocal;
-                    });*/
+                    });
+                    
+                    setResultTags((resultTagsThis) => {
+                        const resultTagsLocal = Object.assign({}, resultTagsThis);
+                        
+                        resultTagsLocal[""] = {
+                            key: tagKeyCounter++,
+                            appearances: 0,
+                            resultIndices: [],
+                        };
+                        
+                        setFocused(newIndex);
+                        return resultTagsLocal;
+                    });
                 } else if (e.key === "ArrowUp") {
                     // Move up
                     e.preventDefault();
@@ -412,6 +458,16 @@ function HomePage() {
                         }
                     }
                 }
+            } else if (!e.target.classList.contains("tag-input")) {
+                if (e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    
+                    loadPreviousPage();
+                } else if (e.key === "ArrowRight") {
+                    e.preventDefault();
+                    
+                    loadNextPage();
+                }
             }
         },
         document
@@ -425,15 +481,7 @@ function HomePage() {
                         className={currentPage > 1 
                             ? "enabled" 
                             : ""}
-                        onClick={(e) => {
-                            if (e.target.classList.contains("enabled")) {
-                                setCurrentPage(currentPage - 1);
-                                window.scrollTo({
-                                    top: 0,
-                                    behavior: "smooth",
-                                });
-                            }
-                        }}
+                        onClick={loadPreviousPage}
                     >
                         <MdChevronLeft />
                     </li>
@@ -492,15 +540,7 @@ function HomePage() {
                                 ? "enabled"
                                 : ""
                         }
-                        onClick={(e) => {
-                            if (e.target.classList.contains("enabled")) {
-                                setCurrentPage(currentPage + 1);
-                                window.scrollTo({
-                                    top: 0,
-                                    behavior: "smooth",
-                                });
-                            }
-                        }}
+                        onClick={loadNextPage}
                     >
                         <MdChevronRight />
                     </li>
@@ -620,9 +660,7 @@ function HomePage() {
 
             <div
                 className="to-top"
-                onClick={() => {
-                    window.scrollTo({ top: 0, behavior: "smooth", });
-                }}
+                onClick={scrollToTop}
             >
                 <MdArrowUpward />
             </div>
