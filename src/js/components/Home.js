@@ -69,27 +69,29 @@ function HomePage() {
      */
     const updateResultTags = async (data) => {
         const thisResultTags = {};
+        const thisResultTagsIndices = {};
 
+        // Process tags
         for (let i = 0; i < data.length; i++) {
             const result = data[i];
 
             for (let j = 0; j < result.tags.length; j++) {
                 const tag = result.tags[j];
+                let key = thisResultTagsIndices[tag];
 
-                if (tag.startsWith("http")) {
-                    console.log(tag, result);
-                }
+                if (key === undefined) {
+                    key = tagKeyCounter++;
 
-                if (!thisResultTags[tag]) {
-                    thisResultTags[tag] = {
-                        key: tagKeyCounter++,
+                    thisResultTagsIndices[tag] = key;
+                    thisResultTags[key] = {
+                        tag: tag,
                         appearances: 0,
                         resultIndices: {},
                     };
                 }
 
-                thisResultTags[tag].resultIndices[result._id] = j;
-                thisResultTags[tag].appearances++;
+                thisResultTags[key].resultIndices[result._id] = j;
+                thisResultTags[key].appearances++;
             }
         }
 
@@ -103,17 +105,17 @@ function HomePage() {
         const res = [];
         let index = 0;
 
-        for (const tag in resultTags) {
-            const tagInfo = resultTags[tag];
+        for (const key in resultTags) {
+            const tagInfo = resultTags[key];
 
             res.push(
-                <li className="sidebar-text-input" key={tagInfo.key || index}>
+                <li className="sidebar-text-input" key={key || index}>
                     {isEditMode ? (
-                        <input className={`tag-input${tag.length === 0 ?
+                        <input className={`tag-input${tagInfo.tag.length === 0 ?
                             " empty" :
-                            ""}`} data-index={index} data-original={tag} defaultValue={tag} autoFocus={focused === index} />
+                            ""}`} data-index={index} data-key={key} defaultValue={tagInfo.tag} autoFocus={focused === index} />
                     ) :
-                        tag} ({tagInfo.appearances})
+                        tagInfo.tag} ({tagInfo.appearances})
                 </li>
             );
 
@@ -286,11 +288,10 @@ function HomePage() {
      */
     function rememberLocalData() {
         const activeElement = document.activeElement;
-        const originalTag = activeElement.getAttribute("data-original");
+        const tagKey = parseInt(activeElement.getAttribute("data-key"));
         
         setEdits((editsThis) => {
             const editsLocal = Object.assign({}, editsThis);
-            console.log(editsLocal, results, resultTags, "original: ", originalTag);
             
             for (let i = 0; i < results.length; i++) {
                 const result = results[i];
@@ -306,7 +307,7 @@ function HomePage() {
                     }
                 }
 
-                const tagIndex = resultTags[originalTag].resultIndices[resultId];
+                const tagIndex = resultTags[tagKey].resultIndices[resultId];
                 if (tagIndex !== undefined) editsLocal[resultId][tagIndex][1] = activeElement.value;
             }
             
@@ -382,8 +383,8 @@ function HomePage() {
                     setResultTags((resultTagsThis) => {
                         const resultTagsLocal = Object.assign({}, resultTagsThis);
                         
-                        resultTagsLocal[""] = {
-                            key: tagKeyCounter++,
+                        resultTagsLocal[tagKeyCounter++] = {
+                            tag: "",
                             appearances: 0,
                             resultIndices: [],
                         };
@@ -410,10 +411,10 @@ function HomePage() {
                         e.preventDefault();
                             
                         if (resultTags.length > 1) {                                
-                            const index = parseInt(e.target.getAttribute("data-index"));
+                            /*const index = parseInt(e.target.getAttribute("data-index"));
                     
                             // Remove tag
-                            /*setEdits((editsThis) => {
+                            setEdits((editsThis) => {
                                 const editsLocal = Object.assign({}, editsThis);       
 
                                 for(let i = 0; i < results.length; i++) {

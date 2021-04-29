@@ -1,6 +1,14 @@
 ## Home
 ### Structure
-{
+edits: {
+	resultId: {
+		tags: {
+			uniqueId: tag
+		}
+	}
+}
+
+resultTags: {
 	uniqueId: {
 		content: tag,
 		appearances: resultIndices.length,
