@@ -29,11 +29,20 @@ const Lightbox = (props) => {
 
     const [resultTags, setResultTags, ] = useState([]);
     const [focused, setFocused, ] = useState(- 1);
+    const [isSidebarOpen, setIsSidebarOpen, ] = useState(false);
 
     // Variables
     const result = results[props.id];
     
     // Functions
+    /**
+     * Toggles outer value defining whether or not sidebar is open.
+     * @param {boolean} val 
+     */
+    function handleSidebarToggle(val) {
+        setIsSidebarOpen(val);
+    }
+
     /**
      * Closes lightbox
      */
@@ -201,7 +210,7 @@ const Lightbox = (props) => {
         document
     );
 
-    return results.length > props.id ? (
+    return (
         <div
             className={`lightbox${props.visible ?
                 " visible" : 
@@ -212,80 +221,86 @@ const Lightbox = (props) => {
                 }
             }}
         >
-            <button
-                className={`lightbox-btn-clear lightbox-left`}
-                disabled={props.id <= 0 ? 
-                    true : 
-                    false}
-                onClick={() => {
-                    loadPrevious();
-                }}
-                aria-label="Previous asset"
-            >
-                <MdChevronLeft />
-            </button>
+            <>
+                <button
+                    className={`lightbox-btn-clear lightbox-left`}
+                    disabled={props.id <= 0 ? 
+                        true : 
+                        false}
+                    onClick={() => {
+                        loadPrevious();
+                    }}
+                    aria-label="Previous asset"
+                >
+                    <MdChevronLeft />
+                </button>
 
-            <a
-                href={`https://homestuck.com/story/${result.page}`}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                {result.type === 0 ? (
-                    <img
-                        src={result.content}
-                        alt="Lightbox Panel"
-                    />
+                {result ? (
+                    <a
+                        href={`https://homestuck.com/story/${result ?
+                            result.page :
+                            ""}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {result.type === 0 ? (
+                            <img
+                                src={result.content}
+                                alt="Lightbox Panel"
+                            />
+                        ) : null}
+                        {result.type === 1 ? (
+                            <div>
+                                <p>Flash not functional.</p>
+                            </div>
+                        ) : null}
+                    </a>
                 ) : null}
-                {result.type === 1 ? (
-                    <div>
-                        <p>Flash not functional.</p>
-                    </div>
-                ) : null}
-            </a>
 
-            <button
-                className="lightbox-btn-clear lightbox-right"
-                disabled={props.id >= results.length - 1 ?
-                    true :
-                    false}
-                onClick={() => {
-                    loadNext();
-                }}
-                aria-label="Next asset"
-            >
-                <MdChevronRight />
-            </button>
+                <button
+                    className="lightbox-btn-clear lightbox-right"
+                    disabled={props.id >= results.length - 1 ?
+                        true :
+                        false}
+                    onClick={() => {
+                        loadNext();
+                    }}
+                    aria-label="Next asset"
+                >
+                    <MdChevronRight />
+                </button>
 
-            <button
-                className="lightbox-btn-clear lightbox-close"
-                onClick={() => {
-                    closeLightbox();
-                }}
-                aria-label="Close sidebar"
-                title="Close"
-            >
-                <MdClose />
-            </button>
+                <button
+                    className="lightbox-btn-clear lightbox-close"
+                    onClick={() => {
+                        closeLightbox();
+                    }}
+                    aria-label="Close sidebar"
+                    title="Close"
+                >
+                    <MdClose />
+                </button>
 
-            <Sidebar title="Asset Tags">
-                {isEditMode && <p>Type and press enter.</p>}
+                <Sidebar title="Asset Tags" onToggle={handleSidebarToggle} isOpen={isSidebarOpen}>
+                    {isEditMode && <p>Type and press enter.</p>}
 
-                <ul className="sidebar-text">
-                    {resultTags.map((tag, i) => {
-                        return (
-                            <li className="sidebar-text-input" key={tag[0] || i}>
-                                {isEditMode ? (
-                                    <input className={`tag-input${tag[1].length === 0 ? 
-                                        " empty" :
-                                        ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
-                                ) : tag[1]}
-                            </li>
-                        );
-                    })}
-                </ul>
-            </Sidebar>
+                    <ul className="sidebar-text">
+                        {resultTags.map((tag, i) => {
+                            return (
+                                <li className="sidebar-text-input" key={tag[0] || i}>
+                                    {isEditMode ? (
+                                        <input className={`tag-input${tag[1].length === 0 ? 
+                                            " empty" :
+                                            ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
+                                    ) : tag[1]}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </Sidebar>
+            </>
         </div>
-    ) : null;
+    );
 };
 
 export default Lightbox;

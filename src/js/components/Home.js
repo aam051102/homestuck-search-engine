@@ -356,12 +356,14 @@ function HomePage() {
                 if (e.key === "Enter") {
                     // Add tag
                     const newIndex = parseInt(document.activeElement.getAttribute("data-index")) + 1;
+                    const resultIndices = {};
 
                     setEdits((editsThis) => {
                         const editsLocal = Object.assign({}, editsThis);
 
-                        for (const resultId in results) {
-                            const result = results[resultId];
+                        for (const resultIndex in results) {
+                            const result = results[resultIndex];
+                            const resultId = result._id;
 
                             if (!editsLocal[resultId]) {
                                 editsLocal[resultId] = [];
@@ -371,9 +373,8 @@ function HomePage() {
                                 }
                             }
                             
-                            let tagIndex = 0;
-
-                            editsLocal[resultId].splice(tagIndex, 0, [tagKeyCounter++, "", ]);
+                            resultIndices[resultId] = result.tags.length;
+                            editsLocal[resultId].splice(result.tags.length, 0, [tagKeyCounter++, "", ]);
                         }
 
                         setIsEdited(true);
@@ -388,9 +389,7 @@ function HomePage() {
                             appearances: results.length,
                             
                             // TODO: Move this somewhere else, so it doesn't have to be redone every time a tag is inserted.
-                            resultIndices: results.map((result) => {
-                                return result.tags.length;
-                            }),
+                            resultIndices: resultIndices,
                         };
                         
                         setFocused(newIndex);
@@ -714,7 +713,10 @@ function HomePage() {
 
             <Lightbox
                 hideLightbox={() => {
-                    setLightbox({ visible: false, });
+                    setLightbox({
+                        id: lightbox.id,
+                        visible: false,
+                    });
                 }}
                 loadPrevious={() => {
                     if (lightbox.id > 0) {

@@ -4,28 +4,35 @@ import { MdChevronLeft, MdDelete } from "react-icons/md";
 import "../../css/Sidebar.scss";
 
 const Sidebar = (props) => {
-    const [showSidebar, setShowSidebar, ] = useState(false);
+    const [showSidebar, setShowSidebar, ] = useState(props.isOpen);
+    const sidebarVisible = (props.onToggle ?
+        props.isOpen :
+        showSidebar);
 
     return (
         <>
-            <aside className={`sidebar${showSidebar ? 
+            <aside className={`sidebar${sidebarVisible ? 
                 " visible" :
                 ""}`}>
                 <div
                     className={`sidebar-controls ${
-                        showSidebar ?
+                        sidebarVisible ?
                             "close" : 
                             "open"
                     }`}
                 >
                     <button
                         className={`sidebar-button ${
-                            showSidebar ?
+                            sidebarVisible ?
                                 "close" :
                                 "open"
                         }`}
                         onClick={() => {
-                            setShowSidebar(!showSidebar);
+                            if (props.onToggle) {
+                                props.onToggle(!sidebarVisible);
+                            } else {
+                                setShowSidebar(!sidebarVisible);
+                            }
                         }}
                         aria-label="Toggle sidebar"
                     >

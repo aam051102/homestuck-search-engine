@@ -8,9 +8,12 @@
     bottom: 0;
     background-color: rgba($shadow-color, 0.75);
     z-index: 1000;
-    display: none;
     align-items: center;
     justify-content: center;
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.15s ease, opacity 0.15s ease;
 
     img {
         max-height: 100%;
@@ -18,7 +21,8 @@
     }
 
     &.visible {
-        display: flex;
+        visibility: visible;
+        opacity: 1;
     }
 
     .lightbox-btn-clear {
