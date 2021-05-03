@@ -71,18 +71,23 @@ function HomePage() {
         const thisResultTags = {};
         const thisResultTagsIndices = {};
 
-        // Process tags
+        // Process all results
         for (let i = 0; i < data.length; i++) {
             const result = data[i];
 
             for (let j = 0; j < result.tags.length; j++) {
                 const tag = result.tags[j];
+
+                // Ensure that tag entry exists
                 let key = thisResultTagsIndices[tag];
 
                 if (key === undefined) {
                     key = tagKeyCounter++;
 
+                    // Create temporary index to improve speed
                     thisResultTagsIndices[tag] = key;
+
+                    // Add tag
                     thisResultTags[key] = {
                         tag: tag,
                         appearances: 0,
@@ -90,6 +95,7 @@ function HomePage() {
                     };
                 }
 
+                // Add one to tag entry
                 thisResultTags[key].resultIndices[result._id] = j;
                 thisResultTags[key].appearances++;
             }
@@ -245,20 +251,14 @@ function HomePage() {
 
         // Convert tags to main tag
         // TODO: Improve speed??
+        firstTagLoop:
         for (let i = 0; i < actualTags.length; i++) {
-            let found = false;
-
             for (let j = 0; j < tags.length; j++) {
                 for (let n = 0; n < tags[j].tags.length; n++) {
                     if (tags[j].tags[n].synonyms.includes(actualTags[i])) {
                         actualTags[i] = tags[j].tags[n].title;
-                        found = true;
-                        break;
+                        break firstTagLoop;
                     }
-                }
-
-                if (found) {
-                    break;
                 }
             }
         }
@@ -385,8 +385,12 @@ function HomePage() {
                         
                         resultTagsLocal[tagKeyCounter++] = {
                             tag: "",
-                            appearances: 0,
-                            resultIndices: [],
+                            appearances: results.length,
+                            
+                            // TODO: Move this somewhere else, so it doesn't have to be redone every time a tag is inserted.
+                            resultIndices: results.map((result) => {
+                                return result.tags.length;
+                            }),
                         };
                         
                         setFocused(newIndex);
