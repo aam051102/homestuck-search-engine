@@ -61,6 +61,24 @@
         &:hover {
             cursor: pointer;
         }
+
+        .delete-icon {
+            stroke-width: 0;
+            overflow: visible;
+
+            .delete-lid {
+                transform-origin: 20px 5px;
+                transition: transform 0.15s ease-out;
+            }
+        }
+
+        &:hover {
+            .delete-icon {
+                .delete-lid {
+                    transform: rotate(20deg);
+                }
+            }
+        }
     }
 
     .sidebar-inner {

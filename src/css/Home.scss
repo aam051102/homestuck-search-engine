@@ -1,13 +1,15 @@
 .home-page {
     .to-top {
+        color: #fff;
+        font-size: 3rem;
         position: fixed;
         bottom: 0.5rem;
         right: 0.5rem;
-        color: #fff;
-        font-size: 3rem;
+        transition: transform 0.15s ease-out;
 
         &:hover {
             cursor: pointer;
+            transform: translateY(-0.25em);
         }
     }
 
@@ -17,22 +19,22 @@
     }
 
     .page-nav {
+        background-color: #000d;
+        padding: 0.5rem;
+        margin: 0;
+        width: #{"min(95ch, 100%)"};
+        box-sizing: border-box;
+        z-index: 20;
         position: fixed;
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #000d;
-        padding: 0.5rem;
-        z-index: 20;
-        margin: 0;
-        width: #{"min(95ch, 100%)"};
-        box-sizing: border-box;
 
         ul {
+            display: flex;
             list-style: none;
             padding: 0;
             margin: 0;
-            display: flex;
             align-items: center;
             justify-content: space-between;
 
@@ -63,10 +65,10 @@
                 }
 
                 &.pages {
+                    color: #fff;
                     display: flex;
                     overflow: hidden;
                     flex-wrap: nowrap;
-                    color: #fff;
 
                     button {
                         border: 0;
@@ -101,32 +103,31 @@
         position: relative;
 
         .search-term-label {
-            position: absolute;
-            left: 0;
             font-size: 1.5em;
             width: 100%;
+            position: absolute;
+            left: 0;
         }
 
         .search-term-wrapper {
-            position: relative;
             display: block;
             background-color: #ff9b00;
             padding: 0.4rem 0.3rem;
-            margin-top: 2rem;
             border: 0.1rem solid #0004;
-            box-shadow: 1px 1px #af4b00, 2px 2px #af4b00, 3px 3px #af4b00,
-                4px 4px #af4b00, 5px 5px #af4b00;
+            margin-top: 2rem;
+            box-shadow: 1px 1px #af4b00, 2px 2px #af4b00, 3px 3px #af4b00, 4px 4px #af4b00, 5px 5px #af4b00;
+            position: relative;
 
             &::before {
                 content: ">";
-                position: absolute;
-                top: 50%;
-                left: 1.5rem;
-                height: 1em;
+                font-family: "Courier New";
                 transform: translateY(-50%);
                 margin: 0;
                 font-size: 1rem;
-                font-family: "Courier New";
+                height: 1em;
+                position: absolute;
+                top: 50%;
+                left: 1.5rem;
             }
         }
 

@@ -121,6 +121,11 @@ const Lightbox = (props) => {
         "keydown",
         (e) => {
             if (props.visible) {
+                if (e.key === "Escape") {
+                    closeLightbox();
+                    return;
+                }
+
                 if (!e.target.classList.contains("tag-input")) {
                     if (e.key === "ArrowLeft") {
                         // Previous asset
@@ -286,15 +291,13 @@ const Lightbox = (props) => {
 
                     <ul className="sidebar-text">
                         {resultTags.map((tag, i) => {
-                            return (
+                            return isEditMode ? (
                                 <li className="sidebar-text-input" key={tag[0] || i}>
-                                    {isEditMode ? (
-                                        <input className={`tag-input${tag[1].length === 0 ? 
-                                            " empty" :
-                                            ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
-                                    ) : tag[1]}
+                                    <input className={`tag-input${tag[1].length === 0 ? 
+                                        " empty" :
+                                        ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
                                 </li>
-                            );
+                            ) : <li key={tag[0] || i}>{tag[1]}</li>;
                         })}
                     </ul>
                 </Sidebar>
