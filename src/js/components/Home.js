@@ -387,8 +387,6 @@ function HomePage() {
                         resultTagsLocal[tagKeyCounter++] = {
                             tag: "",
                             appearances: results.length,
-                            
-                            // TODO: Move this somewhere else, so it doesn't have to be redone every time a tag is inserted.
                             resultIndices: resultIndices,
                         };
                         
@@ -413,52 +411,93 @@ function HomePage() {
                     if (e.target.value.length === 0) {
                         e.preventDefault();
                             
-                        if (resultTags.length > 1) {                                
-                            /*const index = parseInt(e.target.getAttribute("data-index"));
-                    
-                            // Remove tag
+                        // Temporary
+                        // TOOD: Improve speed.
+                        if (Object.keys(resultTags).length > 1) {                                
+                            const index = parseInt(document.activeElement.getAttribute("data-index"));
+                            const key = document.activeElement.getAttribute("data-key");
+                            
                             setEdits((editsThis) => {
-                                const editsLocal = Object.assign({}, editsThis);       
+                                const editsLocal = Object.assign({}, editsThis);
+                                const tagInfo = resultTags[key];
 
-                                for(let i = 0; i < results.length; i++) {
-                                    const result = results[i];
-                                    const resultId = result._id;
+                                for (const resultId in tagInfo.resultIndices) {
+                                    const resultIndex = tagInfo.resultIndices[resultId];
 
                                     if (!editsLocal[resultId]) {
-                                        editsLocal[resultId] = result.map((tag) => {
-                                            return [tagKeyCounter++, tag, ];
-                                        });
+                                        const result = results.find((result) => result._id === resultId); // Redo results structure to make this faster
+                                        editsLocal[resultId] = [];
+                    
+                                        for (let j = 0; j < result.tags.length; j++) {           
+                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                                        }
                                     }
-                                    
-                                    editsLocal[resultId].splice(0, 1);
-                                };
-                                
+                            
+                                    editsLocal[resultId].splice(resultIndex, 1);
+                                }
+
                                 setIsEdited(true);
                                 return editsLocal;
                             });
+                    
+                            setResultTags((resultTagsThis) => {
+                                const resultTagsLocal = Object.assign({}, resultTagsThis);
 
-                            focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
-                                0 :
-                                index - 1}"]`));*/
+                                delete resultTagsLocal[key];
+
+                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
+                                    0 :
+                                    index - 1}"]`));
+                                return resultTagsLocal;
+                            });
                         }
                     }
                 } else if (e.key === "Delete") {     
                     const index = parseInt(e.target.getAttribute("data-index"));
+                    const resultTagsLength = Object.keys(resultTags).length - 1;
 
-                    if (resultTags.length > index + 1) {
+                    if (resultTagsLength > index) {
                         const target = document.querySelector(`.tag-input[data-index="${index + 1}"]`);
 
                         if (target.value.length === 0) {
                             e.preventDefault();
                                                                 
                             // Remove tag
-                            /*const resultId = result._id;
-                                setEdits((editsThis) => {
-                                    const editsLocal = Object.assign({}, editsThis);       
-                                    editsLocal[resultId].splice(index + 1, 1);
-                                    setIsEdited(true);
-                                    return editsLocal;
-                                });*/
+                            const key = document.activeElement.getAttribute("data-key");
+                            
+                            setEdits((editsThis) => {
+                                const editsLocal = Object.assign({}, editsThis);
+                                const tagInfo = resultTags[key];
+
+                                for (const resultId in tagInfo.resultIndices) {
+                                    const resultIndex = tagInfo.resultIndices[resultId];
+
+                                    if (!editsLocal[resultId]) {
+                                        const result = results.find((result) => result._id === resultId); // Redo results structure to make this faster
+                                        editsLocal[resultId] = [];
+                    
+                                        for (let j = 0; j < result.tags.length; j++) {           
+                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                                        }
+                                    }
+                            
+                                    editsLocal[resultId].splice(resultIndex, 1);
+                                }
+
+                                setIsEdited(true);
+                                return editsLocal;
+                            });
+                    
+                            setResultTags((resultTagsThis) => {
+                                const resultTagsLocal = Object.assign({}, resultTagsThis);
+
+                                delete resultTagsLocal[key];
+
+                                focusElement(document.querySelector(`.tag-input[data-index="${index >= resultTagsLength ?
+                                    resultTagsLength - 1 :
+                                    index + 1}"]`));
+                                return resultTagsLocal;
+                            });
                         }
                     }
                 }
