@@ -2,12 +2,13 @@ import React, { createRef, useEffect } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { navigate } from "@reach/router";
 
-import ENDPOINT from "../endpoint";
-import Layout from "./Layout";
-import { checkIsSignedIn } from "../utility";
-import { setIsSignedIn, useIsSignedIn } from "../globalState";
+import ENDPOINT from "endpoint";
+import { checkIsSignedIn } from "utility";
+import { setIsSignedIn, useIsSignedIn } from "globalState";
 
-import "../../css/Login.scss";
+import Layout from "components/Layout";
+
+import "./index.scss";
 
 function LoginPage() {
     const passwordInputRef = createRef();

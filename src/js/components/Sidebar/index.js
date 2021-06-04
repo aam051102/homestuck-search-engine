@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { MdChevronLeft } from "react-icons/md";
 
-import "../../css/Sidebar.scss";
+import "./index.scss";
 
 const Sidebar = (props) => {
     const [showSidebar, setShowSidebar, ] = useState(props.isOpen);

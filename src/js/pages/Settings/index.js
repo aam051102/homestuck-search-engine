@@ -1,8 +1,8 @@
 import React from "react";
 
-import "../../css/Settings.scss";
+import Layout from "components/Layout";
 
-import Layout from "./Layout";
+import "./index.scss";
 
 function SettingsPage() {
     return (

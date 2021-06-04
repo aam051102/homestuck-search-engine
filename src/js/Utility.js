@@ -1,5 +1,5 @@
-import ENDPOINT from "./endpoint";
-import { setDialog } from "./globalState";
+import ENDPOINT from "endpoint";
+import { setDialog } from "globalState";
 
 /**
  * Gets a cookie by name

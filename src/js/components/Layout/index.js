@@ -1,10 +1,11 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 
-import Background from "./Background";
+import Background from "components/Background";
 
-import bgImage from "../../images/bg.png";
-import "../../css/Layout.scss";
+import bgImage from "../../../images/bg.png";
+
+import "./index.scss";
 
 function Layout(props) {
     return (

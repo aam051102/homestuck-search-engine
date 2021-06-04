@@ -5,12 +5,13 @@ import {
     MdClose
 } from "react-icons/md";
 
-import Sidebar from "./Sidebar";
-import useEventListener from "../useEventListener";
-import { useEdits, setEdits, useIsEditMode, useResults } from "../globalState";
+import { useEdits, setEdits, useIsEditMode, useResults } from "globalState";
+import useEventListener from "useEventListener";
+import { focusElement, setIsEdited } from "utility";
 
-import "../../css/Lightbox.scss";
-import { focusElement, setIsEdited } from "../utility";
+import Sidebar from "components/Sidebar";
+
+import "./index.scss";
 
 /**
  * Global counter for tag 

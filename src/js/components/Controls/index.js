@@ -1,12 +1,12 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults } from "../globalState";
-import useEventListener from "../useEventListener";
+import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults } from "globalState";
+import useEventListener from "useEventListener";
+import { getCookie, isEdited, setIsEdited, showOutdatedSessionDialog } from "utility";
+import ENDPOINT from "endpoint";
 
-import "../../css/Controls.scss";
-import { getCookie, isEdited, setIsEdited, showOutdatedSessionDialog } from "../utility";
-import ENDPOINT from "../endpoint";
+import "./index.scss";
 
 const Controls = () => {
     // States

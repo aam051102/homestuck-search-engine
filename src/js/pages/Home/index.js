@@ -7,19 +7,19 @@ import {
     MdSearch
 } from "react-icons/md";
 
-import "../../css/Home.scss";
-import Controls from "./Controls";
-import ENDPOINT from "../endpoint";
+import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits } from "globalState";
+import useEventListener from "useEventListener";
+import ENDPOINT from "endpoint";
+import { checkIsSignedIn, focusElement, setIsEdited } from "utility";
 
-import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits } from "../globalState";
+import Controls from "components/Controls";
+import Layout from "components/Layout";
+import Sidebar from "components/Sidebar";
+import StaticCanvas from "components/StaticCanvas";
+import Dialog from "components/Dialog";
+const Lightbox = lazy(() => import("components/Lightbox"));
 
-import Layout from "./Layout";
-import Sidebar from "./Sidebar";
-import StaticCanvas from "./StaticCanvas";
-import { checkIsSignedIn, focusElement, setIsEdited } from "../utility";
-import Dialog from "./Dialog";
-import useEventListener from "../useEventListener";
-const Lightbox = lazy(() => import("./Lightbox"));
+import "./index.scss";
 
 /**
  * Global counter for tag 

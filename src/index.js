@@ -4,11 +4,11 @@ import * as serviceWorker from "./serviceWorker";
 import { Router } from "@reach/router";
 import { HelmetProvider } from "react-helmet-async";
 
-import "./index.scss";
+import Home from "pages/Home";
+const Login = lazy(() => import("pages/Login"));
+const Settings = lazy(() => import("pages/Settings"));
 
-import Home from "./js/components/Home";
-const Login = lazy(() => import("./js/components/Login"));
-const Settings = lazy(() => import("./js/components/Settings"));
+import "./index.scss";
 
 const STARTPOINT = window.location.hostname === "localhost" ?
     "" :
