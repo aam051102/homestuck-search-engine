@@ -1,6 +1,6 @@
 import React from "react";
 
-import { setDialog } from "globalState";
+import { setDialog } from "utilities/globalState";
 
 import "./index.scss";
 

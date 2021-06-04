@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 
 import Background from "components/Background";
 
-import bgImage from "../../../images/bg.png";
+import bgImage from "assets/images/bg.png";
 
 import "./index.scss";
 

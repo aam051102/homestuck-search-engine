@@ -1,6 +1,6 @@
 import React, { createRef } from "react";
 
-import useEventListener from "useEventListener";
+import useEventListener from "utilities/useEventListener";
 
 import "./index.scss";
 

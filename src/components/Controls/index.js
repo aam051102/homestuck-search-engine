@@ -1,10 +1,10 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults } from "globalState";
-import useEventListener from "useEventListener";
-import { getCookie, isEdited, setIsEdited, showOutdatedSessionDialog } from "utility";
-import ENDPOINT from "endpoint";
+import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults } from "utilities/globalState";
+import useEventListener from "utilities/useEventListener";
+import { getCookie, isEdited, setIsEdited, showOutdatedSessionDialog } from "utilities/utility";
+import ENDPOINT from "utilities/endpoint";
 
 import "./index.scss";
 
@@ -106,45 +106,49 @@ const Controls = () => {
 
     return (
         <>
-            {isSignedIn ? (
-                <>
-                    <button
-                        className="control-btn control-edit"
-                        onClick={() => {
-                            if (isEditMode) {
-                                exitEditMode();
-                            } else {
-                                setIsEditMode(true);
+            {isSignedIn
+                ? (
+                    <>
+                        <button
+                            className="control-btn control-edit"
+                            onClick={() => {
+                                if (isEditMode) {
+                                    exitEditMode();
+                                } else {
+                                    setIsEditMode(true);
+                                }
+                            }}
+                            aria-label="Edit tags"
+                            title="Toggle Edit Mode"
+                        >
+                            {
+                                isEditMode ? 
+                                    <MdCancel /> :
+                                    <MdEdit />
                             }
-                        }}
-                        aria-label="Edit tags"
-                        title="Toggle Edit Mode"
-                    >
-                        {
-                            isEditMode ? 
-                                <MdCancel /> :
-                                <MdEdit />
-                        }
-                    </button>
+                        </button>
 
-                    {
-                        isEditMode ? (
-                            <button
-                                className="control-btn control-save"
-                                onClick={async () => {
-                                    await saveData(() => {
-                                        setIsEditMode(false);
-                                    });
-                                }}
-                                aria-label="Save edits"
-                                title="Save"
-                            >
-                                <MdSave />
-                            </button>
-                        ) : null
-                    }
-                </>
-            ) : null}
+                        {
+                            isEditMode
+                                ? (
+                                    <button
+                                        className="control-btn control-save"
+                                        onClick={async () => {
+                                            await saveData(() => {
+                                                setIsEditMode(false);
+                                            });
+                                        }}
+                                        aria-label="Save edits"
+                                        title="Save"
+                                    >
+                                        <MdSave />
+                                    </button>
+                                )
+                                : null
+                        }
+                    </>
+                )
+                : null}
         </>
     );
 };

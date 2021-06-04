@@ -2,9 +2,9 @@ import React, { createRef, useEffect } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { navigate } from "@reach/router";
 
-import ENDPOINT from "endpoint";
-import { checkIsSignedIn } from "utility";
-import { setIsSignedIn, useIsSignedIn } from "globalState";
+import ENDPOINT from "utilities/endpoint";
+import { checkIsSignedIn } from "utilities/utility";
+import { setIsSignedIn, useIsSignedIn } from "utilities/globalState";
 
 import Layout from "components/Layout";
 

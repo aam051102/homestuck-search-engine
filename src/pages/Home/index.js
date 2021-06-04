@@ -7,10 +7,10 @@ import {
     MdSearch
 } from "react-icons/md";
 
-import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits } from "globalState";
-import useEventListener from "useEventListener";
-import ENDPOINT from "endpoint";
-import { checkIsSignedIn, focusElement, setIsEdited } from "utility";
+import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits } from "utilities/globalState";
+import useEventListener from "utilities/useEventListener";
+import ENDPOINT from "utilities/endpoint";
+import { checkIsSignedIn, focusElement, setIsEdited } from "utilities/utility";
 
 import Controls from "components/Controls";
 import Layout from "components/Layout";
@@ -116,11 +116,12 @@ function HomePage() {
 
             res.push(
                 <li className="sidebar-text-input" key={key || index}>
-                    {isEditMode ? (
-                        <input className={`tag-input${tagInfo.tag.length === 0 ?
-                            " empty" :
-                            ""}`} data-index={index} data-key={key} defaultValue={tagInfo.tag} autoFocus={focused === index} />
-                    ) :
+                    {isEditMode
+                        ? (
+                            <input className={`tag-input${tagInfo.tag.length === 0 ?
+                                " empty" :
+                                ""}`} data-index={index} data-key={key} defaultValue={tagInfo.tag} autoFocus={focused === index} />
+                        ) :
                         tagInfo.tag} ({tagInfo.appearances})
                 </li>
             );
@@ -648,57 +649,63 @@ function HomePage() {
             </div>
 
             <section className="result-grid">
-                {results.length > 0 ? (
-                    results
-                        .slice(
-                            visibleResults * (currentPage - 1),
-                            visibleResults * (currentPage - 1) + visibleResults
-                        )
-                        .map((result, i) => {
-                            return (
-                                <section className="search-result" key={i}>
-                                    <a
-                                        href={`https://homestuck.com/story/${result.page}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        {result.type === 0 ? (
-                                            <StaticCanvas
-                                                width="650"
-                                                height="450"
-                                                src={
-                                                    result.thumbnail ||
+                {results.length > 0
+                    ? (
+                        results
+                            .slice(
+                                visibleResults * (currentPage - 1),
+                                visibleResults * (currentPage - 1) + visibleResults
+                            )
+                            .map((result, i) => {
+                                return (
+                                    <section className="search-result" key={i}>
+                                        <a
+                                            href={`https://homestuck.com/story/${result.page}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {result.type === 0
+                                                ? (
+                                                    <StaticCanvas
+                                                        width="650"
+                                                        height="450"
+                                                        src={
+                                                            result.thumbnail ||
                                                     result.content
-                                                }
-                                            />
-                                        ) : null}
-                                        {result.type === 1 ? (
-                                            <div>
-                                                <p>Flash not functional.</p>
-                                            </div>
-                                        ) : null}
-                                    </a>
+                                                        }
+                                                    />
+                                                )
+                                                : null}
+                                            {result.type === 1
+                                                ? (
+                                                    <div>
+                                                        <p>Flash not functional.</p>
+                                                    </div>
+                                                )
+                                                : null}
+                                        </a>
 
-                                    <div
-                                        className="search-result-link"
-                                        onClick={() => {
-                                            setLightbox({
-                                                id:
+                                        <div
+                                            className="search-result-link"
+                                            onClick={() => {
+                                                setLightbox({
+                                                    id:
                                                     visibleResults *
                                                         (currentPage - 1) +
                                                     i,
-                                                visible: true,
-                                            });
-                                        }}
-                                    >
-                                        <MdFullscreen />
-                                    </div>
-                                </section>
-                            );
-                        })
-                ) : (
-                    <p className="no-results">No results</p>
-                )}
+                                                    visible: true,
+                                                });
+                                            }}
+                                        >
+                                            <MdFullscreen />
+                                        </div>
+                                    </section>
+                                );
+                            })
+                    )
+                    : (
+                        <p className="no-results">No results</p>
+                    )}
             </section>
 
             <div

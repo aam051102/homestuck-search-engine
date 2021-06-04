@@ -5,9 +5,9 @@ import {
     MdClose
 } from "react-icons/md";
 
-import { useEdits, setEdits, useIsEditMode, useResults } from "globalState";
-import useEventListener from "useEventListener";
-import { focusElement, setIsEdited } from "utility";
+import { useEdits, setEdits, useIsEditMode, useResults } from "utilities/globalState";
+import useEventListener from "utilities/useEventListener";
+import { focusElement, setIsEdited } from "utilities/utility";
 
 import Sidebar from "components/Sidebar";
 
@@ -241,27 +241,33 @@ const Lightbox = (props) => {
                     <MdChevronLeft />
                 </button>
 
-                {result ? (
-                    <a
-                        href={`https://homestuck.com/story/${result ?
-                            result.page :
-                            ""}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        {result.type === 0 ? (
-                            <img
-                                src={result.content}
-                                alt="Lightbox Panel"
-                            />
-                        ) : null}
-                        {result.type === 1 ? (
-                            <div>
-                                <p>Flash not functional.</p>
-                            </div>
-                        ) : null}
-                    </a>
-                ) : null}
+                {result
+                    ? (
+                        <a
+                            href={`https://homestuck.com/story/${result ?
+                                result.page :
+                                ""}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {result.type === 0
+                                ? (
+                                    <img
+                                        src={result.content}
+                                        alt="Lightbox Panel"
+                                    />
+                                )
+                                : null}
+                            {result.type === 1
+                                ? (
+                                    <div>
+                                        <p>Flash not functional.</p>
+                                    </div>
+                                )
+                                : null}
+                        </a>
+                    )
+                    : null}
 
                 <button
                     className="lightbox-btn-clear lightbox-right"
@@ -292,13 +298,15 @@ const Lightbox = (props) => {
 
                     <ul className="sidebar-text">
                         {resultTags.map((tag, i) => {
-                            return isEditMode ? (
-                                <li className="sidebar-text-input" key={tag[0] || i}>
-                                    <input className={`tag-input${tag[1].length === 0 ? 
-                                        " empty" :
-                                        ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
-                                </li>
-                            ) : <li key={tag[0] || i}>{tag[1]}</li>;
+                            return isEditMode
+                                ? (
+                                    <li className="sidebar-text-input" key={tag[0] || i}>
+                                        <input className={`tag-input${tag[1].length === 0 ? 
+                                            " empty" :
+                                            ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
+                                    </li>
+                                )
+                                : <li key={tag[0] || i}>{tag[1]}</li>;
                         })}
                     </ul>
                 </Sidebar>
