@@ -266,8 +266,6 @@ function HomePage() {
             }
         }
 
-        console.log(tags);
-
         // Perform search
         fetch(`${ENDPOINT}/api/app/1/search`, {
             method: "POST",
