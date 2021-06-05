@@ -1,4 +1,6 @@
-import React, { createRef, lazy, useEffect, useState } from "react";
+import React, {
+    createRef, lazy, useEffect, useState 
+} from "react";
 import {
     MdArrowUpward,
     MdChevronLeft,
@@ -7,10 +9,14 @@ import {
     MdSearch
 } from "react-icons/md";
 
-import { useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits } from "utilities/globalState";
+import {
+    useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits 
+} from "utilities/globalState";
 import useEventListener from "utilities/useEventListener";
 import ENDPOINT from "utilities/endpoint";
-import { checkIsSignedIn, focusElement, setIsEdited } from "utilities/utility";
+import {
+    checkIsSignedIn, focusElement, setIsEdited 
+} from "utilities/utility";
 
 import Controls from "components/Controls";
 import Layout from "components/Layout";
@@ -30,28 +36,28 @@ let tagKeyCounter = 0;
  * Represents the home page.
  */
 function HomePage() {
-    // States
-    const [tags, setTags, ] = useState([]);
-    const [lightbox, setLightbox, ] = useState({
+    /* States */
+    const [tags, setTags] = useState([]);
+    const [lightbox, setLightbox] = useState({
         results: [],
         id: 0,
         image: "",
-        visible: false,
+        visible: false
     });
-    const [visibleResults, setVisibleResults, ] = useState(20);
-    const [currentPage, setCurrentPage, ] = useState(1);
-    const [focused, setFocused, ] = useState(- 1);
-    const [resultTags, setResultTags, ] = useState({});
+    const [visibleResults, setVisibleResults] = useState(20);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [focused, setFocused] = useState(- 1);
+    const [resultTags, setResultTags] = useState({});
 
-    const [results, ] = useResults();
-    const [isSignedIn, ] = useIsSignedIn();
-    const [isEditMode, ] = useIsEditMode();
-    const [dialog, ] = useDialog();
+    const [results] = useResults();
+    const [isSignedIn] = useIsSignedIn();
+    const [isEditMode] = useIsEditMode();
+    const [dialog] = useDialog();
 
     const searchRef = createRef();
     const visibleResultsRef = createRef();
 
-    // Functions
+    /* Functions */
     /**
      * Updates the list of all result tags to use following structure:
      * 
@@ -91,7 +97,7 @@ function HomePage() {
                     thisResultTags[key] = {
                         tag: tag,
                         appearances: 0,
-                        resultIndices: {},
+                        resultIndices: {}
                     };
                 }
 
@@ -116,13 +122,9 @@ function HomePage() {
 
             res.push(
                 <li className="sidebar-text-input" key={key || index}>
-                    {isEditMode
-                        ? (
-                            <input className={`tag-input${tagInfo.tag.length === 0 ?
-                                " empty" :
-                                ""}`} data-index={index} data-key={key} defaultValue={tagInfo.tag} autoFocus={focused === index} />
-                        ) :
-                        tagInfo.tag} ({tagInfo.appearances})
+                    {isEditMode ? (
+                        <input className={`tag-input${tagInfo.tag.length === 0 ? " empty" : ""}`} data-index={index} data-key={key} defaultValue={tagInfo.tag} autoFocus={focused === index} />
+                    ) : tagInfo.tag} ({tagInfo.appearances})
                 </li>
             );
 
@@ -157,7 +159,7 @@ function HomePage() {
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: "smooth",
+            behavior: "smooth"
         });
     };
 
@@ -213,7 +215,7 @@ function HomePage() {
             // Page range
             if (searchTags[i] === "(") {
                 pageRangePoint = 1;
-                pageRanges.push(["", "", ]);
+                pageRanges.push(["", ""]);
                 rangeRef = pageRanges[pageRanges.length - 1];
                 continue;
             } else if (searchTags[i] === "-") {
@@ -258,17 +260,21 @@ function HomePage() {
                 for (let n = 0; n < tags[j].tags.length; n++) {
                     if (tags[j].tags[n].synonyms.includes(actualTags[i])) {
                         actualTags[i] = tags[j].tags[n].title;
-                        break firstTagLoop;
+                        continue firstTagLoop;
                     }
                 }
             }
         }
 
+        console.log(tags);
+
         // Perform search
         fetch(`${ENDPOINT}/api/app/1/search`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", },
-            body: JSON.stringify({ tags: actualTags, ranges: pageRanges, }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                tags: actualTags, ranges: pageRanges 
+            })
         })
             .then((e) => e.json())
             .then((data) => {
@@ -304,7 +310,7 @@ function HomePage() {
                     for (let j = 0; j < result.tags.length; j++) {
                         let tag = result.tags[j];
 
-                        editsLocal[resultId].push([tagKeyCounter++, tag, ]);
+                        editsLocal[resultId].push([tagKeyCounter++, tag]);
                     }
                 }
 
@@ -317,7 +323,7 @@ function HomePage() {
         });
     }
 
-    // Efects
+    /* Efects */
     useEffect(() => {
         // Get signed in state
         async function fetchData() {
@@ -337,7 +343,7 @@ function HomePage() {
             });
     }, []);
 
-    // Event listeners
+    /* Event listeners */
     useEventListener("keyup", (e) => {
         if (!lightbox.visible && e.target.classList.contains("tag-input")) {
             if (e.target.value.length === 0) {
@@ -370,12 +376,12 @@ function HomePage() {
                                 editsLocal[resultId] = [];
             
                                 for (let j = 0; j < result.tags.length; j++) {           
-                                    editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                                    editsLocal[resultId].push([tagKeyCounter++, result.tags[j]]);
                                 }
                             }
                             
                             resultIndices[resultId] = result.tags.length;
-                            editsLocal[resultId].splice(result.tags.length, 0, [tagKeyCounter++, "", ]);
+                            editsLocal[resultId].splice(result.tags.length, 0, [tagKeyCounter++, ""]);
                         }
 
                         setIsEdited(true);
@@ -388,7 +394,7 @@ function HomePage() {
                         resultTagsLocal[tagKeyCounter++] = {
                             tag: "",
                             appearances: results.length,
-                            resultIndices: resultIndices,
+                            resultIndices: resultIndices
                         };
                         
                         setFocused(newIndex);
@@ -430,7 +436,7 @@ function HomePage() {
                                         editsLocal[resultId] = [];
                     
                                         for (let j = 0; j < result.tags.length; j++) {           
-                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j]]);
                                         }
                                     }
                             
@@ -446,9 +452,7 @@ function HomePage() {
 
                                 delete resultTagsLocal[key];
 
-                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
-                                    0 :
-                                    index - 1}"]`));
+                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ? 0 : index - 1}"]`));
                                 return resultTagsLocal;
                             });
                         }
@@ -478,7 +482,7 @@ function HomePage() {
                                         editsLocal[resultId] = [];
                     
                                         for (let j = 0; j < result.tags.length; j++) {           
-                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j], ]);
+                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j]]);
                                         }
                                     }
                             
@@ -494,9 +498,7 @@ function HomePage() {
 
                                 delete resultTagsLocal[key];
 
-                                focusElement(document.querySelector(`.tag-input[data-index="${index >= resultTagsLength ?
-                                    resultTagsLength - 1 :
-                                    index + 1}"]`));
+                                focusElement(document.querySelector(`.tag-input[data-index="${index >= resultTagsLength ? resultTagsLength - 1 : index + 1}"]`));
                                 return resultTagsLocal;
                             });
                         }
@@ -517,14 +519,13 @@ function HomePage() {
         document
     );
 
+    /* Return */
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
             <nav className="page-nav">
                 <ul>
                     <li
-                        className={currentPage > 1 
-                            ? "enabled" 
-                            : ""}
+                        className={currentPage > 1 ? "enabled" : ""}
                         onClick={loadPreviousPage}
                     >
                         <MdChevronLeft />
@@ -552,9 +553,7 @@ function HomePage() {
                                     data.push(
                                         <button
                                             className={
-                                                currentPage === i
-                                                    ? "current"
-                                                    : ""
+                                                currentPage === i ? "current" : ""
                                             }
                                             key={i}
                                             onClick={(e) => {
@@ -563,7 +562,7 @@ function HomePage() {
                                                 );
                                                 window.scrollTo({
                                                     top: 0,
-                                                    behavior: "smooth",
+                                                    behavior: "smooth"
                                                 });
                                             }}
                                         >
@@ -580,9 +579,7 @@ function HomePage() {
                     <li
                         className={
                             currentPage <
-                            Math.ceil(results.length / visibleResults)
-                                ? "enabled"
-                                : ""
+                            Math.ceil(results.length / visibleResults) ? "enabled" : ""
                         }
                         onClick={loadNextPage}
                     >
@@ -603,11 +600,13 @@ function HomePage() {
                         type="text"
                         autoComplete="off"
                         placeholder="Search (ex. 'john, act 1, dad')"
+                        data-testid="search-field"
                     />
                     <button
                         className="search-button"
                         aria-label="Search"
                         type="submit"
+                        data-testid="search-button"
                     >
                         <MdSearch />
                     </button>
@@ -649,63 +648,57 @@ function HomePage() {
             </div>
 
             <section className="result-grid">
-                {results.length > 0
-                    ? (
-                        results
-                            .slice(
-                                visibleResults * (currentPage - 1),
-                                visibleResults * (currentPage - 1) + visibleResults
-                            )
-                            .map((result, i) => {
-                                return (
-                                    <section className="search-result" key={i}>
-                                        <a
-                                            href={`https://homestuck.com/story/${result.page}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {result.type === 0
-                                                ? (
-                                                    <StaticCanvas
-                                                        width="650"
-                                                        height="450"
-                                                        src={
-                                                            result.thumbnail ||
+                {results.length > 0 ? (
+                    results
+                        .slice(
+                            visibleResults * (currentPage - 1),
+                            visibleResults * (currentPage - 1) + visibleResults
+                        )
+                        .map((result, i) => {
+                            return (
+                                <section className="search-result" key={i}>
+                                    <a
+                                        href={`https://homestuck.com/story/${result.page}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {result.type === 0 ? (
+                                            <StaticCanvas
+                                                width="650"
+                                                height="450"
+                                                src={
+                                                    result.thumbnail ||
                                                     result.content
-                                                        }
-                                                    />
-                                                )
-                                                : null}
-                                            {result.type === 1
-                                                ? (
-                                                    <div>
-                                                        <p>Flash not functional.</p>
-                                                    </div>
-                                                )
-                                                : null}
-                                        </a>
+                                                }
+                                            />
+                                        ) : null}
+                                        {result.type === 1 ? (
+                                            <div>
+                                                <p>Flash not functional.</p>
+                                            </div>
+                                        ) : null}
+                                    </a>
 
-                                        <div
-                                            className="search-result-link"
-                                            onClick={() => {
-                                                setLightbox({
-                                                    id:
+                                    <div
+                                        className="search-result-link"
+                                        onClick={() => {
+                                            setLightbox({
+                                                id:
                                                     visibleResults *
                                                         (currentPage - 1) +
                                                     i,
-                                                    visible: true,
-                                                });
-                                            }}
-                                        >
-                                            <MdFullscreen />
-                                        </div>
-                                    </section>
-                                );
-                            })
-                    )
-                    : (
-                        <p className="no-results">No results</p>
-                    )}
+                                                visible: true
+                                            });
+                                        }}
+                                    >
+                                        <MdFullscreen />
+                                    </div>
+                                </section>
+                            );
+                        })
+                ) : (
+                    <p className="no-results">No results</p>
+                )}
             </section>
 
             <div
@@ -738,7 +731,7 @@ function HomePage() {
                                 <h2>{tag.category}</h2>
                             </summary>
 
-                            <ul className="sidebar-text focusable">
+                            <ul className="sidebar-text focusable" data-testid="tag-category-list">
                                 {tag.tags.map((tag, i) => {
                                     return (
                                         <li
@@ -761,14 +754,14 @@ function HomePage() {
                 hideLightbox={() => {
                     setLightbox({
                         id: lightbox.id,
-                        visible: false,
+                        visible: false
                     });
                 }}
                 loadPrevious={() => {
                     if (lightbox.id > 0) {
                         setLightbox({
                             id: lightbox.id - 1,
-                            visible: true,
+                            visible: true
                         });
                     }
                 }}
@@ -776,7 +769,7 @@ function HomePage() {
                     if (lightbox.id < results.length - 1) {
                         setLightbox({
                             id: lightbox.id + 1,
-                            visible: true,
+                            visible: true
                         });
                     }
                 }}

@@ -17,13 +17,11 @@ const STARTPOINT = window.location.hostname === "localhost" ?
 ReactDOM.render(
     <React.StrictMode>
         <Suspense fallback={<div>Loading...</div>}>
-            <HelmetProvider>
-                <Router>
-                    <Home path={`${STARTPOINT}/`} />
-                    <Login path={`${STARTPOINT}/login`} />
-                    <Settings path={`${STARTPOINT}/settings`} />
-                </Router>
-            </HelmetProvider>
+            <Router>
+                <Home path={`${STARTPOINT}/`} />
+                <Login path={`${STARTPOINT}/login`} />
+                <Settings path={`${STARTPOINT}/settings`} />
+            </Router>
         </Suspense>
     </React.StrictMode>,
     document.getElementById("root")

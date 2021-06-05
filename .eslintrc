@@ -1,21 +1,36 @@
 {
     "extends": [
         "eslint:recommended",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "plugin:jest/recommended"
     ],
     "plugins": [
-        "react"
+        "react",
+        "testing-library",
+        "jest"
     ],
     "env": {
         "es6": true,
         "node": true,
-        "browser": true
+        "browser": true,
+        "jest/globals": true
     },
     "settings": {
 		"react": {
 			"version": "detect"
 		}
 	},
+    "overrides": [
+        {
+            "files": [
+                "**/*.test.js"
+            ],
+            "env": {
+                "jest": true,
+                "jest/globals": true
+            }
+        }
+    ],
     "rules": {
         "react/prop-types": [ "off" ],
         "react/jsx-tag-spacing": [ "warn", {
@@ -92,18 +107,19 @@
             "after": true
         }],
         "comma-dangle": ["warn", {
-            "objects": "always",
-            "arrays": "always",
+            "objects": "never",
+            "arrays": "never",
             "functions": "never"
         }],
         "padding-line-between-statements": ["warn",
             { "blankLine": "always", "prev": "*", "next": ["export", "function"] }
         ],
         "padded-blocks": ["warn", "never"],
-        "object-curly-newline":[ "warn", { "multiline": true } ],
-        "array-element-newline" : [ "warn", { "multiline": true } ],
-        "array-bracket-newline": [ "warn", { "multiline": true }],
-        "multiline-ternary": ["warn", "always"]
+        "object-curly-newline":[ "warn", { "minProperties": 2 } ],
+        "array-element-newline" : [ "warn", { "minItems": 3 } ],
+        "array-bracket-newline": [ "warn", { "minItems": 3 } ],
+        "array-bracket-spacing": [ "warn", "never"],
+        "multiline-ternary": ["warn", "never"]
     },
     "parserOptions": {
         "ecmaVersion": 11,
