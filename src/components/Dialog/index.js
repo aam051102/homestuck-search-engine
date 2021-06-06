@@ -10,7 +10,7 @@ import "./index.scss";
  */
 const Dialog = (props) => {
     function handleCloseBtnClick() {
-        setDialog({ visible: false, });
+        setDialog({ visible: false });
     }
 
     return props.visible && (
@@ -22,19 +22,17 @@ const Dialog = (props) => {
 
                     <div className="dialog-button-wrapper">
                         {
-                            props.buttons ? 
-                                props.buttons.map((button) => (
-                                    <button className="dialog-close" onClick={async () => {
-                                        if (button.callbacks) {
-                                            for (let i = 0; i < button.callbacks.length; i++) {
-                                                await button.callbacks[i]();
-                                            }
+                            props.buttons ? props.buttons.map((button) => (
+                                <button className="dialog-close" onClick={async () => {
+                                    if (button.callbacks) {
+                                        for (let i = 0; i < button.callbacks.length; i++) {
+                                            await button.callbacks[i]();
                                         }
+                                    }
 
-                                        handleCloseBtnClick();
-                                    }} key={button.title}>{button.title}</button>
-                                )) :
-                                <button className="dialog-close" onClick={handleCloseBtnClick}>Close</button>
+                                    handleCloseBtnClick();
+                                }} key={button.title}>{button.title}</button>
+                            )) : <button className="dialog-close" onClick={handleCloseBtnClick}>Close</button>
                         }
                     </div>
                 </div>

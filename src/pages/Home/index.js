@@ -324,6 +324,7 @@ function HomePage() {
     /* Efects */
     useEffect(() => {
         // Get signed in state
+        // Replace once new React feature is implemented. This async function thing is necessary for now.
         async function fetchData() {
             setIsSignedIn(await checkIsSignedIn());
         }

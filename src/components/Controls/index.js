@@ -1,19 +1,25 @@
 import React from "react";
-import { MdCancel, MdEdit, MdSave } from "react-icons/md";
+import {
+    MdCancel, MdEdit, MdSave 
+} from "react-icons/md";
 
-import { setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults } from "utilities/globalState";
+import {
+    setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults 
+} from "utilities/globalState";
 import useEventListener from "utilities/useEventListener";
-import { getCookie, isEdited, setIsEdited, showOutdatedSessionDialog } from "utilities/utility";
+import {
+    getCookie, isEdited, setIsEdited, showOutdatedSessionDialog 
+} from "utilities/utility";
 import ENDPOINT from "utilities/endpoint";
 
 import "./index.scss";
 
 const Controls = () => {
     // States
-    const [results, ] = useResults();
-    const [edits, ] = useEdits();
-    const [isEditMode, setIsEditMode, ] = useIsEditMode();
-    const [isSignedIn, ] = useIsSignedIn();
+    const [results] = useResults();
+    const [edits] = useEdits();
+    const [isEditMode, setIsEditMode] = useIsEditMode();
+    const [isSignedIn] = useIsSignedIn();
 
     // Functions
     /**
@@ -30,13 +36,13 @@ const Controls = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${getCookie("hsse_token")}`,
+                Authorization: `Bearer ${getCookie("hsse_token")}`
             },
-            body: JSON.stringify({ edits: edits, }),
+            body: JSON.stringify({ edits: edits })
         }).then(e => {
             if (e.status === 403 || e.status === 401) {
                 showOutdatedSessionDialog();
-                return { error: "Session outdated.", };
+                return { error: "Session outdated." };
             } else {
                 return e.json();
             }
@@ -73,14 +79,18 @@ const Controls = () => {
                 buttons: [
                     {
                         title: "Save",
-                        callbacks: [saveData, callback, () => { setIsEditMode(false) }, ],
+                        callbacks: [
+                            saveData,
+                            callback,
+                            () => { setIsEditMode(false) } 
+                        ]
                     },
                     {
                         title: "Don't Save",
-                        callbacks: [callback, () => { setEdits({}); setIsEditMode(false) }, ],
+                        callbacks: [callback, () => { setEdits({}); setIsEditMode(false) }]
                     },
-                    { title: "Cancel", }, 
-                ],
+                    { title: "Cancel" } 
+                ]
             });
         } else {
             callback();
@@ -106,49 +116,45 @@ const Controls = () => {
 
     return (
         <>
-            {isSignedIn
-                ? (
-                    <>
-                        <button
-                            className="control-btn control-edit"
-                            onClick={() => {
-                                if (isEditMode) {
-                                    exitEditMode();
-                                } else {
-                                    setIsEditMode(true);
-                                }
-                            }}
-                            aria-label="Edit tags"
-                            title="Toggle Edit Mode"
-                        >
-                            {
-                                isEditMode ? 
-                                    <MdCancel /> :
-                                    <MdEdit />
+            {isSignedIn ? (
+                <>
+                    <button
+                        className="control-btn control-edit"
+                        onClick={() => {
+                            if (isEditMode) {
+                                exitEditMode();
+                            } else {
+                                setIsEditMode(true);
                             }
-                        </button>
-
+                        }}
+                        aria-label="Edit tags"
+                        title="Toggle Edit Mode"
+                        data-testid="controls-edit-btn"
+                    >
                         {
-                            isEditMode
-                                ? (
-                                    <button
-                                        className="control-btn control-save"
-                                        onClick={async () => {
-                                            await saveData(() => {
-                                                setIsEditMode(false);
-                                            });
-                                        }}
-                                        aria-label="Save edits"
-                                        title="Save"
-                                    >
-                                        <MdSave />
-                                    </button>
-                                )
-                                : null
+                            isEditMode ? <MdCancel data-testid="controls-cancel-icon" /> : <MdEdit />
                         }
-                    </>
-                )
-                : null}
+                    </button>
+
+                    {
+                        isEditMode ? (
+                            <button
+                                className="control-btn control-save"
+                                onClick={async () => {
+                                    await saveData(() => {
+                                        setIsEditMode(false);
+                                    });
+                                }}
+                                aria-label="Save edits"
+                                title="Save"
+                                data-testid="controls-save-btn"
+                            >
+                                <MdSave />
+                            </button>
+                        ) : null
+                    }
+                </>
+            ) : null}
         </>
     );
 };

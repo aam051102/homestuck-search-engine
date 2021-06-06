@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, {
+    useEffect, useState 
+} from "react";
 import {
     MdChevronLeft,
     MdChevronRight,
     MdClose
 } from "react-icons/md";
 
-import { useEdits, setEdits, useIsEditMode, useResults } from "utilities/globalState";
+import {
+    useEdits, setEdits, useIsEditMode, useResults 
+} from "utilities/globalState";
 import useEventListener from "utilities/useEventListener";
-import { focusElement, setIsEdited } from "utilities/utility";
+import {
+    focusElement, setIsEdited 
+} from "utilities/utility";
 
 import Sidebar from "components/Sidebar";
 
@@ -24,13 +30,13 @@ let tagKeyCounter = 0;
  */
 const Lightbox = (props) => {
     // States
-    const [isEditMode, ] = useIsEditMode();
-    const [results, ] = useResults();
-    const [edits, ] = useEdits();
+    const [isEditMode] = useIsEditMode();
+    const [results] = useResults();
+    const [edits] = useEdits();
 
-    const [resultTags, setResultTags, ] = useState([]);
-    const [focused, setFocused, ] = useState(- 1);
-    const [isSidebarOpen, setIsSidebarOpen, ] = useState(false);
+    const [resultTags, setResultTags] = useState([]);
+    const [focused, setFocused] = useState(- 1);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Variables
     const result = results[props.id];
@@ -97,13 +103,18 @@ const Lightbox = (props) => {
                 setResultTags(edits[result._id]);
             } else {
                 // Otherwise, use results
-                setResultTags(result.tags.map((tag) => [tagKeyCounter++, tag, ]));
+                setResultTags(result.tags.map((tag) => [tagKeyCounter++, tag]));
             }
         } else {
             // If neither is loaded, use blank line
-            setResultTags([[0, "", ], ]);
+            setResultTags([[0, ""]]);
         }
-    }, [result, edits, props.id, isEditMode, ]);
+    }, [
+        result,
+        edits,
+        props.id,
+        isEditMode 
+    ]);
 
     // Event listeners
     useEventListener("keyup", (e) => {
@@ -148,7 +159,7 @@ const Lightbox = (props) => {
                                 editsLocal[resultId] = resultTags;
                             }
 
-                            editsLocal[resultId].splice(index, 0, [tagKeyCounter++, "", ]);
+                            editsLocal[resultId].splice(index, 0, [tagKeyCounter++, ""]);
                             
                             setFocused(index);
 
@@ -185,9 +196,7 @@ const Lightbox = (props) => {
                                     return editsLocal;
                                 });
 
-                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ?
-                                    0 :
-                                    index - 1}"]`));
+                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ? 0 : index - 1}"]`));
                             }
                         }
                     } else if (e.key === "Delete") {     
@@ -218,9 +227,7 @@ const Lightbox = (props) => {
 
     return (
         <div
-            className={`lightbox${props.visible ?
-                " visible" : 
-                ""}`}
+            className={`lightbox${props.visible ? " visible" : ""}`}
             onClick={(e) => {
                 if (e.target.classList.contains("lightbox")) {
                     closeLightbox();
@@ -230,9 +237,7 @@ const Lightbox = (props) => {
             <>
                 <button
                     className={`lightbox-btn-clear lightbox-left`}
-                    disabled={props.id <= 0 ? 
-                        true : 
-                        false}
+                    disabled={props.id <= 0 ? true : false}
                     onClick={() => {
                         loadPrevious();
                     }}
@@ -241,39 +246,29 @@ const Lightbox = (props) => {
                     <MdChevronLeft />
                 </button>
 
-                {result
-                    ? (
-                        <a
-                            href={`https://homestuck.com/story/${result ?
-                                result.page :
-                                ""}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {result.type === 0
-                                ? (
-                                    <img
-                                        src={result.content}
-                                        alt="Lightbox Panel"
-                                    />
-                                )
-                                : null}
-                            {result.type === 1
-                                ? (
-                                    <div>
-                                        <p>Flash not functional.</p>
-                                    </div>
-                                )
-                                : null}
-                        </a>
-                    )
-                    : null}
+                {result ? (
+                    <a
+                        href={`https://homestuck.com/story/${result ? result.page : ""}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {result.type === 0 ? (
+                            <img
+                                src={result.content}
+                                alt="Lightbox Panel"
+                            />
+                        ) : null}
+                        {result.type === 1 ? (
+                            <div>
+                                <p>Flash not functional.</p>
+                            </div>
+                        ) : null}
+                    </a>
+                ) : null}
 
                 <button
                     className="lightbox-btn-clear lightbox-right"
-                    disabled={props.id >= results.length - 1 ?
-                        true :
-                        false}
+                    disabled={props.id >= results.length - 1 ? true : false}
                     onClick={() => {
                         loadNext();
                     }}
@@ -298,15 +293,11 @@ const Lightbox = (props) => {
 
                     <ul className="sidebar-text">
                         {resultTags.map((tag, i) => {
-                            return isEditMode
-                                ? (
-                                    <li className="sidebar-text-input" key={tag[0] || i}>
-                                        <input className={`tag-input${tag[1].length === 0 ? 
-                                            " empty" :
-                                            ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
-                                    </li>
-                                )
-                                : <li key={tag[0] || i}>{tag[1]}</li>;
+                            return isEditMode ? (
+                                <li className="sidebar-text-input" key={tag[0] || i}>
+                                    <input className={`tag-input${tag[1].length === 0 ? " empty" : ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
+                                </li>
+                            ) : <li key={tag[0] || i}>{tag[1]}</li>;
                         })}
                     </ul>
                 </Sidebar>

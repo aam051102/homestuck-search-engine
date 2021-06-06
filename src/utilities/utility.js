@@ -26,9 +26,9 @@ export async function checkIsSignedIn() {
 
     return new Promise((resolve) => {
         if (cookieData) {
-            return fetch(`${ENDPOINT}/api/validate`, {
+            return fetch(`${ENDPOINT}/api/app/1/validate`, {
                 method: "POST",
-                headers: { Authorization: `Bearer ${cookieData}`, },
+                headers: { Authorization: `Bearer ${cookieData}` }
             }).then((e) => {
                 if (e.status === 200) {
                     resolve(true);
@@ -49,7 +49,9 @@ export async function checkIsSignedIn() {
  * Shows warning of outdated session.
  */
 export function showOutdatedSessionDialog() {
-    setDialog({ visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab.", });
+    setDialog({
+        visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab." 
+    });
 }
 
 /**

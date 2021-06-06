@@ -1,4 +1,6 @@
-import { useEffect, useRef } from "react";
+import {
+    useEffect, useRef 
+} from "react";
 
 /**
  * useEventListener from https://usehooks.com/useEventListener/
@@ -16,7 +18,7 @@ function useEventListener(eventName, handler, element = window) {
     // ... and potentially cause effect to re-run every render.
     useEffect(() => {
         savedHandler.current = handler;
-    }, [handler, ]);
+    }, [handler]);
 
     useEffect(
         () => {
@@ -36,7 +38,7 @@ function useEventListener(eventName, handler, element = window) {
                 element.removeEventListener(eventName, eventListener);
             };
         },
-        [eventName, element, ] // Re-run if eventName or element changes
+        [eventName, element] // Re-run if eventName or element changes
     );
 }
 

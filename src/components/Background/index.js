@@ -1,4 +1,6 @@
-import React, { createRef, useLayoutEffect } from "react";
+import React, {
+    createRef, useLayoutEffect 
+} from "react";
 
 import "./index.scss";
 
@@ -61,7 +63,7 @@ const Background = (props) => {
             image.removeEventListener("load", renderImage);
             window.removeEventListener("resize", renderImage);
         };
-    }, [canvasRef, props, ]);
+    }, [canvasRef, props]);
 
     return (
         <div className="background">

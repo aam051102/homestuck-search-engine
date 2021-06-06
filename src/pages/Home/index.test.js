@@ -15,15 +15,40 @@ const serverCall = jest.fn();
 
 /// API Mocking
 const server = setupServer(
+    rest.post(`${ENDPOINT}/api/app/1/validate`, (req, res, ctx) => {
+        return res(ctx.status(200));
+    }),
     rest.get(`${ENDPOINT}/api/app/1/tags`, (req, res, ctx) => {
-        return res(ctx.json([{
-            "_id": "1",
-            "category": "Characters",
-            "tags": [{
-                "title": "john",
-                "synonyms": ["john", "john egbert"]
-            }]
-        }]));
+        return res(ctx.json([
+            {
+                "_id": "1",
+                "category": "Characters",
+                "tags": [{
+                    "title": "john",
+                    "synonyms": ["john", "john egbert"]
+                }]
+            },
+            {
+                "_id": "2",
+                "category": "Characters",
+                "tags": [{
+                    "title": "dave",
+                    "synonyms": ["dave", "dave strider"]
+                }]
+            },
+            {
+                "_id": "3",
+                "category": "Characters",
+                "tags": [{
+                    "title": "dad egbert",
+                    "synonyms": [
+                        "dad egbert",
+                        "pre-scratch dad",
+                        "beta dad"
+                    ]
+                }]
+            }
+        ]));
     }),
     rest.post(`${ENDPOINT}/api/app/1/search`, (req, res, ctx) => {
         serverCall(req.body);
@@ -54,23 +79,45 @@ afterAll(() => server.close());
 /// Tests
 // Search bar
 describe("search bar", () => {
-    test("correctly processes search tags", async () => {
+    test("correctly processes search tags and ranges", async () => {
         render(<Suspense fallback="Suspense"><HomePage /></Suspense>);
         
         const searchField_DOM = screen.getByTestId(/search-field/i);
         const searchButton_DOM = screen.getByTestId(/search-button/i);
-
+        
         // Wait for tags to load
-        await waitFor(() => expect(screen.getByTestId(/tag-category-list/i)).toBeInTheDocument());
+        await waitFor(() => expect(screen.getAllByTestId(/tag-category-list/i)[0]).toBeInTheDocument());
 
         // Write tag and submit form
-        userEvent.type(searchField_DOM, "John Egbert");
+        userEvent.type(searchField_DOM, "(119-510), (631), John Egbert, dave,     BEta DAd   ");
+        searchButton_DOM.click();
+
+        // Wait for server call to check sent data
+        await waitFor(() => expect(serverCall).toHaveBeenLastCalledWith({
+            ranges: [["119", "510"], ["631", ""]],
+            tags: [
+                "john",
+                "dave",
+                "dad egbert"
+            ] 
+        }));
+    });
+
+    test("correctly processes empty searches", async () => {
+        render(<Suspense fallback="Suspense"><HomePage /></Suspense>);
+        
+        const searchButton_DOM = screen.getByTestId(/search-button/i);
+        
+        // Wait for tags to load
+        await waitFor(() => expect(screen.getAllByTestId(/tag-category-list/i)[0]).toBeInTheDocument());
+
+        // Write tag and submit form
         searchButton_DOM.click();
 
         // Wait for server call to check sent data
         await waitFor(() => expect(serverCall).toHaveBeenLastCalledWith({
             ranges: [],
-            tags: ["john"] 
+            tags: [] 
         }));
     });
 });
