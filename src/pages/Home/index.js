@@ -121,9 +121,17 @@ function HomePage() {
             const tagInfo = resultTags[key];
 
             res.push(
-                <li className="sidebar-text-input" key={key || index}>
+                <li
+                    className="sidebar-text-input"
+                    key={key || index}
+                    data-testid="used-tag-item">
                     {isEditMode ? (
-                        <input className={`tag-input${tagInfo.tag.length === 0 ? " empty" : ""}`} data-index={index} data-key={key} defaultValue={tagInfo.tag} autoFocus={focused === index} />
+                        <input
+                            className={`tag-input${tagInfo.tag.length === 0 ? " empty" : ""}`}
+                            data-index={index}
+                            data-key={key}
+                            defaultValue={tagInfo.tag}
+                            autoFocus={focused === index} />
                     ) : tagInfo.tag} ({tagInfo.appearances})
                 </li>
             );
@@ -283,7 +291,6 @@ function HomePage() {
 
                 setResults(data);
                 setCurrentPage(1);
-                updateResultTags(data);
             });
     };
 
@@ -323,12 +330,18 @@ function HomePage() {
 
     /* Efects */
     useEffect(() => {
+        let ignore = false;
+
         // Get signed in state
-        // Replace once new React feature is implemented. This async function thing is necessary for now.
+        // Replace once new React feature is implemented. This async function is necessary for now.
         async function fetchData() {
-            setIsSignedIn(await checkIsSignedIn());
+            return await checkIsSignedIn();
         }
-        fetchData();
+        fetchData().then((data) => {
+            if (!ignore) {
+                setIsSignedIn(data);
+            }
+        });
 
         // Get tags
         fetch(`${ENDPOINT}/api/app/1/tags`)
@@ -338,9 +351,19 @@ function HomePage() {
                     return a.position - b.position;
                 });
 
-                setTags(data);
+                if (!ignore) {
+                    setTags(data);
+                }
             });
+
+        return () => {
+            ignore = true;
+        };
     }, []);
+
+    useEffect(() => {
+        updateResultTags(results);
+    }, [results]);
 
     /* Event listeners */
     useEventListener("keyup", (e) => {
@@ -520,7 +543,9 @@ function HomePage() {
 
     /* Return */
     return (
-        <Layout className="home-page" title="Homestuck Search Engine">
+        <Layout
+            className="home-page"
+            title="Homestuck Search Engine">
             <nav className="page-nav">
                 <ul>
                     <li
@@ -587,8 +612,12 @@ function HomePage() {
                 </ul>
             </nav>
 
-            <form className="search-form" onSubmit={handleSubmit}>
-                <label className="search-term-label" htmlFor="search-term">
+            <form
+                className="search-form"
+                onSubmit={handleSubmit}>
+                <label
+                    className="search-term-label"
+                    htmlFor="search-term">
                     Search
                 </label>
                 <div className="search-term-wrapper">
@@ -655,7 +684,9 @@ function HomePage() {
                         )
                         .map((result, i) => {
                             return (
-                                <section className="search-result" key={i}>
+                                <section
+                                    className="search-result"
+                                    key={i}>
                                     <a
                                         href={`https://homestuck.com/story/${result.page}`}
                                         target="_blank"
@@ -725,12 +756,16 @@ function HomePage() {
 
                 {tags.map((tag, i) => {
                     return (
-                        <details key={i} open>
+                        <details
+                            key={i}
+                            open>
                             <summary>
                                 <h2>{tag.category}</h2>
                             </summary>
 
-                            <ul className="sidebar-text focusable" data-testid="tag-category-list">
+                            <ul
+                                className="sidebar-text focusable"
+                                data-testid="tag-category-list">
                                 {tag.tags.map((tag, i) => {
                                     return (
                                         <li

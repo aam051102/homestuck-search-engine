@@ -288,16 +288,33 @@ const Lightbox = (props) => {
                     <MdClose />
                 </button>
 
-                <Sidebar title="Asset Tags" onToggle={handleSidebarToggle} isOpen={isSidebarOpen}>
+                <Sidebar
+                    title="Asset Tags"
+                    onToggle={handleSidebarToggle}
+                    isOpen={isSidebarOpen}
+                >
                     {isEditMode && <p>Type and press enter.</p>}
 
-                    <ul className="sidebar-text">
+                    <ul
+                        className="sidebar-text">
                         {resultTags.map((tag, i) => {
                             return isEditMode ? (
-                                <li className="sidebar-text-input" key={tag[0] || i}>
-                                    <input className={`tag-input${tag[1].length === 0 ? " empty" : ""}`} data-index={i} defaultValue={tag[1]} autoFocus={focused === i} />
+                                <li
+                                    className="sidebar-text-input"
+                                    key={tag[0] || i}>
+                                    <input
+                                        className={`tag-input${tag[1].length === 0 ? " empty" : ""}`}
+                                        data-index={i}
+                                        defaultValue={tag[1]}
+                                        autoFocus={focused === i} 
+                                        data-testid="lightbox-tag-input"
+                                    />
                                 </li>
-                            ) : <li key={tag[0] || i}>{tag[1]}</li>;
+                            ) : (
+                                <li
+                                    key={tag[0] || i}
+                                    data-testid="lightbox-tag-item">{tag[1]}</li>
+                            );
                         })}
                     </ul>
                 </Sidebar>
