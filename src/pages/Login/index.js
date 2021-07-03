@@ -32,7 +32,9 @@ function LoginPage() {
     }, [isSignedIn]);
 
     return (
-        <Layout className="login-page" title="Homestuck Search Engine | Login">
+        <Layout
+            className="login-page"
+            title="Homestuck Search Engine | Login">
             <form id="login-form">
                 <label htmlFor="password-field">Password:</label>
                 <div className="themed-input-wrapper">
