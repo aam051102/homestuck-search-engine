@@ -62,7 +62,6 @@
         }],
         "react/jsx-first-prop-new-line": ["warn", "multiline"],
         "react/jsx-max-props-per-line": [1, { "maximum": 1 }],
-        "no-unused-vars": ["warn", "always"],
         "lines-between-class-members": "warn",
         "no-multiple-empty-lines": [
 			"warn",
