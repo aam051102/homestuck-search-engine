@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import { Router } from "@reach/router";
-import { HelmetProvider } from "react-helmet-async";
 
 import Home from "pages/Home";
 const Login = lazy(() => import("pages/Login"));
