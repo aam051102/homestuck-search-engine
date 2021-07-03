@@ -1,4 +1,6 @@
-import React, { lazy, Suspense } from "react";
+import React, {
+    lazy, Suspense 
+} from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import { Router } from "@reach/router";
@@ -9,9 +11,7 @@ const Settings = lazy(() => import("pages/Settings"));
 
 import "./index.scss";
 
-const STARTPOINT = window.location.hostname === "localhost" ?
-    "" :
-    "/app/hsse";
+const STARTPOINT = window.location.hostname === "localhost" ? "" : "/app/hsse";
 
 ReactDOM.render(
     <React.StrictMode>
