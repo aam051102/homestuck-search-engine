@@ -8,6 +8,7 @@ import {
     MdFullscreen,
     MdSearch
 } from "react-icons/md";
+import ReactGA from "react-ga";
 
 import {
     useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits 
@@ -201,6 +202,12 @@ function HomePage() {
         // Get tags from search string
         const searchTags = searchRef.current.value;
 
+        ReactGA.event({
+            category: "Search",
+            action: "Search",
+            value: searchTags
+        });
+
         let prevWasSpace = true;
         let actualTags = [];
         let tempTag = "";
@@ -291,6 +298,9 @@ function HomePage() {
 
                 setResults(data);
                 setCurrentPage(1);
+            })
+            .catch((e) => {
+                console.error(`Failed to fetch due to error: ${e}`);
             });
     };
 
@@ -354,6 +364,9 @@ function HomePage() {
                 if (!ignore) {
                     setTags(data);
                 }
+            })
+            .catch((e) => {
+                console.error(`Failed to fetch due to error: ${e}`);
             });
 
         return () => {

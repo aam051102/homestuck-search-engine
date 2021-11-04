@@ -3,7 +3,13 @@ import React, {
 } from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
-import { Router } from "@reach/router";
+import {
+    BrowserRouter,
+    Routes,
+    Route
+} from "react-router-dom";
+import ReactGA from "react-ga";
+import { HelmetProvider } from "react-helmet-async";
 
 import Home from "pages/Home";
 const Login = lazy(() => import("pages/Login"));
@@ -13,14 +19,28 @@ import "./index.scss";
 
 const STARTPOINT = window.location.hostname === "localhost" ? "" : "/app/hsse";
 
+ReactGA.initialize("UA-78420552-1");
+
 ReactDOM.render(
     <React.StrictMode>
         <Suspense fallback={<div>Loading...</div>}>
-            <Router>
-                <Home path={`${STARTPOINT}/`} />
-                <Login path={`${STARTPOINT}/login`} />
-                <Settings path={`${STARTPOINT}/settings`} />
-            </Router>
+            <HelmetProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route 
+                            path={`${STARTPOINT}/`}
+                            element={<Home />} />
+
+                        <Route 
+                            path={`${STARTPOINT}/login`}
+                            element={<Login />} />
+
+                        <Route
+                            path={`${STARTPOINT}/settings`}
+                            element={<Settings />} />
+                    </Routes>
+                </BrowserRouter>
+            </HelmetProvider>
         </Suspense>
     </React.StrictMode>,
     document.getElementById("root")

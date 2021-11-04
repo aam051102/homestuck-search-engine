@@ -2,7 +2,7 @@ import React, {
     createRef, useEffect 
 } from "react";
 import { MdChevronRight } from "react-icons/md";
-import { navigate } from "@reach/router";
+import { Navigate } from "react-router";
 
 import ENDPOINT from "utilities/endpoint";
 import { checkIsSignedIn } from "utilities/utility";
@@ -27,7 +27,7 @@ function LoginPage() {
 
     useEffect(() => {
         if (isSignedIn) {
-            navigate(window.location.hostname === "localhost" ? "/" : "/app/hsse/");
+            Navigate({ to: window.location.hostname === "localhost" ? "/" : "/app/hsse/" });
         }
     }, [isSignedIn]);
 
