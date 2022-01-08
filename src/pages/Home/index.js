@@ -169,8 +169,8 @@ function HomePage() {
 
         // Update URL params
         setParams({
-            ...params,
             query: searchTags,
+            page: 1,
         });
     };
 
@@ -272,7 +272,6 @@ function HomePage() {
                 }
 
                 setResults(data);
-                setCurrentPage(1);
             })
             .catch((e) => {
                 console.error(`Failed to fetch due to error: ${e}`);
