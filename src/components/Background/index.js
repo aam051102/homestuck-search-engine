@@ -1,6 +1,4 @@
-import React, {
-    createRef, useLayoutEffect 
-} from "react";
+import React, { createRef, useLayoutEffect } from "react";
 
 import "./index.scss";
 

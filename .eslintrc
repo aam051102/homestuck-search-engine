@@ -2,13 +2,10 @@
     "extends": [
         "eslint:recommended",
         "plugin:react/recommended",
-        "plugin:jest/recommended"
+        "plugin:jest/recommended",
+        "prettier"
     ],
-    "plugins": [
-        "react",
-        "testing-library",
-        "jest"
-    ],
+    "plugins": ["react", "testing-library", "jest"],
     "env": {
         "es6": true,
         "node": true,
@@ -16,15 +13,13 @@
         "jest/globals": true
     },
     "settings": {
-		"react": {
-			"version": "detect"
-		}
-	},
+        "react": {
+            "version": "detect"
+        }
+    },
     "overrides": [
         {
-            "files": [
-                "**/*.test.js"
-            ],
+            "files": ["**/*.test.js"],
             "env": {
                 "jest": true,
                 "jest/globals": true
@@ -32,8 +27,8 @@
         }
     ],
     "rules": {
-        "react/prop-types": [ "off" ],
-        "react/jsx-tag-spacing": [ "warn", {
+        "react/prop-types": ["off"]
+        /*"react/jsx-tag-spacing": [ "warn", {
             "closingSlash": "never",
             "beforeSelfClosing": "always",
             "afterOpening": "never",
@@ -121,7 +116,7 @@
         "array-element-newline" : [ "warn", { "minItems": 3 } ],
         "array-bracket-newline": [ "warn", { "minItems": 3 } ],
         "array-bracket-spacing": [ "warn", "never"],
-        "multiline-ternary": ["warn", "never"]
+        "multiline-ternary": ["warn", "never"]*/
     },
     "parserOptions": {
         "ecmaVersion": 11,

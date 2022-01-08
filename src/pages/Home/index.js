@@ -1,35 +1,38 @@
-import React, {
-    createRef, lazy, useEffect, useState 
-} from "react";
+import React, { createRef, lazy, useEffect, useState } from "react";
 import {
     MdArrowUpward,
     MdChevronLeft,
     MdChevronRight,
     MdFullscreen,
-    MdSearch
+    MdSearch,
 } from "react-icons/md";
 import ReactGA from "react-ga";
-
 import {
-    useIsEditMode, setIsSignedIn, useIsSignedIn, useDialog, useResults, setResults, setEdits 
+    useIsEditMode,
+    setIsSignedIn,
+    useIsSignedIn,
+    useDialog,
+    useResults,
+    setResults,
+    setEdits,
 } from "utilities/globalState";
 import useEventListener from "utilities/useEventListener";
 import ENDPOINT from "utilities/endpoint";
-import {
-    checkIsSignedIn, focusElement, setIsEdited 
-} from "utilities/utility";
-
+import { checkIsSignedIn, focusElement, setIsEdited } from "utilities/utility";
 import Controls from "components/Controls";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
 import Dialog from "components/Dialog";
+import parseSearchString from "helpers/parseSearchString";
+import { useSearchParams } from "react-router-dom";
+
 const Lightbox = lazy(() => import("components/Lightbox"));
 
 import "./index.scss";
 
 /**
- * Global counter for tag 
+ * Global counter for tag
  */
 let tagKeyCounter = 0;
 
@@ -43,11 +46,10 @@ function HomePage() {
         results: [],
         id: 0,
         image: "",
-        visible: false
+        visible: false,
     });
     const [visibleResults, setVisibleResults] = useState(20);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [focused, setFocused] = useState(- 1);
+    const [focused, setFocused] = useState(-1);
     const [resultTags, setResultTags] = useState({});
 
     const [results] = useResults();
@@ -58,10 +60,16 @@ function HomePage() {
     const searchRef = createRef();
     const visibleResultsRef = createRef();
 
+    // URL parameters
+    const [params, setParams] = useSearchParams();
+
+    const query = params.get("query") ?? "";
+    const page = parseInt(params.get("page"));
+
     /* Functions */
     /**
      * Updates the list of all result tags to use following structure:
-     * 
+     *
      * ```
      * {
      *   name: {
@@ -74,7 +82,7 @@ function HomePage() {
      * }
      * ```
      */
-    const updateResultTags = async (data) => {
+    const restructureResultTags = async (data) => {
         const thisResultTags = {};
         const thisResultTagsIndices = {};
 
@@ -98,7 +106,7 @@ function HomePage() {
                     thisResultTags[key] = {
                         tag: tag,
                         appearances: 0,
-                        resultIndices: {}
+                        resultIndices: {},
                     };
                 }
 
@@ -111,42 +119,6 @@ function HomePage() {
         setResultTags(thisResultTags);
     };
 
-    /**
-     * Returns array of elements, containing used tags.
-     */
-    const getUsedTagsElements = () => {
-        const res = [];
-        let index = 0;
-
-        for (const key in resultTags) {
-            const tagInfo = resultTags[key];
-
-            res.push(
-                <li
-                    className="sidebar-text-input"
-                    key={key || index}
-                    data-testid="used-tag-item">
-                    {isEditMode ? (
-                        <input
-                            className={`tag-input${tagInfo.tag.length === 0 ? " empty" : ""}`}
-                            data-index={index}
-                            data-key={key}
-                            defaultValue={tagInfo.tag}
-                            autoFocus={focused === index} />
-                    ) : tagInfo.tag} ({tagInfo.appearances})
-                </li>
-            );
-
-            index++;
-        }
-
-        return res;
-    };
-
-    /**
-     * Adds a tag to the search bar
-     * @param {string} tag 
-     */
     const addTagToSearch = (tag) => {
         for (let i = searchRef.current.value.length - 1; i >= 0; i--) {
             if (searchRef.current.value[i] === ",") {
@@ -162,159 +134,56 @@ function HomePage() {
         searchRef.current.scrollLeft = searchRef.current.scrollWidth;
     };
 
-    /**
-     * Scrolls to the top of the page
-     */
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: "smooth"
+            behavior: "smooth",
         });
     };
 
-    /**
-     * Loads previous page
-     */
+    const setCurrentPage = (page) => {
+        setParams({
+            query: query,
+            page: page,
+        });
+    };
+
     const loadPreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage((currentPageThis) => currentPageThis - 1);
+        if (page > 1) {
+            setCurrentPage(page - 1);
             scrollToTop();
         }
     };
 
-    /**
-     * Loads next page
-     */
     const loadNextPage = () => {
-        if (currentPage < Math.ceil(results.length / visibleResults)) {
-            setCurrentPage((currentPageThis) => currentPageThis + 1);
+        if (page < Math.ceil(results.length / visibleResults)) {
+            setCurrentPage(page + 1);
             scrollToTop();
         }
     };
 
-    /**
-     * Handles submit event
-     * @param {Event} e 
-     */
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Get tags from search string
         const searchTags = searchRef.current.value;
 
-        ReactGA.event({
-            category: "Search",
-            action: "Search",
-            value: searchTags
+        // Update URL params
+        setParams({
+            ...params,
+            query: searchTags,
         });
-
-        let prevWasSpace = true;
-        let actualTags = [];
-        let tempTag = "";
-
-        let pageRanges = [];
-        let pageRangePoint = 0;
-        let rangeRef;
-
-        for (let i = 0; i <= searchTags.length; i++) {
-            // Separator
-            if (searchTags[i] === "," || i === searchTags.length) {
-                let trimmed = tempTag.trimRight();
-                if (trimmed.length > 0) actualTags.push(trimmed);
-
-                tempTag = "";
-                prevWasSpace = true;
-                continue;
-            }
-
-            // Page range
-            if (searchTags[i] === "(") {
-                pageRangePoint = 1;
-                pageRanges.push(["", ""]);
-                rangeRef = pageRanges[pageRanges.length - 1];
-                continue;
-            } else if (searchTags[i] === "-") {
-                pageRangePoint = 2;
-                continue;
-            } else if (searchTags[i] === ")") {
-                pageRangePoint = 0;
-                rangeRef = null;
-                continue;
-            }
-
-            // Tag reading
-            if (searchTags[i] === " " && !prevWasSpace) {
-                tempTag += " ";
-                prevWasSpace = true;
-            } else if (searchTags[i] !== " ") {
-                const charCode = searchTags.charCodeAt(i);
-
-                if (rangeRef && charCode >= 48 && charCode <= 57) {
-                    // Start or end of page range
-                    if (pageRangePoint === 1) {
-                        rangeRef[0] += searchTags[i];
-                    } else if (pageRangePoint === 2) {
-                        rangeRef[1] += searchTags[i];
-                    }
-                } else if (charCode >= 65 && charCode <= 90) {
-                    // Force lowercase
-                    tempTag += String.fromCharCode(charCode - 65 + 97);
-                } else {
-                    tempTag += searchTags[i];
-                }
-
-                prevWasSpace = false;
-            }
-        }
-
-        // Convert tags to main tag
-        // TODO: Improve speed??
-        firstTagLoop:
-        for (let i = 0; i < actualTags.length; i++) {
-            for (let j = 0; j < tags.length; j++) {
-                for (let n = 0; n < tags[j].tags.length; n++) {
-                    if (tags[j].tags[n].synonyms.includes(actualTags[i])) {
-                        actualTags[i] = tags[j].tags[n].title;
-                        continue firstTagLoop;
-                    }
-                }
-            }
-        }
-
-        // Perform search
-        fetch(`${ENDPOINT}/api/app/1/search`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                tags: actualTags, ranges: pageRanges 
-            })
-        })
-            .then((e) => e.json())
-            .then((data) => {
-                if (data.error) {
-                    console.error(data.error);
-                    return;
-                }
-
-                setResults(data);
-                setCurrentPage(1);
-            })
-            .catch((e) => {
-                console.error(`Failed to fetch due to error: ${e}`);
-            });
     };
 
     /**
      * Saves tag changes to global state
-     * @param {Event} event 
      */
     function rememberLocalData() {
         const activeElement = document.activeElement;
         const tagKey = parseInt(activeElement.getAttribute("data-key"));
-        
+
         setEdits((editsThis) => {
             const editsLocal = Object.assign({}, editsThis);
-            
+
             for (let i = 0; i < results.length; i++) {
                 const result = results[i];
                 const resultId = result._id;
@@ -330,9 +199,10 @@ function HomePage() {
                 }
 
                 const tagIndex = resultTags[tagKey].resultIndices[resultId];
-                if (tagIndex !== undefined) editsLocal[resultId][tagIndex][1] = activeElement.value;
+                if (tagIndex !== undefined)
+                    editsLocal[resultId][tagIndex][1] = activeElement.value;
             }
-            
+
             setIsEdited(true);
             return editsLocal;
         });
@@ -375,21 +245,56 @@ function HomePage() {
     }, []);
 
     useEffect(() => {
-        updateResultTags(results);
+        restructureResultTags(results);
     }, [results]);
 
-    /* Event listeners */
-    useEventListener("keyup", (e) => {
-        if (!lightbox.visible && e.target.classList.contains("tag-input")) {
-            if (e.target.value.length === 0) {
-                e.target.classList.add("empty");
-            } else {
-                e.target.classList.remove("empty");
-            }
+    useEffect(() => {
+        if (!query) return;
 
-            rememberLocalData();
-        }
-    }, document);
+        // Get tags from search string
+        ReactGA.event({
+            category: "Search",
+            action: "Search",
+            value: query,
+        });
+
+        // Perform search
+        fetch(`${ENDPOINT}/api/app/1/search`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parseSearchString(query, tags)),
+        })
+            .then((e) => e.json())
+            .then((data) => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                setResults(data);
+                setCurrentPage(1);
+            })
+            .catch((e) => {
+                console.error(`Failed to fetch due to error: ${e}`);
+            });
+    }, [query]);
+
+    /* Event listeners */
+    useEventListener(
+        "keyup",
+        (e) => {
+            if (!lightbox.visible && e.target.classList.contains("tag-input")) {
+                if (e.target.value.length === 0) {
+                    e.target.classList.add("empty");
+                } else {
+                    e.target.classList.remove("empty");
+                }
+
+                rememberLocalData();
+            }
+        },
+        document
+    );
 
     useEventListener(
         "keydown",
@@ -397,7 +302,10 @@ function HomePage() {
             if (isEditMode && e.target.classList.contains("tag-input")) {
                 if (e.key === "Enter") {
                     // Add tag
-                    const newIndex = parseInt(document.activeElement.getAttribute("data-index")) + 1;
+                    const newIndex =
+                        parseInt(
+                            document.activeElement.getAttribute("data-index")
+                        ) + 1;
                     const resultIndices = {};
 
                     setEdits((editsThis) => {
@@ -409,29 +317,38 @@ function HomePage() {
 
                             if (!editsLocal[resultId]) {
                                 editsLocal[resultId] = [];
-            
-                                for (let j = 0; j < result.tags.length; j++) {           
-                                    editsLocal[resultId].push([tagKeyCounter++, result.tags[j]]);
+
+                                for (let j = 0; j < result.tags.length; j++) {
+                                    editsLocal[resultId].push([
+                                        tagKeyCounter++,
+                                        result.tags[j],
+                                    ]);
                                 }
                             }
-                            
+
                             resultIndices[resultId] = result.tags.length;
-                            editsLocal[resultId].splice(result.tags.length, 0, [tagKeyCounter++, ""]);
+                            editsLocal[resultId].splice(result.tags.length, 0, [
+                                tagKeyCounter++,
+                                "",
+                            ]);
                         }
 
                         setIsEdited(true);
                         return editsLocal;
                     });
-                    
+
                     setResultTags((resultTagsThis) => {
-                        const resultTagsLocal = Object.assign({}, resultTagsThis);
-                        
+                        const resultTagsLocal = Object.assign(
+                            {},
+                            resultTagsThis
+                        );
+
                         resultTagsLocal[tagKeyCounter++] = {
                             tag: "",
                             appearances: results.length,
-                            resultIndices: resultIndices
+                            resultIndices: resultIndices,
                         };
-                        
+
                         setFocused(newIndex);
                         return resultTagsLocal;
                     });
@@ -440,100 +357,152 @@ function HomePage() {
                     e.preventDefault();
 
                     if (e.target.parentNode.previousSibling) {
-                        focusElement(e.target.parentNode.previousSibling.children[0]);
+                        focusElement(
+                            e.target.parentNode.previousSibling.children[0]
+                        );
                     }
                 } else if (e.key === "ArrowDown") {
                     // Move down
                     e.preventDefault();
 
                     if (e.target.parentNode.nextSibling) {
-                        focusElement(e.target.parentNode.nextSibling.children[0]);
+                        focusElement(
+                            e.target.parentNode.nextSibling.children[0]
+                        );
                     }
-                } else if (e.key === "Backspace") {     
+                } else if (e.key === "Backspace") {
                     if (e.target.value.length === 0) {
                         e.preventDefault();
-                            
+
                         // Temporary
                         // TOOD: Improve speed.
-                        if (Object.keys(resultTags).length > 1) {                                
-                            const index = parseInt(document.activeElement.getAttribute("data-index"));
-                            const key = document.activeElement.getAttribute("data-key");
-                            
+                        if (Object.keys(resultTags).length > 1) {
+                            const index = parseInt(
+                                document.activeElement.getAttribute(
+                                    "data-index"
+                                )
+                            );
+                            const key =
+                                document.activeElement.getAttribute("data-key");
+
                             setEdits((editsThis) => {
                                 const editsLocal = Object.assign({}, editsThis);
                                 const tagInfo = resultTags[key];
 
                                 for (const resultId in tagInfo.resultIndices) {
-                                    const resultIndex = tagInfo.resultIndices[resultId];
+                                    const resultIndex =
+                                        tagInfo.resultIndices[resultId];
 
                                     if (!editsLocal[resultId]) {
-                                        const result = results.find((result) => result._id === resultId); // Redo results structure to make this faster
+                                        const result = results.find(
+                                            (result) => result._id === resultId
+                                        ); // Redo results structure to make this faster
                                         editsLocal[resultId] = [];
-                    
-                                        for (let j = 0; j < result.tags.length; j++) {           
-                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j]]);
+
+                                        for (
+                                            let j = 0;
+                                            j < result.tags.length;
+                                            j++
+                                        ) {
+                                            editsLocal[resultId].push([
+                                                tagKeyCounter++,
+                                                result.tags[j],
+                                            ]);
                                         }
                                     }
-                            
+
                                     editsLocal[resultId].splice(resultIndex, 1);
                                 }
 
                                 setIsEdited(true);
                                 return editsLocal;
                             });
-                    
+
                             setResultTags((resultTagsThis) => {
-                                const resultTagsLocal = Object.assign({}, resultTagsThis);
+                                const resultTagsLocal = Object.assign(
+                                    {},
+                                    resultTagsThis
+                                );
 
                                 delete resultTagsLocal[key];
 
-                                focusElement(document.querySelector(`.tag-input[data-index="${index === 0 ? 0 : index - 1}"]`));
+                                focusElement(
+                                    document.querySelector(
+                                        `.tag-input[data-index="${
+                                            index === 0 ? 0 : index - 1
+                                        }"]`
+                                    )
+                                );
                                 return resultTagsLocal;
                             });
                         }
                     }
-                } else if (e.key === "Delete") {     
+                } else if (e.key === "Delete") {
                     const index = parseInt(e.target.getAttribute("data-index"));
                     const resultTagsLength = Object.keys(resultTags).length - 1;
 
                     if (resultTagsLength > index) {
-                        const target = document.querySelector(`.tag-input[data-index="${index + 1}"]`);
+                        const target = document.querySelector(
+                            `.tag-input[data-index="${index + 1}"]`
+                        );
 
                         if (target.value.length === 0) {
                             e.preventDefault();
-                                                                
+
                             // Remove tag
-                            const key = document.activeElement.getAttribute("data-key");
-                            
+                            const key =
+                                document.activeElement.getAttribute("data-key");
+
                             setEdits((editsThis) => {
                                 const editsLocal = Object.assign({}, editsThis);
                                 const tagInfo = resultTags[key];
 
                                 for (const resultId in tagInfo.resultIndices) {
-                                    const resultIndex = tagInfo.resultIndices[resultId];
+                                    const resultIndex =
+                                        tagInfo.resultIndices[resultId];
 
                                     if (!editsLocal[resultId]) {
-                                        const result = results.find((result) => result._id === resultId); // Redo results structure to make this faster
+                                        const result = results.find(
+                                            (result) => result._id === resultId
+                                        ); // Redo results structure to make this faster
                                         editsLocal[resultId] = [];
-                    
-                                        for (let j = 0; j < result.tags.length; j++) {           
-                                            editsLocal[resultId].push([tagKeyCounter++, result.tags[j]]);
+
+                                        for (
+                                            let j = 0;
+                                            j < result.tags.length;
+                                            j++
+                                        ) {
+                                            editsLocal[resultId].push([
+                                                tagKeyCounter++,
+                                                result.tags[j],
+                                            ]);
                                         }
                                     }
-                            
+
                                     editsLocal[resultId].splice(resultIndex, 1);
                                 }
 
                                 setIsEdited(true);
                                 return editsLocal;
                             });
-                    
+
                             setResultTags((resultTagsThis) => {
-                                const resultTagsLocal = Object.assign({}, resultTagsThis);
+                                const resultTagsLocal = Object.assign(
+                                    {},
+                                    resultTagsThis
+                                );
 
                                 delete resultTagsLocal[key];
 
-                                focusElement(document.querySelector(`.tag-input[data-index="${index >= resultTagsLength ? resultTagsLength - 1 : index + 1}"]`));
+                                focusElement(
+                                    document.querySelector(
+                                        `.tag-input[data-index="${
+                                            index >= resultTagsLength
+                                                ? resultTagsLength - 1
+                                                : index + 1
+                                        }"]`
+                                    )
+                                );
                                 return resultTagsLocal;
                             });
                         }
@@ -542,11 +511,11 @@ function HomePage() {
             } else if (!e.target.classList.contains("tag-input")) {
                 if (e.key === "ArrowLeft") {
                     e.preventDefault();
-                    
+
                     loadPreviousPage();
                 } else if (e.key === "ArrowRight") {
                     e.preventDefault();
-                    
+
                     loadNextPage();
                 }
             }
@@ -554,69 +523,101 @@ function HomePage() {
         document
     );
 
+    /// DOM Construction
+    const constructPageLinksElements = () => {
+        const elements = [];
+
+        if (visibleResults > 0) {
+            let pages = Math.ceil(results.length / visibleResults);
+            let firstPage = page - 5;
+            if (firstPage < 1) {
+                firstPage = 1;
+            }
+
+            let lastPage = firstPage + 9;
+            if (lastPage > pages) {
+                lastPage = pages;
+            }
+
+            for (let i = firstPage; i <= lastPage; i++) {
+                elements.push(
+                    <button
+                        className={page === i ? "current" : ""}
+                        key={i}
+                        onClick={(e) => {
+                            // Update URL params
+                            setCurrentPage(parseInt(e.target.innerText));
+
+                            window.scrollTo({
+                                top: 0,
+                                behavior: "smooth",
+                            });
+                        }}
+                    >
+                        {i}
+                    </button>
+                );
+            }
+        }
+
+        return elements;
+    };
+
+    const constructUsedTagsElements = () => {
+        const elements = [];
+        let index = 0;
+
+        for (const key in resultTags) {
+            const tagInfo = resultTags[key];
+
+            elements.push(
+                <li
+                    className="sidebar-text-input"
+                    key={key || index}
+                    data-testid="used-tag-item"
+                >
+                    {isEditMode ? (
+                        <input
+                            className={`tag-input${
+                                tagInfo.tag.length === 0 ? " empty" : ""
+                            }`}
+                            data-index={index}
+                            data-key={key}
+                            defaultValue={tagInfo.tag}
+                            autoFocus={focused === index}
+                        />
+                    ) : (
+                        tagInfo.tag
+                    )}{" "}
+                    ({tagInfo.appearances})
+                </li>
+            );
+
+            index++;
+        }
+
+        return elements;
+    };
+
     /* Return */
     return (
-        <Layout
-            className="home-page"
-            title="Homestuck Search Engine">
+        <Layout className="home-page" title="Homestuck Search Engine">
             <nav className="page-nav">
                 <ul>
                     <li
-                        className={currentPage > 1 ? "enabled" : ""}
+                        className={page > 1 ? "enabled" : ""}
                         onClick={loadPreviousPage}
                     >
                         <MdChevronLeft />
                     </li>
 
-                    <li className="pages">
-                        {(() => {
-                            const data = [];
-
-                            if (visibleResults > 0) {
-                                let pages = Math.ceil(
-                                    results.length / visibleResults
-                                );
-                                let firstPage = currentPage - 5;
-                                if (firstPage < 1) {
-                                    firstPage = 1;
-                                }
-
-                                let lastPage = firstPage + 9;
-                                if (lastPage > pages) {
-                                    lastPage = pages;
-                                }
-
-                                for (let i = firstPage; i <= lastPage; i++) {
-                                    data.push(
-                                        <button
-                                            className={
-                                                currentPage === i ? "current" : ""
-                                            }
-                                            key={i}
-                                            onClick={(e) => {
-                                                setCurrentPage(
-                                                    parseInt(e.target.innerText)
-                                                );
-                                                window.scrollTo({
-                                                    top: 0,
-                                                    behavior: "smooth"
-                                                });
-                                            }}
-                                        >
-                                            {i}
-                                        </button>
-                                    );
-                                }
-                            }
-
-                            return data;
-                        })()}
-                    </li>
+                    <li className="pages">{constructPageLinksElements()}</li>
 
                     <li
                         className={
-                            currentPage <
-                            Math.ceil(results.length / visibleResults) ? "enabled" : ""
+                            page < Math.ceil(results.length / visibleResults)
+                                ? "enabled"
+                                : ""
                         }
                         onClick={loadNextPage}
                     >
@@ -625,12 +626,8 @@ function HomePage() {
                 </ul>
             </nav>
 
-            <form
-                className="search-form"
-                onSubmit={handleSubmit}>
-                <label
-                    className="search-term-label"
-                    htmlFor="search-term">
+            <form className="search-form" onSubmit={handleSubmit}>
+                <label className="search-term-label" htmlFor="search-term">
                     Search
                 </label>
                 <div className="search-term-wrapper">
@@ -642,6 +639,7 @@ function HomePage() {
                         autoComplete="off"
                         placeholder="Search (ex. 'john, act 1, dad')"
                         data-testid="search-field"
+                        defaultValue={params.get("query") ?? ""}
                     />
                     <button
                         className="search-button"
@@ -692,14 +690,12 @@ function HomePage() {
                 {results.length > 0 ? (
                     results
                         .slice(
-                            visibleResults * (currentPage - 1),
-                            visibleResults * (currentPage - 1) + visibleResults
+                            visibleResults * (page - 1),
+                            visibleResults * (page - 1) + visibleResults
                         )
                         .map((result, i) => {
                             return (
-                                <section
-                                    className="search-result"
-                                    key={i}>
+                                <section className="search-result" key={i}>
                                     <a
                                         href={`https://homestuck.com/story/${result.page}`}
                                         target="_blank"
@@ -728,9 +724,9 @@ function HomePage() {
                                             setLightbox({
                                                 id:
                                                     visibleResults *
-                                                        (currentPage - 1) +
+                                                        (page - 1) +
                                                     i,
-                                                visible: true
+                                                visible: true,
                                             });
                                         }}
                                     >
@@ -744,10 +740,7 @@ function HomePage() {
                 )}
             </section>
 
-            <div
-                className="to-top"
-                onClick={scrollToTop}
-            >
+            <div className="to-top" onClick={scrollToTop}>
                 <MdArrowUpward />
             </div>
 
@@ -761,24 +754,23 @@ function HomePage() {
                     <summary>
                         <h2>Used Tags</h2>
                     </summary>
-                    
+
                     <ul className="sidebar-text">
-                        {getUsedTagsElements()}
+                        {constructUsedTagsElements()}
                     </ul>
                 </details>
 
                 {tags.map((tag, i) => {
                     return (
-                        <details
-                            key={i}
-                            open>
+                        <details key={i} open>
                             <summary>
                                 <h2>{tag.category}</h2>
                             </summary>
 
                             <ul
                                 className="sidebar-text focusable"
-                                data-testid="tag-category-list">
+                                data-testid="tag-category-list"
+                            >
                                 {tag.tags.map((tag, i) => {
                                     return (
                                         <li
@@ -801,14 +793,14 @@ function HomePage() {
                 hideLightbox={() => {
                     setLightbox({
                         id: lightbox.id,
-                        visible: false
+                        visible: false,
                     });
                 }}
                 loadPrevious={() => {
                     if (lightbox.id > 0) {
                         setLightbox({
                             id: lightbox.id - 1,
-                            visible: true
+                            visible: true,
                         });
                     }
                 }}
@@ -816,7 +808,7 @@ function HomePage() {
                     if (lightbox.id < results.length - 1) {
                         setLightbox({
                             id: lightbox.id + 1,
-                            visible: true
+                            visible: true,
                         });
                     }
                 }}
