@@ -6,7 +6,6 @@ import {
     MdFullscreen,
     MdSearch,
 } from "react-icons/md";
-import ReactGA from "react-ga";
 import {
     useIsEditMode,
     setIsSignedIn,
@@ -250,13 +249,6 @@ function HomePage() {
 
     useEffect(() => {
         if (!query) return;
-
-        // Get tags from search string
-        ReactGA.event({
-            category: "Search",
-            action: "Search",
-            value: query,
-        });
 
         // Perform search
         fetch(`${ENDPOINT}/api/app/1/search`, {

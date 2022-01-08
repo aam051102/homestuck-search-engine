@@ -1,14 +1,7 @@
-import React, {
-    lazy, Suspense 
-} from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
-import {
-    BrowserRouter,
-    Routes,
-    Route
-} from "react-router-dom";
-import ReactGA from "react-ga";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 
 import Home from "pages/Home";
@@ -19,25 +12,23 @@ import "./index.scss";
 
 const STARTPOINT = window.location.hostname === "localhost" ? "" : "/app/hsse";
 
-ReactGA.initialize("UA-78420552-1");
-
 ReactDOM.render(
     <React.StrictMode>
         <Suspense fallback={<div>Loading...</div>}>
             <HelmetProvider>
                 <BrowserRouter>
                     <Routes>
-                        <Route 
-                            path={`${STARTPOINT}/`}
-                            element={<Home />} />
+                        <Route path={`${STARTPOINT}/`} element={<Home />} />
 
-                        <Route 
+                        <Route
                             path={`${STARTPOINT}/login`}
-                            element={<Login />} />
+                            element={<Login />}
+                        />
 
                         <Route
                             path={`${STARTPOINT}/settings`}
-                            element={<Settings />} />
+                            element={<Settings />}
+                        />
                     </Routes>
                 </BrowserRouter>
             </HelmetProvider>
