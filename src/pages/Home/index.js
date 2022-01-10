@@ -713,7 +713,10 @@ function HomePage() {
                                             setParams({
                                                 query,
                                                 page,
-                                                asset: i,
+                                                asset:
+                                                    visibleResults *
+                                                        (page - 1) +
+                                                    i,
                                             });
                                         }}
                                     >
