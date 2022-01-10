@@ -14,10 +14,10 @@ import {
     useResults,
     setResults,
     setEdits,
-} from "utilities/globalState";
-import useEventListener from "utilities/useEventListener";
-import ENDPOINT from "utilities/endpoint";
-import { checkIsSignedIn, focusElement, setIsEdited } from "utilities/utility";
+} from "helpers/globalState";
+import useEventListener from "hooks/useEventListener";
+import ENDPOINT from "helpers/endpoint";
+import { checkIsSignedIn, focusElement, setIsEdited } from "helpers/utility";
 import Controls from "components/Controls";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
@@ -41,12 +41,6 @@ let tagKeyCounter = 0;
 function HomePage() {
     /* States */
     const [tags, setTags] = useState([]);
-    const [lightbox, setLightbox] = useState({
-        results: [],
-        id: 0,
-        image: "",
-        visible: false,
-    });
     const [visibleResults, setVisibleResults] = useState(20);
     const [focused, setFocused] = useState(-1);
     const [resultTags, setResultTags] = useState({});
@@ -64,6 +58,7 @@ function HomePage() {
 
     const query = params.get("query") ?? "";
     const page = parseInt(params.get("page"));
+    const asset = parseInt(params.get("asset") ?? "-1");
 
     /* Functions */
     /**
@@ -274,7 +269,7 @@ function HomePage() {
     useEventListener(
         "keyup",
         (e) => {
-            if (!lightbox.visible && e.target.classList.contains("tag-input")) {
+            if (asset === -1 && e.target.classList.contains("tag-input")) {
                 if (e.target.value.length === 0) {
                     e.target.classList.add("empty");
                 } else {
@@ -499,7 +494,10 @@ function HomePage() {
                         }
                     }
                 }
-            } else if (!e.target.classList.contains("tag-input")) {
+            } else if (
+                asset === -1 &&
+                !e.target.classList.contains("tag-input")
+            ) {
                 if (e.key === "ArrowLeft") {
                     e.preventDefault();
 
@@ -712,12 +710,10 @@ function HomePage() {
                                     <div
                                         className="search-result-link"
                                         onClick={() => {
-                                            setLightbox({
-                                                id:
-                                                    visibleResults *
-                                                        (page - 1) +
-                                                    i,
-                                                visible: true,
+                                            setParams({
+                                                query,
+                                                page,
+                                                asset: i,
                                             });
                                         }}
                                     >
@@ -782,29 +778,30 @@ function HomePage() {
 
             <Lightbox
                 hideLightbox={() => {
-                    setLightbox({
-                        id: lightbox.id,
-                        visible: false,
-                    });
+                    setParams({ query, page });
                 }}
                 loadPrevious={() => {
-                    if (lightbox.id > 0) {
-                        setLightbox({
-                            id: lightbox.id - 1,
-                            visible: true,
+                    if (asset > 0) {
+                        setParams({
+                            query,
+                            page,
+                            asset: asset - 1,
                         });
                     }
                 }}
                 loadNext={() => {
-                    if (lightbox.id < results.length - 1) {
-                        setLightbox({
-                            id: lightbox.id + 1,
-                            visible: true,
+                    if (asset < results.length - 1) {
+                        setParams({
+                            query,
+                            page,
+                            asset: asset + 1,
                         });
                     }
                 }}
                 isIsSignedIn={isSignedIn}
-                {...lightbox}
+                visible={asset !== -1}
+                id={asset}
+                results={results}
             />
 
             <Dialog {...dialog} />

@@ -1,6 +1,4 @@
-import {
-    useEffect, useRef 
-} from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * useEventListener from https://usehooks.com/useEventListener/

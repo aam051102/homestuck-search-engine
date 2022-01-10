@@ -1,14 +1,10 @@
-import React, {
-    createRef, useEffect 
-} from "react";
+import React, { createRef, useEffect } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { Navigate } from "react-router";
 
-import ENDPOINT from "utilities/endpoint";
-import { checkIsSignedIn } from "utilities/utility";
-import {
-    setIsSignedIn, useIsSignedIn 
-} from "utilities/globalState";
+import ENDPOINT from "helpers/endpoint";
+import { checkIsSignedIn } from "helpers/utility";
+import { setIsSignedIn, useIsSignedIn } from "helpers/globalState";
 
 import Layout from "components/Layout";
 
@@ -27,14 +23,17 @@ function LoginPage() {
 
     useEffect(() => {
         if (isSignedIn) {
-            Navigate({ to: window.location.hostname === "localhost" ? "/" : "/app/hsse/" });
+            Navigate({
+                to:
+                    window.location.hostname === "localhost"
+                        ? "/"
+                        : "/app/hsse/",
+            });
         }
     }, [isSignedIn]);
 
     return (
-        <Layout
-            className="login-page"
-            title="Homestuck Search Engine | Login">
+        <Layout className="login-page" title="Homestuck Search Engine | Login">
             <form id="login-form">
                 <label htmlFor="password-field">Password:</label>
                 <div className="themed-input-wrapper">
@@ -57,7 +56,9 @@ function LoginPage() {
                             fetch(`${ENDPOINT}/api/app/1/login`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ password: passwordInputRef.current.value })
+                                body: JSON.stringify({
+                                    password: passwordInputRef.current.value,
+                                }),
                             })
                                 .then((e) => e.json())
                                 .then((data) => {

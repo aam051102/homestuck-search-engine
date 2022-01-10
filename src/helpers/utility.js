@@ -1,5 +1,5 @@
-import ENDPOINT from "utilities/endpoint";
-import { setDialog } from "utilities/globalState";
+import ENDPOINT from "helpers/endpoint";
+import { setDialog } from "helpers/globalState";
 
 /**
  * Gets a cookie by name
@@ -28,7 +28,7 @@ export async function checkIsSignedIn() {
         if (cookieData) {
             return fetch(`${ENDPOINT}/api/app/1/validate`, {
                 method: "POST",
-                headers: { Authorization: `Bearer ${cookieData}` }
+                headers: { Authorization: `Bearer ${cookieData}` },
             }).then((e) => {
                 if (e.status === 200) {
                     resolve(true);
@@ -50,7 +50,10 @@ export async function checkIsSignedIn() {
  */
 export function showOutdatedSessionDialog() {
     setDialog({
-        visible: true, title: "Login Session Outdated", content: "Login expired. Please sign back in. You may do this in another tab." 
+        visible: true,
+        title: "Login Session Outdated",
+        content:
+            "Login expired. Please sign back in. You may do this in another tab.",
     });
 }
 
@@ -61,7 +64,7 @@ export let isEdited = false;
 
 /**
  * Sets isEdited.
- * @param {boolean} value 
+ * @param {boolean} value
  */
 export function setIsEdited(value) {
     isEdited = value;
@@ -69,7 +72,7 @@ export function setIsEdited(value) {
 
 /**
  * Focuses on an element.
- * @param {HTMLElement} el 
+ * @param {HTMLElement} el
  */
 export function focusElement(el) {
     el.focus();

@@ -1,16 +1,23 @@
 import React from "react";
-import {
-    MdCancel, MdEdit, MdSave 
-} from "react-icons/md";
+import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
 import {
-    setDialog, setEdits, setResults, useEdits, useIsEditMode, useIsSignedIn, useResults 
-} from "utilities/globalState";
-import useEventListener from "utilities/useEventListener";
+    setDialog,
+    setEdits,
+    setResults,
+    useEdits,
+    useIsEditMode,
+    useIsSignedIn,
+    useResults,
+} from "helpers/globalState";
+import useEventListener from "hooks/useEventListener";
 import {
-    getCookie, isEdited, setIsEdited, showOutdatedSessionDialog 
-} from "utilities/utility";
-import ENDPOINT from "utilities/endpoint";
+    getCookie,
+    isEdited,
+    setIsEdited,
+    showOutdatedSessionDialog,
+} from "helpers/utility";
+import ENDPOINT from "helpers/endpoint";
 
 import "./index.scss";
 
@@ -36,36 +43,38 @@ const Controls = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${getCookie("hsse_token")}`
+                Authorization: `Bearer ${getCookie("hsse_token")}`,
             },
-            body: JSON.stringify({ edits: edits })
-        }).then(e => {
-            if (e.status === 403 || e.status === 401) {
-                showOutdatedSessionDialog();
-                return { error: "Session outdated." };
-            } else {
-                return e.json();
-            }
-        }).then((res) => {
-            if (res.error) {
-                console.error(res.error);
-            } else {
-                const resultsLocal = results.map((result) => {
-                    if (edits[result._id]) {
-                        result.tags = edits[result._id].map((tag) => {
-                            return tag[1];
-                        });
-                    }
-                    
-                    return result;
-                });
-                setResults(resultsLocal);
+            body: JSON.stringify({ edits: edits }),
+        })
+            .then((e) => {
+                if (e.status === 403 || e.status === 401) {
+                    showOutdatedSessionDialog();
+                    return { error: "Session outdated." };
+                } else {
+                    return e.json();
+                }
+            })
+            .then((res) => {
+                if (res.error) {
+                    console.error(res.error);
+                } else {
+                    const resultsLocal = results.map((result) => {
+                        if (edits[result._id]) {
+                            result.tags = edits[result._id].map((tag) => {
+                                return tag[1];
+                            });
+                        }
 
-                setEdits({});
-                setIsEdited(false);
-                if (onSuccess) onSuccess();
-            }
-        });
+                        return result;
+                    });
+                    setResults(resultsLocal);
+
+                    setEdits({});
+                    setIsEdited(false);
+                    if (onSuccess) onSuccess();
+                }
+            });
     }
 
     function exitEditMode(callback) {
@@ -75,22 +84,31 @@ const Controls = () => {
             setDialog({
                 visible: true,
                 title: "Warning",
-                content: "Performing this action will disable edit mode. Would you like to save?",
+                content:
+                    "Performing this action will disable edit mode. Would you like to save?",
                 buttons: [
                     {
                         title: "Save",
                         callbacks: [
                             saveData,
                             callback,
-                            () => { setIsEditMode(false) } 
-                        ]
+                            () => {
+                                setIsEditMode(false);
+                            },
+                        ],
                     },
                     {
                         title: "Don't Save",
-                        callbacks: [callback, () => { setEdits({}); setIsEditMode(false) }]
+                        callbacks: [
+                            callback,
+                            () => {
+                                setEdits({});
+                                setIsEditMode(false);
+                            },
+                        ],
                     },
-                    { title: "Cancel" } 
-                ]
+                    { title: "Cancel" },
+                ],
             });
         } else {
             callback();
@@ -99,20 +117,18 @@ const Controls = () => {
     }
 
     // Event listeners
-    useEventListener(
-        "keydown",
-        (e) => {
-            if (e.target.tagName !== "INPUT") {
-                if (e.key === "e" && isSignedIn) {
-                    // Shortcut for edit mode
-                    if (isEditMode) {
-                        exitEditMode();
-                    } else {
-                        setIsEditMode(true);
-                    }
+    useEventListener("keydown", (e) => {
+        if (e.target.tagName !== "INPUT") {
+            if (e.key === "e" && isSignedIn) {
+                // Shortcut for edit mode
+                if (isEditMode) {
+                    exitEditMode();
+                } else {
+                    setIsEditMode(true);
                 }
             }
-        });
+        }
+    });
 
     return (
         <>
@@ -131,28 +147,28 @@ const Controls = () => {
                         title="Toggle Edit Mode"
                         data-testid="controls-edit-btn"
                     >
-                        {
-                            isEditMode ? <MdCancel data-testid="controls-cancel-icon" /> : <MdEdit />
-                        }
+                        {isEditMode ? (
+                            <MdCancel data-testid="controls-cancel-icon" />
+                        ) : (
+                            <MdEdit />
+                        )}
                     </button>
 
-                    {
-                        isEditMode ? (
-                            <button
-                                className="control-btn control-save"
-                                onClick={async () => {
-                                    await saveData(() => {
-                                        setIsEditMode(false);
-                                    });
-                                }}
-                                aria-label="Save edits"
-                                title="Save"
-                                data-testid="controls-save-btn"
-                            >
-                                <MdSave />
-                            </button>
-                        ) : null
-                    }
+                    {isEditMode ? (
+                        <button
+                            className="control-btn control-save"
+                            onClick={async () => {
+                                await saveData(() => {
+                                    setIsEditMode(false);
+                                });
+                            }}
+                            aria-label="Save edits"
+                            title="Save"
+                            data-testid="controls-save-btn"
+                        >
+                            <MdSave />
+                        </button>
+                    ) : null}
                 </>
             ) : null}
         </>
