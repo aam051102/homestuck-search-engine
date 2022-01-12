@@ -518,34 +518,44 @@ function HomePage() {
 
         if (visibleResults > 0) {
             let pages = Math.ceil(results.length / visibleResults);
-            let firstPage = page - 5;
-            if (firstPage < 1) {
-                firstPage = 1;
-            }
 
-            let lastPage = firstPage + 9;
-            if (lastPage > pages) {
-                lastPage = pages;
-            }
+            const ITEMS_AROUND_PAGE = 4;
 
-            for (let i = firstPage; i <= lastPage; i++) {
-                elements.push(
-                    <button
-                        className={page === i ? "current" : ""}
-                        key={i}
-                        onClick={(e) => {
-                            // Update URL params
-                            setCurrentPage(parseInt(e.target.innerText));
+            for (let i = 1; i <= pages; i++) {
+                const isVisible =
+                    Math.abs(page - i) <= ITEMS_AROUND_PAGE ||
+                    i == 1 ||
+                    i == pages;
+                const isDots = i == 2 || i == pages - 1;
 
-                            window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                            });
-                        }}
-                    >
-                        {i}
-                    </button>
-                );
+                if (isVisible) {
+                    elements.push(
+                        <button
+                            className={page === i ? "current" : ""}
+                            key={i}
+                            onClick={(e) => {
+                                // Update URL params
+                                setCurrentPage(parseInt(e.target.innerText));
+
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: "smooth",
+                                });
+                            }}
+                        >
+                            {i}
+                        </button>
+                    );
+                } else if (isDots) {
+                    elements.push(
+                        <span
+                            className="inline-block text-grey-dark p-1"
+                            key={`dots-${i}`}
+                        >
+                            ...
+                        </span>
+                    );
+                }
             }
         }
 
