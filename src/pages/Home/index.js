@@ -62,7 +62,24 @@ function HomePage() {
     // Tag structure
     const createTagStructure = () => {
         if (!tags.definitions) return [];
-        return createTagStructureRecursive(Object.keys(tags.definitions));
+
+        // Find top-level tags
+        const topTags = {};
+        const childrenTags = {};
+
+        Object.keys(tags.definitions).forEach((tag) => {
+            if (!childrenTags[tag]) {
+                topTags[tag] = tags.definitions[tag];
+            }
+
+            tags.definitions[tag].children.forEach((child) => {
+                delete topTags[child];
+
+                childrenTags[child] = true;
+            });
+        });
+
+        return createTagStructureRecursive(Object.keys(topTags));
     };
 
     const createTagStructureRecursive = (tagList) => {
