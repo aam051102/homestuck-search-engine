@@ -1,23 +1,21 @@
-import React, { createRef, lazy, useEffect, useState } from "react";
+import React, { createRef, lazy, useEffect, useMemo, useState } from "react";
 import {
-    MdArrowUpward,
-    MdChevronLeft,
-    MdChevronRight,
-    MdFullscreen,
-    MdSearch,
-} from "react-icons/md";
+    CgArrowUp,
+    CgChevronLeft,
+    CgChevronRight,
+    CgMaximize,
+    CgSearch,
+} from "react-icons/cg";
 import {
-    useIsEditMode,
     setIsSignedIn,
     useIsSignedIn,
     useDialog,
     useResults,
     setResults,
-    setEdits,
 } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
-import { checkIsSignedIn, focusElement, setIsEdited } from "helpers/utility";
+import { checkIsSignedIn } from "helpers/utility";
 import Controls from "components/Controls";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
@@ -40,14 +38,15 @@ let tagKeyCounter = 0;
  */
 function HomePage() {
     /* States */
-    const [tags, setTags] = useState([]);
+    const [tags, setTags] = useState({
+        definitions: undefined,
+        synonyms: undefined,
+    });
     const [visibleResults, setVisibleResults] = useState(20);
-    const [focused, setFocused] = useState(-1);
     const [resultTags, setResultTags] = useState({});
 
     const [results] = useResults();
     const [isSignedIn] = useIsSignedIn();
-    const [isEditMode] = useIsEditMode();
     const [dialog] = useDialog();
 
     const searchRef = createRef();
@@ -59,6 +58,29 @@ function HomePage() {
     const query = params.get("query") ?? "";
     const page = parseInt(params.get("page"));
     const asset = parseInt(params.get("asset") ?? "-1");
+
+    // Tag structure
+    const createTagStructure = () => {
+        if (!tags.definitions) return [];
+        return createTagStructureRecursive(Object.keys(tags.definitions));
+    };
+
+    const createTagStructureRecursive = (tagList) => {
+        const tagStructure = [];
+
+        for (const tag of tagList) {
+            tagStructure.push({
+                id: tag,
+                children: createTagStructureRecursive(
+                    tags.definitions[tag].children
+                ),
+            });
+        }
+
+        return tagStructure;
+    };
+
+    const tagStructure = useMemo(createTagStructure, [tags.definitions]);
 
     /* Functions */
     /**
@@ -168,40 +190,6 @@ function HomePage() {
         });
     };
 
-    /**
-     * Saves tag changes to global state
-     */
-    function rememberLocalData() {
-        const activeElement = document.activeElement;
-        const tagKey = parseInt(activeElement.getAttribute("data-key"));
-
-        setEdits((editsThis) => {
-            const editsLocal = Object.assign({}, editsThis);
-
-            for (let i = 0; i < results.length; i++) {
-                const result = results[i];
-                const resultId = result._id;
-
-                if (!editsLocal[resultId]) {
-                    editsLocal[resultId] = [];
-
-                    for (let j = 0; j < result.tags.length; j++) {
-                        let tag = result.tags[j];
-
-                        editsLocal[resultId].push([tagKeyCounter++, tag]);
-                    }
-                }
-
-                const tagIndex = resultTags[tagKey].resultIndices[resultId];
-                if (tagIndex !== undefined)
-                    editsLocal[resultId][tagIndex][1] = activeElement.value;
-            }
-
-            setIsEdited(true);
-            return editsLocal;
-        });
-    }
-
     /* Efects */
     useEffect(() => {
         let ignore = false;
@@ -221,10 +209,6 @@ function HomePage() {
         fetch(`${ENDPOINT}/api/app/1/tags`)
             .then((e) => e.json())
             .then((data) => {
-                data.sort((a, b) => {
-                    return a.position - b.position;
-                });
-
                 if (!ignore) {
                     setTags(data);
                 }
@@ -243,7 +227,7 @@ function HomePage() {
     }, [results]);
 
     useEffect(() => {
-        if (!query) return;
+        if (!query || !tags.synonyms) return;
 
         // Perform search
         fetch(`${ENDPOINT}/api/app/1/search`, {
@@ -263,241 +247,13 @@ function HomePage() {
             .catch((e) => {
                 console.error(`Failed to fetch due to error: ${e}`);
             });
-    }, [query]);
+    }, [query, tags]);
 
     /* Event listeners */
     useEventListener(
-        "keyup",
-        (e) => {
-            if (asset === -1 && e.target.classList.contains("tag-input")) {
-                if (e.target.value.length === 0) {
-                    e.target.classList.add("empty");
-                } else {
-                    e.target.classList.remove("empty");
-                }
-
-                rememberLocalData();
-            }
-        },
-        document
-    );
-
-    useEventListener(
         "keydown",
         (e) => {
-            if (isEditMode && e.target.classList.contains("tag-input")) {
-                if (e.key === "Enter") {
-                    // Add tag
-                    const newIndex =
-                        parseInt(
-                            document.activeElement.getAttribute("data-index")
-                        ) + 1;
-                    const resultIndices = {};
-
-                    setEdits((editsThis) => {
-                        const editsLocal = Object.assign({}, editsThis);
-
-                        for (const resultIndex in results) {
-                            const result = results[resultIndex];
-                            const resultId = result._id;
-
-                            if (!editsLocal[resultId]) {
-                                editsLocal[resultId] = [];
-
-                                for (let j = 0; j < result.tags.length; j++) {
-                                    editsLocal[resultId].push([
-                                        tagKeyCounter++,
-                                        result.tags[j],
-                                    ]);
-                                }
-                            }
-
-                            resultIndices[resultId] = result.tags.length;
-                            editsLocal[resultId].splice(result.tags.length, 0, [
-                                tagKeyCounter++,
-                                "",
-                            ]);
-                        }
-
-                        setIsEdited(true);
-                        return editsLocal;
-                    });
-
-                    setResultTags((resultTagsThis) => {
-                        const resultTagsLocal = Object.assign(
-                            {},
-                            resultTagsThis
-                        );
-
-                        resultTagsLocal[tagKeyCounter++] = {
-                            tag: "",
-                            appearances: results.length,
-                            resultIndices: resultIndices,
-                        };
-
-                        setFocused(newIndex);
-                        return resultTagsLocal;
-                    });
-                } else if (e.key === "ArrowUp") {
-                    // Move up
-                    e.preventDefault();
-
-                    if (e.target.parentNode.previousSibling) {
-                        focusElement(
-                            e.target.parentNode.previousSibling.children[0]
-                        );
-                    }
-                } else if (e.key === "ArrowDown") {
-                    // Move down
-                    e.preventDefault();
-
-                    if (e.target.parentNode.nextSibling) {
-                        focusElement(
-                            e.target.parentNode.nextSibling.children[0]
-                        );
-                    }
-                } else if (e.key === "Backspace") {
-                    if (e.target.value.length === 0) {
-                        e.preventDefault();
-
-                        // Temporary
-                        // TOOD: Improve speed.
-                        if (Object.keys(resultTags).length > 1) {
-                            const index = parseInt(
-                                document.activeElement.getAttribute(
-                                    "data-index"
-                                )
-                            );
-                            const key =
-                                document.activeElement.getAttribute("data-key");
-
-                            setEdits((editsThis) => {
-                                const editsLocal = Object.assign({}, editsThis);
-                                const tagInfo = resultTags[key];
-
-                                for (const resultId in tagInfo.resultIndices) {
-                                    const resultIndex =
-                                        tagInfo.resultIndices[resultId];
-
-                                    if (!editsLocal[resultId]) {
-                                        const result = results.find(
-                                            (result) => result._id === resultId
-                                        ); // Redo results structure to make this faster
-                                        editsLocal[resultId] = [];
-
-                                        for (
-                                            let j = 0;
-                                            j < result.tags.length;
-                                            j++
-                                        ) {
-                                            editsLocal[resultId].push([
-                                                tagKeyCounter++,
-                                                result.tags[j],
-                                            ]);
-                                        }
-                                    }
-
-                                    editsLocal[resultId].splice(resultIndex, 1);
-                                }
-
-                                setIsEdited(true);
-                                return editsLocal;
-                            });
-
-                            setResultTags((resultTagsThis) => {
-                                const resultTagsLocal = Object.assign(
-                                    {},
-                                    resultTagsThis
-                                );
-
-                                delete resultTagsLocal[key];
-
-                                focusElement(
-                                    document.querySelector(
-                                        `.tag-input[data-index="${
-                                            index === 0 ? 0 : index - 1
-                                        }"]`
-                                    )
-                                );
-                                return resultTagsLocal;
-                            });
-                        }
-                    }
-                } else if (e.key === "Delete") {
-                    const index = parseInt(e.target.getAttribute("data-index"));
-                    const resultTagsLength = Object.keys(resultTags).length - 1;
-
-                    if (resultTagsLength > index) {
-                        const target = document.querySelector(
-                            `.tag-input[data-index="${index + 1}"]`
-                        );
-
-                        if (target.value.length === 0) {
-                            e.preventDefault();
-
-                            // Remove tag
-                            const key =
-                                document.activeElement.getAttribute("data-key");
-
-                            setEdits((editsThis) => {
-                                const editsLocal = Object.assign({}, editsThis);
-                                const tagInfo = resultTags[key];
-
-                                for (const resultId in tagInfo.resultIndices) {
-                                    const resultIndex =
-                                        tagInfo.resultIndices[resultId];
-
-                                    if (!editsLocal[resultId]) {
-                                        const result = results.find(
-                                            (result) => result._id === resultId
-                                        ); // Redo results structure to make this faster
-                                        editsLocal[resultId] = [];
-
-                                        for (
-                                            let j = 0;
-                                            j < result.tags.length;
-                                            j++
-                                        ) {
-                                            editsLocal[resultId].push([
-                                                tagKeyCounter++,
-                                                result.tags[j],
-                                            ]);
-                                        }
-                                    }
-
-                                    editsLocal[resultId].splice(resultIndex, 1);
-                                }
-
-                                setIsEdited(true);
-                                return editsLocal;
-                            });
-
-                            setResultTags((resultTagsThis) => {
-                                const resultTagsLocal = Object.assign(
-                                    {},
-                                    resultTagsThis
-                                );
-
-                                delete resultTagsLocal[key];
-
-                                focusElement(
-                                    document.querySelector(
-                                        `.tag-input[data-index="${
-                                            index >= resultTagsLength
-                                                ? resultTagsLength - 1
-                                                : index + 1
-                                        }"]`
-                                    )
-                                );
-                                return resultTagsLocal;
-                            });
-                        }
-                    }
-                }
-            } else if (
-                asset === -1 &&
-                !e.target.classList.contains("tag-input")
-            ) {
+            if (asset === -1) {
                 if (e.key === "ArrowLeft") {
                     e.preventDefault();
 
@@ -563,6 +319,8 @@ function HomePage() {
     };
 
     const constructUsedTagsElements = () => {
+        if (!tags.definitions) return;
+
         const elements = [];
         let index = 0;
 
@@ -575,20 +333,8 @@ function HomePage() {
                     key={key || index}
                     data-testid="used-tag-item"
                 >
-                    {isEditMode ? (
-                        <input
-                            className={`tag-input${
-                                tagInfo.tag.length === 0 ? " empty" : ""
-                            }`}
-                            data-index={index}
-                            data-key={key}
-                            defaultValue={tagInfo.tag}
-                            autoFocus={focused === index}
-                        />
-                    ) : (
-                        tagInfo.tag
-                    )}{" "}
-                    ({tagInfo.appearances})
+                    {tags.definitions[tagInfo.tag]?.name} ({tagInfo.appearances}
+                    )
                 </li>
             );
 
@@ -597,6 +343,35 @@ function HomePage() {
 
         return elements;
     };
+
+    const constructTagElements = (children) => {
+        return children?.map((child) => {
+            const tag = tags.definitions[child.id];
+
+            return (
+                <li key={tag._id}>
+                    {tag.children.length ? (
+                        <details>
+                            <summary>
+                                <p>{tag.name}</p>
+                            </summary>
+
+                            <ul className="sidebar-text focusable">
+                                {constructTagElements(child.children)}
+                            </ul>
+                        </details>
+                    ) : (
+                        <p>{tag.name}</p>
+                    )}
+                </li>
+            );
+        });
+    };
+
+    const tagListElements = useMemo(
+        () => (tags.definitions ? constructTagElements(tagStructure) : null),
+        [tags.definitions]
+    );
 
     /* Return */
     return (
@@ -607,7 +382,7 @@ function HomePage() {
                         className={page > 1 ? "enabled" : ""}
                         onClick={loadPreviousPage}
                     >
-                        <MdChevronLeft />
+                        <CgChevronLeft />
                     </li>
 
                     <li className="pages">{constructPageLinksElements()}</li>
@@ -620,7 +395,7 @@ function HomePage() {
                         }
                         onClick={loadNextPage}
                     >
-                        <MdChevronRight />
+                        <CgChevronRight />
                     </li>
                 </ul>
             </nav>
@@ -646,7 +421,7 @@ function HomePage() {
                         type="submit"
                         data-testid="search-button"
                     >
-                        <MdSearch />
+                        <CgSearch />
                     </button>
                 </div>
             </form>
@@ -730,7 +505,7 @@ function HomePage() {
                                             });
                                         }}
                                     >
-                                        <MdFullscreen />
+                                        <CgMaximize />
                                     </div>
                                 </section>
                             );
@@ -741,7 +516,7 @@ function HomePage() {
             </section>
 
             <div className="to-top" onClick={scrollToTop}>
-                <MdArrowUpward />
+                <CgArrowUp />
             </div>
 
             <Sidebar
@@ -750,43 +525,21 @@ function HomePage() {
                     searchRef.current.value = "";
                 }}
             >
-                <details>
-                    <summary>
-                        <h2>Used Tags</h2>
-                    </summary>
-
-                    <ul className="sidebar-text">
-                        {constructUsedTagsElements()}
-                    </ul>
-                </details>
-
-                {tags.map((tag, i) => {
-                    return (
-                        <details key={i} open>
+                <ul className="sidebar-text focusable">
+                    <li>
+                        <details>
                             <summary>
-                                <h2>{tag.category}</h2>
+                                <p>Used Tags</p>
                             </summary>
 
-                            <ul
-                                className="sidebar-text focusable"
-                                data-testid="tag-category-list"
-                            >
-                                {tag.tags.map((tag, i) => {
-                                    return (
-                                        <li
-                                            key={i}
-                                            onClick={() => {
-                                                addTagToSearch(tag.title);
-                                            }}
-                                        >
-                                            {tag.title}
-                                        </li>
-                                    );
-                                })}
+                            <ul className="sidebar-text">
+                                {constructUsedTagsElements()}
                             </ul>
                         </details>
-                    );
-                })}
+                    </li>
+
+                    {tagListElements}
+                </ul>
             </Sidebar>
 
             <Lightbox

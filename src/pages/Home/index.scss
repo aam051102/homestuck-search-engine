@@ -1,3 +1,7 @@
+p {
+    margin: 0;
+}
+
 .home-page {
     .to-top {
         color: #fff;
@@ -115,7 +119,8 @@
             padding: 0.4rem 0.3rem;
             border: 0.1rem solid #0004;
             margin-top: 2rem;
-            box-shadow: 1px 1px #af4b00, 2px 2px #af4b00, 3px 3px #af4b00, 4px 4px #af4b00, 5px 5px #af4b00;
+            box-shadow: 1px 1px #af4b00, 2px 2px #af4b00, 3px 3px #af4b00,
+                4px 4px #af4b00, 5px 5px #af4b00;
             position: relative;
 
             &::before {

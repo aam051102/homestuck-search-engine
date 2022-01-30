@@ -63,16 +63,13 @@ const parseSearchString = (str, tags) => {
         }
     }
 
-    // Convert tags to main tag
-    // TODO: Improve speed??
-    firstTagLoop: for (let i = 0; i < actualTags.length; i++) {
-        for (let j = 0; j < tags.length; j++) {
-            for (let n = 0; n < tags[j].tags.length; n++) {
-                if (tags[j].tags[n].synonyms.includes(actualTags[i])) {
-                    actualTags[i] = tags[j].tags[n].title;
-                    continue firstTagLoop;
-                }
-            }
+    // Removes nonexistent tags and change synonyms to tag ID
+    for (let i = 0; i < actualTags.length; i++) {
+        actualTags[i] = tags.synonyms[actualTags[i].toLowerCase()]?.ref;
+
+        if (actualTags[i] === undefined) {
+            actualTags.splice(i, 1);
+            i--;
         }
     }
 
