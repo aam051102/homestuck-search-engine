@@ -1,11 +1,13 @@
+import { ITags } from "types/index";
+
 /**
  * Separate tags from a string and return an array of tags and page ranges based on the inserted tags
  * @param str
  * @param tags
  */
-const parseSearchString = (str: string, tags: {}[]) => {
+const parseSearchString = (str: string, tags: ITags) => {
     let prevWasSpace = true;
-    const actualTags = [];
+    const clearedTags: string[] = [];
     let tempTag = "";
 
     const pageRanges = [];
@@ -15,8 +17,8 @@ const parseSearchString = (str: string, tags: {}[]) => {
     for (let i = 0; i <= str.length; i++) {
         // Separator
         if (str[i] === "," || i === str.length) {
-            const trimmed = tempTag.trimRight();
-            if (trimmed.length > 0) actualTags.push(trimmed);
+            const trimmed = tempTag.trimEnd();
+            if (trimmed.length > 0) clearedTags.push(trimmed);
 
             tempTag = "";
             prevWasSpace = true;
@@ -64,12 +66,12 @@ const parseSearchString = (str: string, tags: {}[]) => {
     }
 
     // Removes nonexistent tags and change synonyms to tag ID
-    for (let i = 0; i < actualTags.length; i++) {
-        actualTags[i] = tags.synonyms[actualTags[i].toLowerCase()]?.ref;
+    const actualTags: number[] = [];
+    for (let i = 0; i < clearedTags.length; i++) {
+        const tagId = tags.synonyms?.[clearedTags[i]].ref;
 
-        if (actualTags[i] === undefined) {
-            actualTags.splice(i, 1);
-            i--;
+        if (tagId !== undefined) {
+            actualTags.push(tagId);
         }
     }
 

@@ -5,8 +5,8 @@ import { setDialog } from "helpers/globalState";
 import "./index.scss";
 
 type IProps = {
-    title: React.ReactNode;
-    content: React.ReactNode;
+    title?: React.ReactNode;
+    content?: React.ReactNode;
     visible: boolean;
     buttons?: { title?: string; callbacks?: (() => void)[] }[];
 };

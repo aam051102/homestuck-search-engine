@@ -1,36 +1,29 @@
 import createGlobalState from "global-react-state";
+import { IResult } from "types";
 
 /**
  * Contains result information
  */
-export const [useResults, setResults] = createGlobalState([]);
-
-/**
- * Contains editing information
- */
-export const [useEdits, setEdits] = createGlobalState({});
+export const [useResults, setResults] = createGlobalState<IResult[]>([]);
 
 /**
  * Whether or not user is in edit mode
  */
-export const [useIsEditMode, setIsEditMode] = createGlobalState(false);
+export const [useIsEditMode, setIsEditMode] = createGlobalState<boolean>(false);
 
 /**
  * Whether or not user is signed in
  */
-export const [useIsSignedIn, setIsSignedIn] = createGlobalState(false);
+export const [useIsSignedIn, setIsSignedIn] = createGlobalState<boolean>(false);
 
 /**
  * Dialog information
  */
 export const [useDialog, setDialog] = createGlobalState<{
-    visible?: boolean;
-    title?: string;
-    content?: string;
-    buttons?: {
-        title: string;
-        callbacks?: (() => void)[];
-    }[];
+    title?: React.ReactNode;
+    content?: React.ReactNode;
+    visible: boolean;
+    buttons?: { title?: string; callbacks?: (() => void)[] }[];
 }>({
     visible: false,
     title: "",

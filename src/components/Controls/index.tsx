@@ -1,82 +1,18 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import {
-    setDialog,
-    setEdits,
-    setResults,
-    useEdits,
-    useIsEditMode,
-    useIsSignedIn,
-    useResults,
-} from "helpers/globalState";
+import { setDialog, useIsEditMode, useIsSignedIn } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
-import {
-    getCookie,
-    isEdited,
-    setIsEdited,
-    showOutdatedSessionDialog,
-} from "helpers/utility";
-import ENDPOINT from "helpers/endpoint";
+import { isEdited } from "helpers/utility";
 
 import "./index.scss";
 
 const Controls: React.FC = () => {
     // States
-    const [results] = useResults();
-    const [edits] = useEdits();
     const [isEditMode, setIsEditMode] = useIsEditMode();
     const [isSignedIn] = useIsSignedIn();
 
     // Functions
-    /**
-     * Saves edited data.
-     * @param onSuccess Optional success callback
-     */
-    async function saveData(onSuccess?: () => void) {
-        if (!getCookie("hsse_token")) {
-            showOutdatedSessionDialog();
-            return;
-        }
-
-        await fetch(`${ENDPOINT}/api/app/1/edit`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getCookie("hsse_token")}`,
-            },
-            body: JSON.stringify({ edits: edits }),
-        })
-            .then((e) => {
-                if (e.status === 403 || e.status === 401) {
-                    showOutdatedSessionDialog();
-                    return { error: "Session outdated." };
-                } else {
-                    return e.json();
-                }
-            })
-            .then((res) => {
-                if (res.error) {
-                    console.error(res.error);
-                } else {
-                    const resultsLocal = results.map((result) => {
-                        if (edits[result._id]) {
-                            result.tags = edits[result._id].map((tag) => {
-                                return tag[1];
-                            });
-                        }
-
-                        return result;
-                    });
-                    setResults(resultsLocal);
-
-                    setEdits({});
-                    setIsEdited(false);
-                    if (onSuccess) onSuccess();
-                }
-            });
-    }
-
     function exitEditMode(callback?: () => void) {
         if (!callback) callback = () => null;
 
@@ -90,7 +26,6 @@ const Controls: React.FC = () => {
                     {
                         title: "Save",
                         callbacks: [
-                            saveData,
                             callback,
                             () => {
                                 setIsEditMode(false);
@@ -102,7 +37,6 @@ const Controls: React.FC = () => {
                         callbacks: [
                             callback,
                             () => {
-                                setEdits({});
                                 setIsEditMode(false);
                             },
                         ],
@@ -158,10 +92,8 @@ const Controls: React.FC = () => {
                     {isEditMode ? (
                         <button
                             className="control-btn control-save"
-                            onClick={async () => {
-                                await saveData(() => {
-                                    setIsEditMode(false);
-                                });
+                            onClick={() => {
+                                setIsEditMode(false);
                             }}
                             aria-label="Save edits"
                             title="Save"

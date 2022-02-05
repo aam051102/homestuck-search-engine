@@ -1,26 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { MdChevronLeft, MdChevronRight, MdClose } from "react-icons/md";
 
-import {
-    useEdits,
-    setEdits,
-    useIsEditMode,
-    useResults,
-} from "helpers/globalState";
+import { useResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
-import { focusElement, setIsEdited } from "helpers/utility";
 
 import Sidebar from "components/Sidebar";
 
 import "./index.scss";
 
-/**
- * Global counter for tag
- */
-let tagKeyCounter = 0;
-
 type IProps = {
     id: number;
+    visible?: boolean;
     hideLightbox: () => void;
     loadPrevious: () => void;
     loadNext: () => void;
@@ -31,12 +21,9 @@ type IProps = {
  */
 const Lightbox: React.FC<IProps> = (props) => {
     // States
-    const [isEditMode] = useIsEditMode();
     const [results] = useResults();
-    const [edits] = useEdits();
 
-    const [resultTags, setResultTags] = useState([]);
-    const [focused, setFocused] = useState(-1);
+    const [resultTags] = useState([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Variables
@@ -62,7 +49,6 @@ const Lightbox: React.FC<IProps> = (props) => {
      * Loads previous asset
      */
     function loadPrevious() {
-        setFocused(-1);
         props.loadPrevious();
     }
 
@@ -70,73 +56,17 @@ const Lightbox: React.FC<IProps> = (props) => {
      * Loads next asset
      */
     function loadNext() {
-        setFocused(-1);
         props.loadNext();
     }
 
-    /**
-     * Saves tag changes to global state
-     * @param {Event} event
-     */
-    function rememberLocalData() {
-        const activeElement = document.activeElement;
-        const resultId = result._id;
-
-        setEdits((editsThis) => {
-            const editsLocal = Object.assign({}, editsThis);
-
-            if (!editsLocal[resultId]) {
-                editsLocal[resultId] = resultTags;
-            } else {
-                editsLocal[resultId][
-                    parseInt(activeElement.getAttribute("data-index"))
-                ][1] = activeElement.value;
-            }
-
-            setIsEdited(true);
-            return editsLocal;
-        });
-    }
-
     // Effects
-    useEffect(() => {
-        if (result && result.tags.length > 0) {
-            if (edits[result._id] && edits[result._id].length > 0) {
-                // Use edits, if made
-                setResultTags(edits[result._id]);
-            } else {
-                // Otherwise, use results
-                setResultTags(result.tags.map((tag) => [tagKeyCounter++, tag]));
-            }
-        } else {
-            // If neither is loaded, use blank line
-            setResultTags([[0, ""]]);
-        }
-    }, [result, edits, isEditMode]);
-
     useEffect(() => {
         if (results?.[props.id]) {
             setResult(results[props.id]);
         }
     }, [props.id, results]);
 
-    // Event listeners
-    useEventListener(
-        "keyup",
-        (e) => {
-            if (props.visible && e.target.classList.contains("tag-input")) {
-                if (e.target.value.length === 0) {
-                    e.target.classList.add("empty");
-                } else {
-                    e.target.classList.remove("empty");
-                }
-
-                rememberLocalData();
-            }
-        },
-        document
-    );
-
+    /// Event listeners
     useEventListener(
         "keydown",
         (e) => {
@@ -146,114 +76,12 @@ const Lightbox: React.FC<IProps> = (props) => {
                     return;
                 }
 
-                if (!e.target.classList.contains("tag-input")) {
-                    if (e.key === "ArrowLeft") {
-                        // Previous asset
-                        loadPrevious();
-                    } else if (e.key === "ArrowRight") {
-                        // Next asset
-                        loadNext();
-                    }
-                } else if (isEditMode) {
-                    if (e.key === "Enter") {
-                        // Add tag
-                        const resultId = result._id;
-
-                        setEdits((editsThis) => {
-                            const index =
-                                parseInt(e.target.getAttribute("data-index")) +
-                                1;
-                            const editsLocal = Object.assign({}, editsThis);
-
-                            if (!editsLocal[resultId]) {
-                                editsLocal[resultId] = resultTags;
-                            }
-
-                            editsLocal[resultId].splice(index, 0, [
-                                tagKeyCounter++,
-                                "",
-                            ]);
-
-                            setFocused(index);
-
-                            setIsEdited(true);
-                            return editsLocal;
-                        });
-                    } else if (e.key === "ArrowUp") {
-                        // Move up
-                        e.preventDefault();
-
-                        if (e.target?.parentNode.previousSibling) {
-                            focusElement(
-                                e.target.parentNode.previousSibling.children[0]
-                            );
-                        }
-                    } else if (e.key === "ArrowDown") {
-                        // Move down
-                        e.preventDefault();
-
-                        if (e.target?.parentNode.nextSibling) {
-                            focusElement(
-                                e.target.parentNode.nextSibling.children[0]
-                            );
-                        }
-                    } else if (e.key === "Backspace") {
-                        if (e.target?.value.length === 0) {
-                            e.preventDefault();
-
-                            if (resultTags.length > 1) {
-                                const index = parseInt(
-                                    e.target?.getAttribute("data-index")
-                                );
-
-                                // Remove tag
-                                const resultId = result._id;
-                                setEdits((editsThis) => {
-                                    const editsLocal = Object.assign(
-                                        {},
-                                        editsThis
-                                    );
-                                    editsLocal[resultId].splice(index, 1);
-                                    setIsEdited(true);
-                                    return editsLocal;
-                                });
-
-                                focusElement(
-                                    document.querySelector(
-                                        `.tag-input[data-index="${
-                                            index === 0 ? 0 : index - 1
-                                        }"]`
-                                    )
-                                );
-                            }
-                        }
-                    } else if (e.key === "Delete") {
-                        const index = parseInt(
-                            e.target.getAttribute("data-index")
-                        );
-
-                        if (resultTags.length > index + 1) {
-                            const target = document.querySelector(
-                                `.tag-input[data-index="${index + 1}"]`
-                            );
-
-                            if (target.value.length === 0) {
-                                e.preventDefault();
-
-                                // Remove tag
-                                const resultId = result._id;
-                                setEdits((editsThis) => {
-                                    const editsLocal = Object.assign(
-                                        {},
-                                        editsThis
-                                    );
-                                    editsLocal[resultId].splice(index + 1, 1);
-                                    setIsEdited(true);
-                                    return editsLocal;
-                                });
-                            }
-                        }
-                    }
+                if (e.key === "ArrowLeft") {
+                    // Previous asset
+                    loadPrevious();
+                } else if (e.key === "ArrowRight") {
+                    // Next asset
+                    loadNext();
                 }
             }
         },
@@ -264,7 +92,8 @@ const Lightbox: React.FC<IProps> = (props) => {
         <div
             className={`lightbox${props.visible ? " visible" : ""}`}
             onClick={(e) => {
-                if (e.target.classList.contains("lightbox")) {
+                const target = e.target as HTMLElement;
+                if (target.classList.contains("lightbox")) {
                     closeLightbox();
                 }
             }}
@@ -327,26 +156,9 @@ const Lightbox: React.FC<IProps> = (props) => {
                     onToggle={handleSidebarToggle}
                     isOpen={isSidebarOpen}
                 >
-                    {isEditMode && <p>Type and press enter.</p>}
-
                     <ul className="sidebar-text">
                         {resultTags.map((tag, i) => {
-                            return isEditMode ? (
-                                <li
-                                    className="sidebar-text-input"
-                                    key={tag[0] || i}
-                                >
-                                    <input
-                                        className={`tag-input${
-                                            tag[1].length === 0 ? " empty" : ""
-                                        }`}
-                                        data-index={i}
-                                        defaultValue={tag[1]}
-                                        autoFocus={focused === i}
-                                        data-testid="lightbox-tag-input"
-                                    />
-                                </li>
-                            ) : (
+                            return (
                                 <li
                                     key={tag[0] || i}
                                     data-testid="lightbox-tag-item"

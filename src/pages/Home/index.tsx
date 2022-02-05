@@ -1,4 +1,11 @@
-import React, { createRef, lazy, useEffect, useMemo, useState } from "react";
+import React, {
+    FormEvent,
+    lazy,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import {
     CgArrowUp,
     CgChevronLeft,
@@ -8,7 +15,6 @@ import {
 } from "react-icons/cg";
 import {
     setIsSignedIn,
-    useIsSignedIn,
     useDialog,
     useResults,
     setResults,
@@ -23,6 +29,7 @@ import StaticCanvas from "components/StaticCanvas";
 import Dialog from "components/Dialog";
 import parseSearchString from "helpers/parseSearchString";
 import { useSearchParams } from "react-router-dom";
+import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 
 const Lightbox = lazy(() => import("components/Lightbox"));
 
@@ -38,58 +45,69 @@ let tagKeyCounter = 0;
  */
 function HomePage() {
     /* States */
-    const [tags, setTags] = useState({
+    const [tags, setTags] = useState<ITags>({
         definitions: undefined,
         synonyms: undefined,
     });
     const [visibleResults, setVisibleResults] = useState(20);
-    const [resultTags, setResultTags] = useState({});
+    const [resultTags, setResultTags] = useState<IResultTags>({});
 
     const [results] = useResults();
-    const [isSignedIn] = useIsSignedIn();
     const [dialog] = useDialog();
 
-    const searchRef = createRef();
-    const visibleResultsRef = createRef();
+    const searchRef = useRef<HTMLInputElement>(null);
+    const visibleResultsRef = useRef<HTMLInputElement>(null);
 
     // URL parameters
-    const [params, setParams] = useSearchParams();
+    const [params, setParams] = useSearchParams({
+        query: "",
+        page: "0",
+        asset: "-1",
+    });
 
-    const query = params.get("query") ?? "";
-    const page = parseInt(params.get("page"));
+    const query = params.get("query");
+    const page = parseInt(params.get("page") ?? "0");
     const asset = parseInt(params.get("asset") ?? "-1");
 
     // Tag structure
     const createTagStructure = () => {
-        if (!tags.definitions) return [];
+        const definitions = tags.definitions;
+        if (!definitions) return [];
 
         // Find top-level tags
-        const topTags = {};
-        const childrenTags = {};
+        const topTags: Record<number, ITag> = {};
+        const childrenTags: Record<string, boolean> = {};
 
-        Object.keys(tags.definitions).forEach((tag) => {
-            if (!childrenTags[tag]) {
-                topTags[tag] = tags.definitions[tag];
+        Object.keys(definitions).forEach((tag) => {
+            const parsedTag = parseInt(tag);
+
+            if (!childrenTags[parsedTag]) {
+                topTags[parsedTag] = definitions[parsedTag];
             }
 
-            tags.definitions[tag].children.forEach((child) => {
+            definitions[parsedTag].children?.forEach((child) => {
                 delete topTags[child];
 
                 childrenTags[child] = true;
             });
         });
 
-        return createTagStructureRecursive(Object.keys(topTags));
+        return createTagStructureRecursive(Object.keys(topTags).map(parseInt));
     };
 
-    const createTagStructureRecursive = (tagList) => {
-        const tagStructure = [];
+    const createTagStructureRecursive = (tagList?: number[]) => {
+        if (!tagList) return [];
+
+        const tagStructure: ITagStructure[] = [];
+
+        const definitions = tags.definitions;
+        if (!definitions) return [];
 
         for (const tag of tagList) {
             tagStructure.push({
                 id: tag,
                 children: createTagStructureRecursive(
-                    tags.definitions[tag].children
+                    definitions[tag].children
                 ),
             });
         }
@@ -100,24 +118,9 @@ function HomePage() {
     const tagStructure = useMemo(createTagStructure, [tags.definitions]);
 
     /* Functions */
-    /**
-     * Updates the list of all result tags to use following structure:
-     *
-     * ```
-     * {
-     *   name: {
-     *     key: uniqueId,
-     *     appearances: resultIndices.length,
-     *     resultIndices: {
-     *       resultId: uniqueId
-     *     },
-     *   }
-     * }
-     * ```
-     */
-    const restructureResultTags = async (data) => {
-        const thisResultTags = {};
-        const thisResultTagsIndices = {};
+    const restructureResultTags = async (data: IResult[]) => {
+        const thisResultTags: IResultTags = {};
+        const thisResultTagsIndices: Record<string, number> = {};
 
         // Process all results
         for (let i = 0; i < data.length; i++) {
@@ -152,19 +155,22 @@ function HomePage() {
         setResultTags(thisResultTags);
     };
 
-    const addTagToSearch = (tag) => {
-        for (let i = searchRef.current.value.length - 1; i >= 0; i--) {
-            if (searchRef.current.value[i] === ",") {
+    const addTagToSearch = (tag: string) => {
+        const search = searchRef.current;
+        if (!search) return;
+
+        for (let i = search.value.length - 1; i >= 0; i--) {
+            if (search.value[i] === ",") {
                 break;
-            } else if (searchRef.current.value[i] !== " ") {
-                searchRef.current.value += ",";
+            } else if (search.value[i] !== " ") {
+                search.value += ",";
                 break;
             }
         }
 
-        searchRef.current.value += tag;
+        search.value += tag;
 
-        searchRef.current.scrollLeft = searchRef.current.scrollWidth;
+        search.scrollLeft = search.scrollWidth;
     };
 
     const scrollToTop = () => {
@@ -174,7 +180,7 @@ function HomePage() {
         });
     };
 
-    const setCurrentPage = (page) => {
+    const setCurrentPage = (page: number) => {
         setParams({
             query: query,
             page: page,
@@ -195,10 +201,10 @@ function HomePage() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        const searchTags = searchRef.current.value;
+        const searchTags = searchRef.current?.value;
 
         // Update URL params
         setParams({
@@ -290,7 +296,7 @@ function HomePage() {
         const elements = [];
 
         if (visibleResults > 0) {
-            let pages = Math.ceil(results.length / visibleResults);
+            const pages = Math.ceil(results.length / visibleResults);
 
             const ITEMS_AROUND_PAGE = 4;
 
@@ -361,13 +367,15 @@ function HomePage() {
         return elements;
     };
 
-    const constructTagElements = (children) => {
+    const constructTagElements = (children: ITagStructure[]) => {
         return children?.map((child) => {
-            const tag = tags.definitions[child.id];
+            const tag = tags.definitions?.[child.id];
+
+            if (!tag) return null;
 
             return (
                 <li key={tag._id}>
-                    {tag.children.length ? (
+                    {tag.children?.length ? (
                         <details>
                             <summary>
                                 <p>{tag.name}</p>
@@ -458,17 +466,20 @@ function HomePage() {
                             min="1"
                             max="100"
                             onChange={() => {
-                                if (visibleResultsRef.current.value < 1) {
-                                    visibleResultsRef.current.value = 1;
-                                } else if (
-                                    visibleResultsRef.current.value > 100
-                                ) {
-                                    visibleResultsRef.current.value = 100;
+                                const visibleResultsField =
+                                    visibleResultsRef.current;
+                                if (!visibleResultsField) return;
+
+                                let newVisibleResult = parseInt(
+                                    visibleResultsField.value
+                                );
+                                if (newVisibleResult < 1) {
+                                    newVisibleResult = 1;
+                                } else if (newVisibleResult > 100) {
+                                    newVisibleResult = 100;
                                 }
 
-                                setVisibleResults(
-                                    visibleResultsRef.current.value
-                                );
+                                setVisibleResults(newVisibleResult);
 
                                 setCurrentPage(1);
                             }}
@@ -494,8 +505,8 @@ function HomePage() {
                                     >
                                         {result.type === 0 ? (
                                             <StaticCanvas
-                                                width="650"
-                                                height="450"
+                                                width={650}
+                                                height={450}
                                                 src={
                                                     result.thumbnail ||
                                                     result.content
@@ -539,7 +550,8 @@ function HomePage() {
             <Sidebar
                 title="Tags"
                 clearSearch={() => {
-                    searchRef.current.value = "";
+                    const search = searchRef.current;
+                    if (search) search.value = "";
                 }}
             >
                 <ul className="sidebar-text focusable">
@@ -581,10 +593,8 @@ function HomePage() {
                         });
                     }
                 }}
-                isIsSignedIn={isSignedIn}
                 visible={asset !== -1}
                 id={asset}
-                results={results}
             />
 
             <Dialog {...dialog} />
