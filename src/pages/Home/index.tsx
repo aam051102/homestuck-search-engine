@@ -92,7 +92,9 @@ function HomePage() {
             });
         });
 
-        return createTagStructureRecursive(Object.keys(topTags).map(parseInt));
+        return createTagStructureRecursive(
+            Object.keys(topTags).map((tag) => parseInt(tag))
+        );
     };
 
     const createTagStructureRecursive = (tagList?: number[]) => {
