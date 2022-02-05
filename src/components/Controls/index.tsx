@@ -21,7 +21,7 @@ import ENDPOINT from "helpers/endpoint";
 
 import "./index.scss";
 
-const Controls = () => {
+const Controls: React.FC = () => {
     // States
     const [results] = useResults();
     const [edits] = useEdits();
@@ -31,9 +31,9 @@ const Controls = () => {
     // Functions
     /**
      * Saves edited data.
-     * @param {Function} onSuccess Optional success callback
+     * @param onSuccess Optional success callback
      */
-    async function saveData(onSuccess) {
+    async function saveData(onSuccess?: () => void) {
         if (!getCookie("hsse_token")) {
             showOutdatedSessionDialog();
             return;
@@ -77,8 +77,8 @@ const Controls = () => {
             });
     }
 
-    function exitEditMode(callback) {
-        if (!callback) callback = () => {};
+    function exitEditMode(callback?: () => void) {
+        if (!callback) callback = () => null;
 
         if (isEditMode && isEdited) {
             setDialog({
@@ -118,7 +118,8 @@ const Controls = () => {
 
     // Event listeners
     useEventListener("keydown", (e) => {
-        if (e.target.tagName !== "INPUT") {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== "INPUT") {
             if (e.key === "e" && isSignedIn) {
                 // Shortcut for edit mode
                 if (isEditMode) {

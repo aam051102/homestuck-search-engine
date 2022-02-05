@@ -1,54 +1,55 @@
-import React, { createRef, useLayoutEffect } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 
 import "./index.scss";
 
-const Background = (props) => {
-    const canvasRef = createRef();
+type IProps = {
+    src: string;
+};
+
+const Background: React.FC<IProps> = (props) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useLayoutEffect(() => {
         const image = new Image();
         image.src = props.src;
 
         function renderImage() {
-            if (canvasRef.current) {
+            const ctx = canvasRef.current?.getContext("2d");
+
+            if (canvasRef.current && ctx) {
                 // Clear canvas
-                canvasRef.current
-                    .getContext("2d")
-                    .clearRect(
-                        0,
-                        0,
-                        canvasRef.current.width,
-                        canvasRef.current.height
-                    );
+
+                ctx.clearRect(
+                    0,
+                    0,
+                    canvasRef.current.width,
+                    canvasRef.current.height
+                );
 
                 // Resize canvas
                 canvasRef.current.width = window.innerWidth;
                 canvasRef.current.height = window.innerHeight;
 
                 // Draw image at correct scale to cover entire page
-                let heightToRatio =
+                const heightToRatio =
                     (image.height / image.width) * window.innerWidth;
 
                 if (heightToRatio < window.innerHeight) {
-                    canvasRef.current
-                        .getContext("2d")
-                        .drawImage(
-                            image,
-                            0,
-                            0,
-                            (image.width / image.height) * window.innerHeight,
-                            window.innerHeight
-                        );
+                    ctx.drawImage(
+                        image,
+                        0,
+                        0,
+                        (image.width / image.height) * window.innerHeight,
+                        window.innerHeight
+                    );
                 } else {
-                    canvasRef.current
-                        .getContext("2d")
-                        .drawImage(
-                            image,
-                            0,
-                            0,
-                            window.innerWidth,
-                            heightToRatio
-                        );
+                    ctx.drawImage(
+                        image,
+                        0,
+                        0,
+                        window.innerWidth,
+                        heightToRatio
+                    );
                 }
             }
         }

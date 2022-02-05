@@ -19,11 +19,17 @@ import "./index.scss";
  */
 let tagKeyCounter = 0;
 
+type IProps = {
+    id: number;
+    hideLightbox: () => void;
+    loadPrevious: () => void;
+    loadNext: () => void;
+};
+
 /**
- * A lightbox to show search results in
- * @param {Object} props
+ * A lightbox to show search results in.
  */
-const Lightbox = (props) => {
+const Lightbox: React.FC<IProps> = (props) => {
     // States
     const [isEditMode] = useIsEditMode();
     const [results] = useResults();
@@ -39,9 +45,9 @@ const Lightbox = (props) => {
     // Functions
     /**
      * Toggles outer value defining whether or not sidebar is open.
-     * @param {boolean} val
+     * @param val
      */
-    function handleSidebarToggle(val) {
+    function handleSidebarToggle(val: boolean) {
         setIsSidebarOpen(val);
     }
 
@@ -177,7 +183,7 @@ const Lightbox = (props) => {
                         // Move up
                         e.preventDefault();
 
-                        if (e.target.parentNode.previousSibling) {
+                        if (e.target?.parentNode.previousSibling) {
                             focusElement(
                                 e.target.parentNode.previousSibling.children[0]
                             );
@@ -186,18 +192,18 @@ const Lightbox = (props) => {
                         // Move down
                         e.preventDefault();
 
-                        if (e.target.parentNode.nextSibling) {
+                        if (e.target?.parentNode.nextSibling) {
                             focusElement(
                                 e.target.parentNode.nextSibling.children[0]
                             );
                         }
                     } else if (e.key === "Backspace") {
-                        if (e.target.value.length === 0) {
+                        if (e.target?.value.length === 0) {
                             e.preventDefault();
 
                             if (resultTags.length > 1) {
                                 const index = parseInt(
-                                    e.target.getAttribute("data-index")
+                                    e.target?.getAttribute("data-index")
                                 );
 
                                 // Remove tag

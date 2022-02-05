@@ -29,8 +29,7 @@
         }
     ],
     "rules": {
-        "react/prop-types": ["off"],
-        "no-unused-vars": ["warn"]
+        "react/prop-types": ["off"]
         /*"react/jsx-tag-spacing": [ "warn", {
             "closingSlash": "never",
             "beforeSelfClosing": "always",

@@ -23,6 +23,17 @@ export const [useIsSignedIn, setIsSignedIn] = createGlobalState(false);
 /**
  * Dialog information
  */
-export const [useDialog, setDialog] = createGlobalState({
-    visible: false, title: "", content: "" 
+export const [useDialog, setDialog] = createGlobalState<{
+    visible?: boolean;
+    title?: string;
+    content?: string;
+    buttons?: {
+        title: string;
+        callbacks?: (() => void)[];
+    }[];
+}>({
+    visible: false,
+    title: "",
+    content: "",
+    buttons: [],
 });

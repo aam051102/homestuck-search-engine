@@ -7,7 +7,12 @@ import bgImage from "assets/images/bg.png";
 
 import "./index.scss";
 
-function Layout(props) {
+type IProps = {
+    className?: string;
+    title?: string;
+};
+
+const Layout: React.FC<IProps> = (props) => {
     return (
         <main className={`main ${props.className || ""}`}>
             <Helmet>
@@ -23,6 +28,6 @@ function Layout(props) {
             <div className="page-content">{props.children}</div>
         </main>
     );
-}
+};
 
 export default Layout;

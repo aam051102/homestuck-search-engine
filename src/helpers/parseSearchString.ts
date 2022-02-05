@@ -1,21 +1,21 @@
 /**
  * Separate tags from a string and return an array of tags and page ranges based on the inserted tags
- * @param {string} str
- * @param {} tags
+ * @param str
+ * @param tags
  */
-const parseSearchString = (str, tags) => {
+const parseSearchString = (str: string, tags: {}[]) => {
     let prevWasSpace = true;
-    let actualTags = [];
+    const actualTags = [];
     let tempTag = "";
 
-    let pageRanges = [];
+    const pageRanges = [];
     let pageRangePoint = 0;
     let rangeRef;
 
     for (let i = 0; i <= str.length; i++) {
         // Separator
         if (str[i] === "," || i === str.length) {
-            let trimmed = tempTag.trimRight();
+            const trimmed = tempTag.trimRight();
             if (trimmed.length > 0) actualTags.push(trimmed);
 
             tempTag = "";

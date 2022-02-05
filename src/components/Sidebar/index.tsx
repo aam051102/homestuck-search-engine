@@ -3,7 +3,14 @@ import { MdChevronLeft } from "react-icons/md";
 
 import "./index.scss";
 
-const Sidebar = (props) => {
+type IProps = {
+    onToggle?: (isOpen: boolean) => void;
+    isOpen?: boolean;
+    title?: string;
+    clearSearch?: () => void;
+};
+
+const Sidebar: React.FC<IProps> = (props) => {
     const [showSidebar, setShowSidebar] = useState(props.isOpen);
     const sidebarVisible = props.onToggle ? props.isOpen : showSidebar;
 
