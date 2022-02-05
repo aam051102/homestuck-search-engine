@@ -167,21 +167,13 @@ describe("search bar", () => {
         act(() => {
             setResults([
                 {
-                    _id: "0",
+                    _id: 0,
                     type: 0,
                     content:
                         "https://www.homestuck.com/images/storyfiles/hs2/00001.gif",
                     thumbnail:
                         "https://www.homestuck.com/images/storyfiles/hs2/00001.gif",
-                    tags: [
-                        "part 1",
-                        "act 1",
-                        "sprite mode",
-                        "john's house",
-                        "john's room",
-                        "john",
-                        "animated",
-                    ],
+                    tags: [5, 8],
                     page: 1,
                 },
             ]);
@@ -206,9 +198,5 @@ describe("search bar", () => {
                 expect(usedTagItemAll_DOM[i]).toHaveTextContent(usedTags[i]);
             }
         });
-    });
-
-    test("correctly edits multiple tags", async () => {
-        // TODO: Add test code.
     });
 });

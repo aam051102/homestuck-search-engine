@@ -61,12 +61,12 @@ function HomePage() {
     // URL parameters
     const [params, setParams] = useSearchParams({
         query: "",
-        page: "0",
+        page: "1",
         asset: "-1",
     });
 
     const query = params.get("query");
-    const page = parseInt(params.get("page") ?? "0");
+    const page = parseInt(params.get("page") ?? "1");
     const asset = parseInt(params.get("asset") ?? "-1");
 
     // Tag structure
@@ -182,8 +182,8 @@ function HomePage() {
 
     const setCurrentPage = (page: number) => {
         setParams({
-            query: query,
-            page: page,
+            query: query ?? "",
+            page: page.toString(),
         });
     };
 
@@ -208,8 +208,8 @@ function HomePage() {
 
         // Update URL params
         setParams({
-            query: searchTags,
-            page: 1,
+            query: searchTags ?? "",
+            page: "1",
         });
     };
 
@@ -312,9 +312,9 @@ function HomePage() {
                         <button
                             className={page === i ? "current" : ""}
                             key={i}
-                            onClick={(e) => {
+                            onClick={() => {
                                 // Update URL params
-                                setCurrentPage(parseInt(e.target.innerText));
+                                setCurrentPage(i);
 
                                 window.scrollTo({
                                     top: 0,
@@ -524,12 +524,13 @@ function HomePage() {
                                         className="search-result-link"
                                         onClick={() => {
                                             setParams({
-                                                query,
-                                                page,
-                                                asset:
+                                                query: query ?? "",
+                                                page: page.toString() ?? "",
+                                                asset: (
                                                     visibleResults *
                                                         (page - 1) +
-                                                    i,
+                                                    i
+                                                ).toString(),
                                             });
                                         }}
                                     >
@@ -573,23 +574,23 @@ function HomePage() {
 
             <Lightbox
                 hideLightbox={() => {
-                    setParams({ query, page });
+                    setParams({ query: query ?? "", page: page.toString() });
                 }}
                 loadPrevious={() => {
                     if (asset > 0) {
                         setParams({
-                            query,
-                            page,
-                            asset: asset - 1,
+                            query: query ?? "",
+                            page: page.toString(),
+                            asset: (asset - 1).toString(),
                         });
                     }
                 }}
                 loadNext={() => {
                     if (asset < results.length - 1) {
                         setParams({
-                            query,
-                            page,
-                            asset: asset + 1,
+                            query: query ?? "",
+                            page: page.toString(),
+                            asset: (asset + 1).toString(),
                         });
                     }
                 }}

@@ -19,22 +19,22 @@ describe("search bar", () => {
                         "https://www.homestuck.com/images/storyfiles/hs2/00001.gif",
                     thumbnail:
                         "https://www.homestuck.com/images/storyfiles/hs2/00001.gif",
-                    tags: [
-                        "part 1",
-                        "act 1",
-                        "sprite mode",
-                        "john's house",
-                        "john's room",
-                        "john",
-                        "animated",
-                    ],
+                    tags: [5],
                     page: 1,
                 },
             ]);
         });
 
         // Render
-        render(<Lightbox id={0} visible={true} />);
+        render(
+            <Lightbox
+                id={0}
+                visible={true}
+                hideLightbox={() => null}
+                loadNext={() => null}
+                loadPrevious={() => null}
+            />
+        );
 
         // Set expected tags
         const usedTags = [
@@ -69,22 +69,22 @@ describe("search bar", () => {
                         "https://www.homestuck.com/images/storyfiles/hs2/00001.gif",
                     thumbnail:
                         "https://www.homestuck.com/images/storyfiles/hs2/00001.gif",
-                    tags: [
-                        "part 1",
-                        "act 1",
-                        "sprite mode",
-                        "john's house",
-                        "john's room",
-                        "john",
-                        "animated",
-                    ],
+                    tags: [6],
                     page: 1,
                 },
             ]);
         });
 
         // Render
-        render(<Lightbox id={0} visible={true} />);
+        render(
+            <Lightbox
+                id={0}
+                visible={true}
+                hideLightbox={() => null}
+                loadNext={() => null}
+                loadPrevious={() => null}
+            />
+        );
 
         // Enable edit mode
         act(() => {
@@ -93,7 +93,7 @@ describe("search bar", () => {
         });
 
         // Find lightbox-tag-input fields after edit mode is enabled
-        let lightboxTagInput_DOM;
+        let lightboxTagInput_DOM: HTMLElement[] = [];
         await waitFor(() => {
             lightboxTagInput_DOM =
                 screen.queryAllByTestId(/lightbox-tag-input/i);
