@@ -7,27 +7,36 @@ import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 
 import "./index.scss";
+import { ITags } from "types";
 
 type IProps = {
     id: number;
     visible?: boolean;
-    hideLightbox: () => void;
+    closeLightbox: () => void;
     loadPrevious: () => void;
     loadNext: () => void;
+    tags?: ITags;
 };
 
 /**
  * A lightbox to show search results in.
  */
-const Lightbox: React.FC<IProps> = (props) => {
+const Lightbox: React.FC<IProps> = ({
+    id,
+    tags,
+    visible,
+    closeLightbox,
+    loadPrevious,
+    loadNext,
+}) => {
     // States
     const [results] = useResults();
 
-    const [resultTags] = useState([]);
+    const [result, setResult] = useState(results[id]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Variables
-    const [result, setResult] = useState(results[props.id]);
+    const resultTags = result.tags.map((tag) => tags?.definitions?.[tag]);
 
     // Functions
     /**
@@ -38,39 +47,18 @@ const Lightbox: React.FC<IProps> = (props) => {
         setIsSidebarOpen(val);
     }
 
-    /**
-     * Closes lightbox
-     */
-    function closeLightbox() {
-        props.hideLightbox();
-    }
-
-    /**
-     * Loads previous asset
-     */
-    function loadPrevious() {
-        props.loadPrevious();
-    }
-
-    /**
-     * Loads next asset
-     */
-    function loadNext() {
-        props.loadNext();
-    }
-
     // Effects
     useEffect(() => {
-        if (results?.[props.id]) {
-            setResult(results[props.id]);
+        if (results?.[id]) {
+            setResult(results[id]);
         }
-    }, [props.id, results]);
+    }, [id, results]);
 
     /// Event listeners
     useEventListener(
         "keydown",
         (e) => {
-            if (props.visible) {
+            if (visible) {
                 if (e.key === "Escape") {
                     closeLightbox();
                     return;
@@ -90,7 +78,7 @@ const Lightbox: React.FC<IProps> = (props) => {
 
     return (
         <div
-            className={`lightbox${props.visible ? " visible" : ""}`}
+            className={`lightbox${visible ? " visible" : ""}`}
             onClick={(e) => {
                 const target = e.target as HTMLElement;
                 if (target.classList.contains("lightbox")) {
@@ -101,7 +89,7 @@ const Lightbox: React.FC<IProps> = (props) => {
             <>
                 <button
                     className={`lightbox-btn-clear lightbox-left`}
-                    disabled={props.id <= 0 ? true : false}
+                    disabled={id <= 0 ? true : false}
                     onClick={() => {
                         loadPrevious();
                     }}
@@ -131,7 +119,7 @@ const Lightbox: React.FC<IProps> = (props) => {
 
                 <button
                     className="lightbox-btn-clear lightbox-right"
-                    disabled={props.id >= results.length - 1 ? true : false}
+                    disabled={id >= results.length - 1 ? true : false}
                     onClick={() => {
                         loadNext();
                     }}
@@ -157,13 +145,15 @@ const Lightbox: React.FC<IProps> = (props) => {
                     isOpen={isSidebarOpen}
                 >
                     <ul className="sidebar-text">
-                        {resultTags.map((tag, i) => {
+                        {resultTags.map((tag) => {
+                            if (!tag) return null;
+
                             return (
                                 <li
-                                    key={tag[0] || i}
+                                    key={tag._id}
                                     data-testid="lightbox-tag-item"
                                 >
-                                    {tag[1]}
+                                    {tag.name}
                                 </li>
                             );
                         })}

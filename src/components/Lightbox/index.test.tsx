@@ -30,7 +30,7 @@ describe("search bar", () => {
             <Lightbox
                 id={0}
                 visible={true}
-                hideLightbox={() => null}
+                closeLightbox={() => null}
                 loadNext={() => null}
                 loadPrevious={() => null}
             />
@@ -80,7 +80,7 @@ describe("search bar", () => {
             <Lightbox
                 id={0}
                 visible={true}
-                hideLightbox={() => null}
+                closeLightbox={() => null}
                 loadNext={() => null}
                 loadPrevious={() => null}
             />

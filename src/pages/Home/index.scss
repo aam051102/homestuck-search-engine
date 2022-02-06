@@ -22,83 +22,6 @@ p {
         grid-template-columns: 1fr 1fr #{"min(95ch, 100%)"} 1fr 1fr;
     }
 
-    .page-nav {
-        background-color: #000d;
-        padding: 0.5rem;
-        margin: 0;
-        width: #{"min(95ch, 100%)"};
-        box-sizing: border-box;
-        z-index: 20;
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-
-        ul {
-            display: flex;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            align-items: center;
-            justify-content: space-between;
-
-            & > :first-child,
-            & > :last-child {
-                font-size: 2rem;
-                line-height: 1em;
-            }
-
-            li {
-                margin: 0 0.5rem;
-
-                &:first-child,
-                &:last-child {
-                    color: #aaa;
-
-                    svg {
-                        pointer-events: none;
-                    }
-
-                    &.enabled {
-                        color: #fff;
-
-                        &:hover {
-                            cursor: pointer;
-                        }
-                    }
-                }
-
-                &.pages {
-                    color: #fff;
-                    display: flex;
-                    overflow: hidden;
-                    flex-wrap: nowrap;
-
-                    button {
-                        border: 0;
-                        padding: 0;
-                        background: transparent;
-                        font-family: inherit;
-                        font-size: inherit;
-                        font-weight: inherit;
-                        color: inherit;
-                        margin: 0 0.5rem;
-                        outline: none;
-
-                        &:hover {
-                            cursor: pointer;
-                            text-decoration: underline;
-                        }
-
-                        &.current {
-                            text-decoration: underline;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     .search-form {
         grid-column: 3;
         grid-row: 2;
@@ -277,6 +200,59 @@ p {
             &:hover {
                 .search-result-link {
                     display: inline-block;
+                }
+            }
+        }
+    }
+
+    .sidebar {
+        .sidebar-text {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 1.5rem;
+            margin: 0.2rem 0 0.5rem;
+            font-size: 1rem;
+
+            .sidebar-text {
+                padding-left: 0.75rem;
+            }
+
+            li {
+                position: relative;
+                color: #c6c6c6;
+                text-transform: capitalize;
+            }
+
+            &.focusable {
+                li {
+                    transition: padding 0.25s ease, opacity 0.25s ease;
+
+                    &:hover {
+                        cursor: pointer;
+                        padding-left: 1ch;
+                        color: #fff;
+                    }
+                }
+            }
+
+            details {
+                summary {
+                    list-style: none;
+                    outline: none;
+                    user-select: none;
+                    display: flex;
+                    justify-content: space-between svg {
+                        margin-left: 0.75rem;
+                    }
+
+                    &:hover {
+                        cursor: pointer;
+                    }
+                }
+
+                &:not(:last-child) {
+                    margin-bottom: 1rem;
                 }
             }
         }

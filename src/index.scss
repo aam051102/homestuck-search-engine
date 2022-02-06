@@ -44,6 +44,44 @@ svg {
     vertical-align: bottom;
 }
 
+button {
+    font: inherit;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    color: inherit;
+    outline: none;
+}
+
+h1 {
+    margin: 0;
+}
+
+h2 {
+    margin: 0;
+}
+
+h3 {
+    margin: 0;
+}
+
+h4 {
+    margin: 0;
+}
+
+h5 {
+    margin: 0;
+}
+
+h6 {
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
 a {
     text-decoration: none;
     color: $link-color;
@@ -51,8 +89,4 @@ a {
     &:hover {
         color: $link-hover-color;
     }
-}
-
-button {
-    font: inherit;
 }

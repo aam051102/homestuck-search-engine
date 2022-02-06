@@ -6,13 +6,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import {
-    CgArrowUp,
-    CgChevronLeft,
-    CgChevronRight,
-    CgMaximize,
-    CgSearch,
-} from "react-icons/cg";
+import { CgArrowUp, CgMaximize, CgSearch } from "react-icons/cg";
 import {
     setIsSignedIn,
     useDialog,
@@ -30,6 +24,7 @@ import Dialog from "components/Dialog";
 import parseSearchString from "helpers/parseSearchString";
 import { useSearchParams } from "react-router-dom";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
+import Pagination from "components/Pagination";
 
 const Lightbox = lazy(() => import("components/Lightbox"));
 
@@ -182,7 +177,7 @@ function HomePage() {
         });
     };
 
-    const setCurrentPage = (page: number) => {
+    const loadPage = (page: number) => {
         setParams({
             query: query ?? "",
             page: page.toString(),
@@ -191,14 +186,14 @@ function HomePage() {
 
     const loadPreviousPage = () => {
         if (page > 1) {
-            setCurrentPage(page - 1);
+            loadPage(page - 1);
             scrollToTop();
         }
     };
 
     const loadNextPage = () => {
         if (page < Math.ceil(results.length / visibleResults)) {
-            setCurrentPage(page + 1);
+            loadPage(page + 1);
             scrollToTop();
         }
     };
@@ -294,55 +289,6 @@ function HomePage() {
     );
 
     /// DOM Construction
-    const constructPageLinksElements = () => {
-        const elements = [];
-
-        if (visibleResults > 0) {
-            const pages = Math.ceil(results.length / visibleResults);
-
-            const ITEMS_AROUND_PAGE = 4;
-
-            for (let i = 1; i <= pages; i++) {
-                const isVisible =
-                    Math.abs(page - i) <= ITEMS_AROUND_PAGE ||
-                    i == 1 ||
-                    i == pages;
-                const isDots = i == 2 || i == pages - 1;
-
-                if (isVisible) {
-                    elements.push(
-                        <button
-                            className={page === i ? "current" : ""}
-                            key={i}
-                            onClick={() => {
-                                // Update URL params
-                                setCurrentPage(i);
-
-                                window.scrollTo({
-                                    top: 0,
-                                    behavior: "smooth",
-                                });
-                            }}
-                        >
-                            {i}
-                        </button>
-                    );
-                } else if (isDots) {
-                    elements.push(
-                        <span
-                            className="inline-block text-grey-dark p-1"
-                            key={`dots-${i}`}
-                        >
-                            ...
-                        </span>
-                    );
-                }
-            }
-        }
-
-        return elements;
-    };
-
     const constructUsedTagsElements = () => {
         if (!tags.definitions) return;
 
@@ -403,29 +349,17 @@ function HomePage() {
     /* Return */
     return (
         <Layout className="home-page" title="Homestuck Search Engine">
-            <nav className="page-nav">
-                <ul>
-                    <li
-                        className={page > 1 ? "enabled" : ""}
-                        onClick={loadPreviousPage}
-                    >
-                        <CgChevronLeft />
-                    </li>
-
-                    <li className="pages">{constructPageLinksElements()}</li>
-
-                    <li
-                        className={
-                            page < Math.ceil(results.length / visibleResults)
-                                ? "enabled"
-                                : ""
-                        }
-                        onClick={loadNextPage}
-                    >
-                        <CgChevronRight />
-                    </li>
-                </ul>
-            </nav>
+            <Pagination
+                loadPage={loadPage}
+                loadNextPage={loadNextPage}
+                loadPreviousPage={loadPreviousPage}
+                currentPage={page}
+                pages={
+                    visibleResults > 0
+                        ? Math.ceil(results.length / visibleResults)
+                        : 0
+                }
+            />
 
             <form className="search-form" onSubmit={handleSubmit}>
                 <label className="search-term-label" htmlFor="search-term">
@@ -483,7 +417,7 @@ function HomePage() {
 
                                 setVisibleResults(newVisibleResult);
 
-                                setCurrentPage(1);
+                                loadPage(1);
                             }}
                         />
                     </div>
@@ -575,7 +509,7 @@ function HomePage() {
             </Sidebar>
 
             <Lightbox
-                hideLightbox={() => {
+                closeLightbox={() => {
                     setParams({ query: query ?? "", page: page.toString() });
                 }}
                 loadPrevious={() => {
@@ -598,6 +532,7 @@ function HomePage() {
                 }}
                 visible={asset !== -1}
                 id={asset}
+                tags={tags}
             />
 
             <Dialog {...dialog} />
