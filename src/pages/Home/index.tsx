@@ -22,9 +22,9 @@ import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
 import Dialog from "components/Dialog";
 import parseSearchString from "helpers/parseSearchString";
-import { useSearchParams } from "react-router-dom";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
+import useParams from "hooks/useParams";
 
 const Lightbox = lazy(() => import("components/Lightbox"));
 
@@ -54,15 +54,15 @@ function HomePage() {
     const visibleResultsRef = useRef<HTMLInputElement>(null);
 
     // URL parameters
-    const [params, setParams] = useSearchParams({
-        query: "",
-        page: "1",
-        asset: "-1",
-    });
+    const [params, setParams] = useParams<{
+        query?: string;
+        page?: number;
+        asset?: number;
+    }>();
 
-    const query = params.get("query");
-    const page = parseInt(params.get("page") ?? "1");
-    const asset = parseInt(params.get("asset") ?? "-1");
+    const query = params.query ?? "";
+    const page = params.page ?? 0;
+    const asset = params.asset ?? -1;
 
     // Tag structure
     const createTagStructure = () => {
@@ -179,8 +179,8 @@ function HomePage() {
 
     const loadPage = (page: number) => {
         setParams({
-            query: query ?? "",
-            page: page.toString(),
+            query,
+            page,
         });
     };
 
@@ -205,8 +205,8 @@ function HomePage() {
 
         // Update URL params
         setParams({
-            query: searchTags ?? "",
-            page: "1",
+            query: searchTags,
+            page: 1,
         });
     };
 
@@ -374,7 +374,7 @@ function HomePage() {
                         autoComplete="off"
                         placeholder="Search (ex. 'john, act 1, dad')"
                         data-testid="search-field"
-                        defaultValue={params.get("query") ?? ""}
+                        defaultValue={query}
                     />
                     <button
                         className="search-button"
@@ -460,13 +460,12 @@ function HomePage() {
                                         className="search-result-link"
                                         onClick={() => {
                                             setParams({
-                                                query: query ?? "",
-                                                page: page.toString() ?? "",
-                                                asset: (
+                                                query,
+                                                page,
+                                                asset:
                                                     visibleResults *
                                                         (page - 1) +
-                                                    i
-                                                ).toString(),
+                                                    i,
                                             });
                                         }}
                                     >
@@ -510,23 +509,23 @@ function HomePage() {
 
             <Lightbox
                 closeLightbox={() => {
-                    setParams({ query: query ?? "", page: page.toString() });
+                    setParams({ query, page });
                 }}
                 loadPrevious={() => {
                     if (asset > 0) {
                         setParams({
-                            query: query ?? "",
-                            page: page.toString(),
-                            asset: (asset - 1).toString(),
+                            query,
+                            page,
+                            asset: asset - 1,
                         });
                     }
                 }}
                 loadNext={() => {
                     if (asset < results.length - 1) {
                         setParams({
-                            query: query ?? "",
-                            page: page.toString(),
-                            asset: (asset + 1).toString(),
+                            query,
+                            page,
+                            asset: asset + 1,
                         });
                     }
                 }}
