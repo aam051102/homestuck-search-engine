@@ -6,11 +6,10 @@ import { HelmetProvider } from "react-helmet-async";
 
 import Home from "pages/Home";
 const Login = lazy(() => import("pages/Login"));
-const Settings = lazy(() => import("pages/Settings"));
 
 import "./index.scss";
 
-const STARTPOINT = window.location.hostname === "localhost" ? "" : "/app/hsse";
+const BASE = window.location.hostname === "localhost" ? "" : "/app/hsse";
 
 ReactDOM.render(
     <React.StrictMode>
@@ -18,17 +17,9 @@ ReactDOM.render(
             <HelmetProvider>
                 <BrowserRouter>
                     <Routes>
-                        <Route path={`${STARTPOINT}/`} element={<Home />} />
+                        <Route path={`${BASE}/`} element={<Home />} />
 
-                        <Route
-                            path={`${STARTPOINT}/login`}
-                            element={<Login />}
-                        />
-
-                        <Route
-                            path={`${STARTPOINT}/settings`}
-                            element={<Settings />}
-                        />
+                        <Route path={`${BASE}/login`} element={<Login />} />
                     </Routes>
                 </BrowserRouter>
             </HelmetProvider>

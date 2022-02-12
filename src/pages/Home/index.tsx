@@ -6,7 +6,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { CgArrowUp, CgMaximize, CgSearch } from "react-icons/cg";
+import { CgMaximize, CgSearch } from "react-icons/cg";
 import { setIsSignedIn, useResults, setResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
@@ -282,7 +282,8 @@ function HomePage() {
 
     /// DOM Construction
     const constructUsedTagsElements = () => {
-        if (!tags.definitions) return;
+        const definitions = tags.definitions;
+        if (!definitions) return;
 
         const elements = [];
         let index = 0;
@@ -292,12 +293,16 @@ function HomePage() {
 
             elements.push(
                 <li
-                    className="sidebar-text-input"
+                    className="tag-title"
                     key={key || index}
                     data-testid="used-tag-item"
+                    onClick={() =>
+                        addTagToSearch(
+                            definitions[tagInfo.tag]?.name.toLowerCase()
+                        )
+                    }
                 >
-                    {tags.definitions[tagInfo.tag]?.name} ({tagInfo.appearances}
-                    )
+                    {definitions[tagInfo.tag]?.name} ({tagInfo.appearances})
                 </li>
             );
 
@@ -317,7 +322,7 @@ function HomePage() {
                 <li key={tag._id}>
                     {tag.children?.length ? (
                         <details>
-                            <summary>
+                            <summary className="tag-title">
                                 <p>{tag.name}</p>
                             </summary>
 
@@ -326,7 +331,9 @@ function HomePage() {
                             </ul>
                         </details>
                     ) : (
-                        <p>{tag.name}</p>
+                        <div className="tag-title">
+                            <p>{tag.name}</p>
+                        </div>
                     )}
                 </li>
             );
@@ -474,10 +481,6 @@ function HomePage() {
                 )}
             </section>
 
-            <div className="to-top" onClick={scrollToTop}>
-                <CgArrowUp />
-            </div>
-
             <Sidebar
                 title="Tags"
                 clearSearch={() => {
@@ -488,7 +491,7 @@ function HomePage() {
                 <ul className="sidebar-text focusable">
                     <li>
                         <details>
-                            <summary>
+                            <summary className="tag-title">
                                 <p>Used Tags</p>
                             </summary>
 
@@ -497,6 +500,8 @@ function HomePage() {
                             </ul>
                         </details>
                     </li>
+
+                    <hr />
 
                     {tagListElements}
                 </ul>
