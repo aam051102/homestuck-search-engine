@@ -19,6 +19,7 @@ import parseSearchString from "helpers/parseSearchString";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
 import useParams from "hooks/useParams";
+import { BsTriangleFill } from "react-icons/bs";
 
 const Lightbox = lazy(() => import("components/Lightbox"));
 
@@ -323,6 +324,7 @@ function HomePage() {
                     {tag.children?.length ? (
                         <details>
                             <summary className="tag-title">
+                                <BsTriangleFill />
                                 <p>{tag.name}</p>
                             </summary>
 

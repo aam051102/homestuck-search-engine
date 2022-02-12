@@ -198,11 +198,17 @@
             .tag-title {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
                 transition: transform 0.15s ease-in-out;
 
                 svg {
-                    margin-left: 0.25rem;
+                    margin-right: 0.25rem;
+                    font-size: 0.5rem;
+                    transform: rotate(180deg);
+                    position: absolute;
+                }
+
+                p {
+                    margin-left: 0.75rem;
                 }
 
                 &:hover {
