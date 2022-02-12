@@ -1,6 +1,4 @@
-import React, { useRef } from "react";
-
-import useEventListener from "hooks/useEventListener";
+import React, { useEffect, useRef } from "react";
 
 import "./index.scss";
 
@@ -11,14 +9,14 @@ type IProps = {
 };
 
 const StaticCanvas: React.FC<IProps> = (props) => {
+    /// Refs
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const image = new Image();
-    image.src = props.src;
+    /// Effects
+    useEffect(() => {
+        const image = new Image();
 
-    useEventListener(
-        "load",
-        () => {
+        image.onload = () => {
             const canvas = canvasRef.current;
             const ctx = canvas?.getContext("2d");
 
@@ -26,9 +24,10 @@ const StaticCanvas: React.FC<IProps> = (props) => {
                 ctx.clearRect(0, 0, props.width, props.height);
                 ctx.drawImage(image, 0, 0);
             }
-        },
-        image
-    );
+        };
+
+        image.src = props.src;
+    }, [canvasRef, props.width, props.height, props.src]);
 
     return (
         <canvas

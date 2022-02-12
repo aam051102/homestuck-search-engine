@@ -7,12 +7,7 @@ import React, {
     useState,
 } from "react";
 import { CgArrowUp, CgMaximize, CgSearch } from "react-icons/cg";
-import {
-    setIsSignedIn,
-    useDialog,
-    useResults,
-    setResults,
-} from "helpers/globalState";
+import { setIsSignedIn, useResults, setResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
 import { checkIsSignedIn } from "helpers/utility";
@@ -20,7 +15,6 @@ import Controls from "components/Controls";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
-import Dialog from "components/Dialog";
 import parseSearchString from "helpers/parseSearchString";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
@@ -48,7 +42,6 @@ function HomePage() {
     const [resultTags, setResultTags] = useState<IResultTags>({});
 
     const [results] = useResults();
-    const [dialog] = useDialog();
 
     const searchRef = useRef<HTMLInputElement>(null);
     const visibleResultsRef = useRef<HTMLInputElement>(null);
@@ -182,19 +175,18 @@ function HomePage() {
             query,
             page,
         });
+        scrollToTop();
     };
 
     const loadPreviousPage = () => {
         if (page > 1) {
             loadPage(page - 1);
-            scrollToTop();
         }
     };
 
     const loadNextPage = () => {
         if (page < Math.ceil(results.length / visibleResults)) {
             loadPage(page + 1);
-            scrollToTop();
         }
     };
 
@@ -433,7 +425,10 @@ function HomePage() {
                         )
                         .map((result, i) => {
                             return (
-                                <section className="search-result" key={i}>
+                                <section
+                                    className="search-result"
+                                    key={result._id}
+                                >
                                     <a
                                         href={`https://homestuck.com/story/${result.page}`}
                                         target="_blank"
@@ -533,8 +528,6 @@ function HomePage() {
                 id={asset}
                 tags={tags}
             />
-
-            <Dialog {...dialog} />
 
             <Controls />
         </Layout>

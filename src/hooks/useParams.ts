@@ -58,6 +58,8 @@ const useParams = <T extends IParams>(): [Partial<T>, React.Dispatch<T>] => {
 
                     if (!isNaN(propNumber) && val.length > 0) {
                         newParams[key] = propNumber;
+                    } else {
+                        newParams[key] = val;
                     }
 
                     break;

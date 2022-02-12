@@ -7,7 +7,7 @@ import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 
 import "./index.scss";
-import { ITags } from "types";
+import { IResult, ITags } from "types";
 
 type IProps = {
     id: number;
@@ -32,11 +32,11 @@ const Lightbox: React.FC<IProps> = ({
     // States
     const [results] = useResults();
 
-    const [result, setResult] = useState(results[id]);
+    const [result, setResult] = useState<IResult | undefined>(results[id]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Variables
-    const resultTags = result.tags.map((tag) => tags?.definitions?.[tag]);
+    const resultTags = result?.tags.map((tag) => tags?.definitions?.[tag]);
 
     // Functions
     /**
@@ -145,7 +145,7 @@ const Lightbox: React.FC<IProps> = ({
                     isOpen={isSidebarOpen}
                 >
                     <ul className="sidebar-text">
-                        {resultTags.map((tag) => {
+                        {resultTags?.map((tag) => {
                             if (!tag) return null;
 
                             return (
