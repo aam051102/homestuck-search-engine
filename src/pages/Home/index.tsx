@@ -494,6 +494,7 @@ function HomePage() {
                     <li>
                         <details>
                             <summary className="tag-title">
+                                <BsTriangleFill />
                                 <p>Used Tags</p>
                             </summary>
 
