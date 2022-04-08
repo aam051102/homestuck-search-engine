@@ -3,15 +3,14 @@ import { setDialog } from "helpers/globalState";
 
 /**
  * Gets a cookie by name
- * @param {*} name The name of the cookie to find
- * @returns {string | undefined}
+ * @param name The name of the cookie to find
  */
-export function getCookie(name) {
+export function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
 
     if (parts.length === 2) {
-        return parts.pop().split(";").shift();
+        return parts.pop()?.split(";").shift();
     }
 
     return undefined;
@@ -19,12 +18,11 @@ export function getCookie(name) {
 
 /**
  * Checks whether or not the user is currently signed in with a valid token
- * @returns {Promise<boolean>}
  */
 export async function checkIsSignedIn() {
-    let cookieData = getCookie("hsse_token");
+    const cookieData = getCookie("hsse_token");
 
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
         if (cookieData) {
             return fetch(`${ENDPOINT}/api/app/1/validate`, {
                 method: "POST",
@@ -64,17 +62,19 @@ export let isEdited = false;
 
 /**
  * Sets isEdited.
- * @param {boolean} value
+ * @param value
  */
-export function setIsEdited(value) {
+export function setIsEdited(value: boolean) {
     isEdited = value;
 }
 
 /**
  * Focuses on an element.
- * @param {HTMLElement} el
+ * @param el
  */
-export function focusElement(el) {
-    el.focus();
-    el.selectionStart = el.selectionEnd = el.value.length;
+export function focusElement(el?: HTMLInputElement | null) {
+    if (el) {
+        el.focus();
+        el.selectionStart = el.selectionEnd = el.value.length;
+    }
 }

@@ -2,13 +2,17 @@ import { useEffect, useRef } from "react";
 
 /**
  * useEventListener from https://usehooks.com/useEventListener/
- * @param {String} eventName The event to listen to
- * @param {EventListenerOrEventListenerObject} handler The function to be called when the event occurs
- * @param {HTMLElement} element The element which listens to the event
+ * @param eventName The event to listen to
+ * @param handler The function to be called when the event occurs
+ * @param element The element which listens to the event
  */
-function useEventListener(eventName, handler, element = window) {
+function useEventListener<T extends keyof WindowEventMap>(
+    eventName: T,
+    handler: (e: WindowEventMap[T]) => void,
+    element: HTMLElement | Window | Document = window
+) {
     // Create a ref that stores handler
-    const savedHandler = useRef();
+    const savedHandler = useRef<(e: WindowEventMap[T]) => void>();
 
     // Update ref.current value if handler changes.
     // This allows our effect below to always get latest handler ...
@@ -26,14 +30,21 @@ function useEventListener(eventName, handler, element = window) {
             if (!isSupported) return;
 
             // Create event listener that calls handler function stored in ref
-            const eventListener = (event) => savedHandler.current(event);
+            const eventListener = (event: WindowEventMap[T]) =>
+                savedHandler.current && savedHandler.current(event);
 
             // Add event listener
-            element.addEventListener(eventName, eventListener);
+            element.addEventListener(
+                eventName,
+                eventListener as (e: Event) => void
+            );
 
             // Remove event listener on cleanup
             return () => {
-                element.removeEventListener(eventName, eventListener);
+                element.removeEventListener(
+                    eventName,
+                    eventListener as (e: Event) => void
+                );
             };
         },
         [eventName, element] // Re-run if eventName or element changes

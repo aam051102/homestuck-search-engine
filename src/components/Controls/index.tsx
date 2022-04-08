@@ -1,84 +1,20 @@
 import React from "react";
 import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 
-import {
-    setDialog,
-    setEdits,
-    setResults,
-    useEdits,
-    useIsEditMode,
-    useIsSignedIn,
-    useResults,
-} from "helpers/globalState";
+import { setDialog, useIsEditMode, useIsSignedIn } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
-import {
-    getCookie,
-    isEdited,
-    setIsEdited,
-    showOutdatedSessionDialog,
-} from "helpers/utility";
-import ENDPOINT from "helpers/endpoint";
+import { isEdited } from "helpers/utility";
 
 import "./index.scss";
 
-const Controls = () => {
+const Controls: React.FC = () => {
     // States
-    const [results] = useResults();
-    const [edits] = useEdits();
     const [isEditMode, setIsEditMode] = useIsEditMode();
     const [isSignedIn] = useIsSignedIn();
 
     // Functions
-    /**
-     * Saves edited data.
-     * @param {Function} onSuccess Optional success callback
-     */
-    async function saveData(onSuccess) {
-        if (!getCookie("hsse_token")) {
-            showOutdatedSessionDialog();
-            return;
-        }
-
-        await fetch(`${ENDPOINT}/api/app/1/edit`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getCookie("hsse_token")}`,
-            },
-            body: JSON.stringify({ edits: edits }),
-        })
-            .then((e) => {
-                if (e.status === 403 || e.status === 401) {
-                    showOutdatedSessionDialog();
-                    return { error: "Session outdated." };
-                } else {
-                    return e.json();
-                }
-            })
-            .then((res) => {
-                if (res.error) {
-                    console.error(res.error);
-                } else {
-                    const resultsLocal = results.map((result) => {
-                        if (edits[result._id]) {
-                            result.tags = edits[result._id].map((tag) => {
-                                return tag[1];
-                            });
-                        }
-
-                        return result;
-                    });
-                    setResults(resultsLocal);
-
-                    setEdits({});
-                    setIsEdited(false);
-                    if (onSuccess) onSuccess();
-                }
-            });
-    }
-
-    function exitEditMode(callback) {
-        if (!callback) callback = () => {};
+    function exitEditMode(callback?: () => void) {
+        if (!callback) callback = () => null;
 
         if (isEditMode && isEdited) {
             setDialog({
@@ -90,7 +26,6 @@ const Controls = () => {
                     {
                         title: "Save",
                         callbacks: [
-                            saveData,
                             callback,
                             () => {
                                 setIsEditMode(false);
@@ -102,7 +37,6 @@ const Controls = () => {
                         callbacks: [
                             callback,
                             () => {
-                                setEdits({});
                                 setIsEditMode(false);
                             },
                         ],
@@ -118,7 +52,8 @@ const Controls = () => {
 
     // Event listeners
     useEventListener("keydown", (e) => {
-        if (e.target.tagName !== "INPUT") {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== "INPUT") {
             if (e.key === "e" && isSignedIn) {
                 // Shortcut for edit mode
                 if (isEditMode) {
@@ -157,10 +92,8 @@ const Controls = () => {
                     {isEditMode ? (
                         <button
                             className="control-btn control-save"
-                            onClick={async () => {
-                                await saveData(() => {
-                                    setIsEditMode(false);
-                                });
+                            onClick={() => {
+                                setIsEditMode(false);
                             }}
                             aria-label="Save edits"
                             title="Save"

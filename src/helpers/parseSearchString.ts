@@ -1,22 +1,24 @@
+import { ITags } from "types/index";
+
 /**
  * Separate tags from a string and return an array of tags and page ranges based on the inserted tags
- * @param {string} str
- * @param {} tags
+ * @param str
+ * @param tags
  */
-const parseSearchString = (str, tags) => {
+const parseSearchString = (str: string, tags: ITags) => {
     let prevWasSpace = true;
-    let actualTags = [];
+    const clearedTags: string[] = [];
     let tempTag = "";
 
-    let pageRanges = [];
+    const pageRanges = [];
     let pageRangePoint = 0;
     let rangeRef;
 
     for (let i = 0; i <= str.length; i++) {
         // Separator
         if (str[i] === "," || i === str.length) {
-            let trimmed = tempTag.trimRight();
-            if (trimmed.length > 0) actualTags.push(trimmed);
+            const trimmed = tempTag.trimEnd();
+            if (trimmed.length > 0) clearedTags.push(trimmed);
 
             tempTag = "";
             prevWasSpace = true;
@@ -63,16 +65,13 @@ const parseSearchString = (str, tags) => {
         }
     }
 
-    // Convert tags to main tag
-    // TODO: Improve speed??
-    firstTagLoop: for (let i = 0; i < actualTags.length; i++) {
-        for (let j = 0; j < tags.length; j++) {
-            for (let n = 0; n < tags[j].tags.length; n++) {
-                if (tags[j].tags[n].synonyms.includes(actualTags[i])) {
-                    actualTags[i] = tags[j].tags[n].title;
-                    continue firstTagLoop;
-                }
-            }
+    // Removes nonexistent tags and change synonyms to tag ID
+    const actualTags: number[] = [];
+    for (let i = 0; i < clearedTags.length; i++) {
+        const tagId = tags.synonyms?.[clearedTags[i]].ref;
+
+        if (tagId !== undefined) {
+            actualTags.push(tagId);
         }
     }
 

@@ -3,15 +3,17 @@
         "eslint:recommended",
         "plugin:react/recommended",
         "plugin:jest/recommended",
+        "plugin:@typescript-eslint/recommended",
         "prettier"
     ],
-    "plugins": ["react", "testing-library", "jest"],
+    "plugins": ["react", "testing-library", "jest", "@typescript-eslint"],
     "env": {
         "es6": true,
         "node": true,
         "browser": true,
         "jest/globals": true
     },
+    "parser": "@typescript-eslint/parser",
     "settings": {
         "react": {
             "version": "detect"
