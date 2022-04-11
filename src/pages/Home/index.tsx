@@ -41,6 +41,7 @@ function HomePage() {
     });
     const [visibleResults, setVisibleResults] = useState(20);
     const [resultTags, setResultTags] = useState<IResultTags>({});
+    const [failedTags, setFailedTags] = useState<string[]>([]);
 
     const [results] = useResults();
 
@@ -242,11 +243,20 @@ function HomePage() {
     useEffect(() => {
         if (!query || !tags.synonyms) return;
 
+        const parsedQuery = parseSearchString(query, tags);
+
+        if (parsedQuery.failedTags) {
+            console.warn(`Tags don't exist: ${parsedQuery.failedTags}`);
+            setFailedTags(parsedQuery.failedTags);
+            setResults([]);
+            return;
+        }
+
         // Perform search
         fetch(`${ENDPOINT}/api/app/1/search`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(parseSearchString(query, tags)),
+            body: JSON.stringify(parsedQuery),
         })
             .then((e) => e.json())
             .then((data) => {
@@ -255,6 +265,7 @@ function HomePage() {
                     return;
                 }
 
+                setFailedTags([]);
                 setResults(data);
             })
             .catch((e) => {
@@ -479,7 +490,17 @@ function HomePage() {
                             );
                         })
                 ) : (
-                    <p className="no-results">No results</p>
+                    <div className="no-results">
+                        {failedTags.length > 0 ? (
+                            <p>
+                                The following tags do not exist in the database
+                                and should be removed from your search query:{" "}
+                                {failedTags.join(",")}
+                            </p>
+                        ) : (
+                            <p>No results</p>
+                        )}
+                    </div>
                 )}
             </section>
 

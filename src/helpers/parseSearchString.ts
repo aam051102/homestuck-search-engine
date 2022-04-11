@@ -67,12 +67,21 @@ const parseSearchString = (str: string, tags: ITags) => {
 
     // Removes nonexistent tags and change synonyms to tag ID
     const actualTags: number[] = [];
+    const failedTags: string[] = [];
     for (let i = 0; i < clearedTags.length; i++) {
         const tagId = tags.synonyms?.[clearedTags[i]]?.ref;
 
         if (tagId !== undefined) {
             actualTags.push(tagId);
+        } else {
+            failedTags.push(clearedTags[i]);
         }
+    }
+
+    if (failedTags.length > 0) {
+        return {
+            failedTags,
+        };
     }
 
     return {
