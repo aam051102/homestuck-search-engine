@@ -1,0 +1,89 @@
+.tag-page {
+    .page-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr #{"min(95ch, 100%)"} 1fr 1fr;
+    }
+
+    .tag-list {
+        grid-column: 3;
+        text-align: left;
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0.5rem 0 0.5rem 1rem;
+            background: #11111133;
+            color: #cccccc;
+        }
+
+        details {
+            &:not(:last-child) {
+                margin-bottom: 1rem;
+            }
+        }
+
+        p {
+            padding: 0.25rem 0.5rem 0.25rem 1rem;
+            cursor: pointer;
+
+            &:hover {
+                color: #fff;
+            }
+        }
+
+        summary {
+            list-style: none;
+            outline: none;
+        }
+
+        .tag-wrapper {
+            user-select: none;
+            display: flex;
+            position: relative;
+            align-items: center;
+            cursor: pointer;
+
+            .drop-icon {
+                left: 0;
+                font-size: 0.5rem;
+                transform: rotate(180deg);
+                position: absolute;
+            }
+
+            .drag-handle-icon {
+                position: absolute;
+                right: 0;
+                margin-right: 0.25rem;
+                font-size: 1.5rem;
+                color: transparent;
+            }
+
+            &:hover {
+                .drag-handle-icon {
+                    color: #fff;
+                }
+
+                p {
+                    color: #fff;
+                }
+            }
+        }
+    }
+
+    .save-btn {
+        grid-column: 3;
+        border: 0;
+        font-family: inherit;
+        font-weight: inherit;
+        font-size: inherit;
+        padding: 0.75rem 2rem 0.75rem 1.5rem;
+        background-color: #000d;
+        color: white;
+        outline: none;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #111d;
+        }
+    }
+}
