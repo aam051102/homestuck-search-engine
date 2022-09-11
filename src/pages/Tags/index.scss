@@ -61,6 +61,11 @@
             &:hover {
                 .drag-handle-icon {
                     color: #fff;
+                    height: 1.5rem;
+                    width: 1.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
 
                 p {

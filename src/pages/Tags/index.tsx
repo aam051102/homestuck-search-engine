@@ -12,7 +12,6 @@ import useEventListener from "hooks/useEventListener";
 
 function Index() {
     /* Refs */
-    const heldTagRef = useRef<HTMLElement>();
 
     /* States */
     const [tags, setTags] = useState<ITags>({
@@ -102,16 +101,28 @@ function Index() {
         };
     }, []);
 
-    /* Event listeners */
+    /* Tag Movement */
+    const heldTagRef = useRef<HTMLElement>();
+    const tagOffsetY = useRef<number>(0);
+
     useEventListener(
         "mousedown",
         (e) => {
-            const target = (e.composedPath() as HTMLElement[]).find((el) =>
-                el.classList.contains("tag-item")
+            const path = e.composedPath() as HTMLElement[];
+            const handleTarget = path.find((el) =>
+                el.classList.contains("drag-handle-icon")
             );
 
-            if (target) {
-                heldTagRef.current = target;
+            if (handleTarget) {
+                const dragTarget = path.find((el) =>
+                    el.classList.contains("tag-item")
+                );
+                if (!dragTarget) {
+                    throw new Error("Drag handle found outside of tag item.");
+                }
+
+                tagOffsetY.current = e.clientY - dragTarget.clientTop;
+                heldTagRef.current = dragTarget;
             }
         },
         document.body
@@ -122,7 +133,7 @@ function Index() {
         (e) => {
             if (heldTagRef.current) {
                 heldTagRef.current.style.transform = `translateY(${
-                    e.clientY - heldTagRef.current.offsetTop
+                    e.clientY - tagOffsetY.current
                 }px)`;
             }
         },
@@ -151,7 +162,9 @@ function Index() {
             const tagInner = (
                 <>
                     <p>{tag.name}</p>
-                    <MdDragHandle className="drag-handle-icon" />
+                    <div className="drag-handle-icon">
+                        <MdDragHandle />
+                    </div>
                 </>
             );
 
