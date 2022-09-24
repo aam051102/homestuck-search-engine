@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { MdChevronRight } from "react-icons/md";
-import { Navigate } from "react-router";
+import { useNavigate } from "react-router";
 
 import ENDPOINT from "helpers/endpoint";
 import { checkIsSignedIn } from "helpers/utility";
@@ -13,6 +13,7 @@ import "./index.scss";
 function LoginPage() {
     const passwordInputRef = useRef<HTMLInputElement>(null);
     const [isSignedIn] = useIsSignedIn();
+    const navigate = useNavigate();
 
     useEffect(() => {
         async function fetchData() {
@@ -23,12 +24,9 @@ function LoginPage() {
 
     useEffect(() => {
         if (isSignedIn) {
-            Navigate({
-                to:
-                    window.location.hostname === "localhost"
-                        ? "/"
-                        : "/app/hsse/",
-            });
+            navigate(
+                window.location.hostname === "localhost" ? "/" : "/app/hsse/"
+            );
         }
     }, [isSignedIn]);
 
