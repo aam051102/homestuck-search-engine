@@ -19,7 +19,7 @@ import parseSearchString from "helpers/parseSearchString";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
 import useParams from "hooks/useParams";
-import { BsTriangleFill } from "react-icons/bs";
+import { BsPlus, BsTriangleFill } from "react-icons/bs";
 
 const Lightbox = lazy(() => import("components/Lightbox"));
 
@@ -305,7 +305,7 @@ function HomePage() {
 
             elements.push(
                 <li
-                    className="tag-title"
+                    className="tag-title tag-title_summary"
                     key={key || index}
                     data-testid="used-tag-item"
                     onClick={() =>
@@ -334,9 +334,21 @@ function HomePage() {
                 <li key={tag._id}>
                     {tag.children?.length ? (
                         <details>
-                            <summary className="tag-title">
-                                <BsTriangleFill />
-                                <p>{tag.name}</p>
+                            <summary className="tag-title tag-title_summary">
+                                <BsTriangleFill className="tag-dropdown-icon" />
+                                <p className="tag-title_text">{tag.name}</p>
+
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        addTagToSearch(tag.name);
+                                    }}
+                                    type="button"
+                                    className="tag-add-btn"
+                                >
+                                    <BsPlus />
+                                </button>
                             </summary>
 
                             <ul className="sidebar-text focusable">
@@ -345,7 +357,19 @@ function HomePage() {
                         </details>
                     ) : (
                         <div className="tag-title">
-                            <p>{tag.name}</p>
+                            <p className="tag-title_text">{tag.name}</p>
+
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    addTagToSearch(tag.name);
+                                }}
+                                type="button"
+                                className="tag-add-btn"
+                            >
+                                <BsPlus />
+                            </button>
                         </div>
                     )}
                 </li>
@@ -514,9 +538,9 @@ function HomePage() {
                 <ul className="sidebar-text focusable">
                     <li>
                         <details>
-                            <summary className="tag-title">
-                                <BsTriangleFill />
-                                <p>Used Tags</p>
+                            <summary className="tag-title tag-title_summary">
+                                <BsTriangleFill className="tag-dropdown-icon" />
+                                <p className="tag-title_text">Used Tags</p>
                             </summary>
 
                             <ul className="sidebar-text">

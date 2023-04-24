@@ -201,23 +201,41 @@
             .tag-title {
                 display: flex;
                 align-items: center;
-                transition: transform 0.15s ease-in-out;
 
-                svg {
-                    margin-right: 0.25rem;
-                    font-size: 0.5rem;
-                    transform: rotate(180deg);
+                .tag-add-btn {
+                    font-size: 1.5rem;
                     position: absolute;
+                    right: 0;
+                    margin-right: 0.25rem;
+                    display: none;
+                    cursor: pointer;
                 }
 
-                p {
+                .tag-title_text {
                     margin-left: 0.75rem;
+                    transition: transform 0.15s ease-in-out;
                 }
 
                 &:hover {
                     cursor: pointer;
                     color: white;
-                    transform: translateX(0.5rem);
+
+                    .tag-title_text {
+                        transform: translateX(0.5rem);
+                    }
+
+                    .tag-add-btn {
+                        display: block;
+                    }
+                }
+
+                &.tag-title_summary {
+                    .tag-dropdown-icon {
+                        margin-right: 0.25rem;
+                        font-size: 0.5rem;
+                        transform: rotate(180deg);
+                        position: absolute;
+                    }
                 }
             }
 
