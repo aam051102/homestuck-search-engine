@@ -7,12 +7,7 @@ import React, {
     useState,
 } from "react";
 import { CgMaximize, CgSearch } from "react-icons/cg";
-import {
-    setIsSignedIn,
-    useResults,
-    setResults,
-    useIsSignedIn,
-} from "helpers/globalState";
+import { setIsSignedIn, useResults, setResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
 import { checkIsSignedIn } from "helpers/utility";
@@ -24,12 +19,8 @@ import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
 import useParams from "hooks/useParams";
 import { BsPlus, BsTriangleFill } from "react-icons/bs";
-
 const Lightbox = lazy(() => import("components/Lightbox"));
-
 import "./index.scss";
-import { Link } from "react-router-dom";
-import { MdEdit } from "react-icons/md";
 
 /**
  * Global counter for tag
@@ -41,8 +32,6 @@ let tagKeyCounter = 0;
  */
 function HomePage() {
     /* States */
-    const [isSignedIn] = useIsSignedIn();
-
     const [tags, setTags] = useState<ITags>({
         definitions: undefined,
         synonyms: undefined,
@@ -535,18 +524,6 @@ function HomePage() {
                     </div>
                 )}
             </section>
-
-            {isSignedIn ? (
-                <div className="control-btn-area">
-                    <Link
-                        to={`/edit`}
-                        className="control-btn control-edit"
-                        data-testid="controls-edit-btn"
-                    >
-                        <MdEdit />
-                    </Link>
-                </div>
-            ) : null}
 
             <Sidebar
                 title="Tags"

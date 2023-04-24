@@ -8,7 +8,6 @@ import Sidebar from "components/Sidebar";
 
 import "./index.scss";
 import { IResult, ITags } from "types";
-import { Link } from "react-router-dom";
 
 type IProps = {
     id: number;
@@ -143,13 +142,13 @@ const Lightbox: React.FC<IProps> = ({
 
                 {isSignedIn ? (
                     <div className="control-btn-area">
-                        <Link
-                            to={`/edit/${result?.page}`}
+                        <button
+                            type="button"
                             className="control-btn control-edit"
                             data-testid="controls-edit-btn"
                         >
                             <MdEdit />
-                        </Link>
+                        </button>
                     </div>
                 ) : null}
 
