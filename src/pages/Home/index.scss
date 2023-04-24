@@ -1,3 +1,5 @@
+@import "assets/css/Controls";
+
 .home-page {
     .page-content {
         display: grid;
@@ -154,7 +156,7 @@
         .search-result {
             width: 100%;
             position: relative;
-            height: max-content;
+            aspect-ratio: 650 / 450;
 
             &:hover {
                 cursor: pointer;
@@ -163,6 +165,23 @@
             img,
             object {
                 width: 100%;
+            }
+
+            a {
+                display: block;
+                height: 100%;
+            }
+
+            .no-flash {
+                background: $middle-color;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+
+                p {
+                    color: #000000;
+                }
             }
 
             .search-result-link {

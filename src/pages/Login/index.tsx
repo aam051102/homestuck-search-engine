@@ -16,18 +16,21 @@ function LoginPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        async function fetchData() {
-            setIsSignedIn(await checkIsSignedIn());
-        }
-        fetchData();
-    }, []);
+        (async () => {
+            const thisIsSignedIn = isSignedIn || (await checkIsSignedIn());
 
-    useEffect(() => {
-        if (isSignedIn) {
-            navigate(
-                window.location.hostname === "localhost" ? "/" : "/app/hsse/"
-            );
-        }
+            if (thisIsSignedIn !== isSignedIn) {
+                setIsSignedIn(thisIsSignedIn);
+            }
+
+            if (thisIsSignedIn) {
+                navigate(
+                    window.location.hostname === "localhost"
+                        ? "/"
+                        : "/app/hsse/"
+                );
+            }
+        })();
     }, [isSignedIn]);
 
     return (

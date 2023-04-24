@@ -7,11 +7,15 @@ import React, {
     useState,
 } from "react";
 import { CgMaximize, CgSearch } from "react-icons/cg";
-import { setIsSignedIn, useResults, setResults } from "helpers/globalState";
+import {
+    setIsSignedIn,
+    useResults,
+    setResults,
+    useIsSignedIn,
+} from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
 import { checkIsSignedIn } from "helpers/utility";
-import Controls from "components/Controls";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
@@ -24,6 +28,8 @@ import { BsPlus, BsTriangleFill } from "react-icons/bs";
 const Lightbox = lazy(() => import("components/Lightbox"));
 
 import "./index.scss";
+import { Link } from "react-router-dom";
+import { MdEdit } from "react-icons/md";
 
 /**
  * Global counter for tag
@@ -35,6 +41,8 @@ let tagKeyCounter = 0;
  */
 function HomePage() {
     /* States */
+    const [isSignedIn] = useIsSignedIn();
+
     const [tags, setTags] = useState<ITags>({
         definitions: undefined,
         synonyms: undefined,
@@ -277,7 +285,7 @@ function HomePage() {
     useEventListener(
         "keydown",
         (e) => {
-            if (asset === -1) {
+            if (asset === -1 && searchRef.current !== document.activeElement) {
                 if (e.key === "ArrowLeft") {
                     e.preventDefault();
 
@@ -489,7 +497,7 @@ function HomePage() {
                                             />
                                         ) : null}
                                         {result.type === 1 ? (
-                                            <div>
+                                            <div className="no-flash">
                                                 <p>Flash not functional.</p>
                                             </div>
                                         ) : null}
@@ -527,6 +535,18 @@ function HomePage() {
                     </div>
                 )}
             </section>
+
+            {isSignedIn ? (
+                <div className="control-btn-area">
+                    <Link
+                        to={`/edit`}
+                        className="control-btn control-edit"
+                        data-testid="controls-edit-btn"
+                    >
+                        <MdEdit />
+                    </Link>
+                </div>
+            ) : null}
 
             <Sidebar
                 title="Tags"
@@ -581,8 +601,6 @@ function HomePage() {
                 id={asset}
                 tags={tags}
             />
-
-            <Controls />
         </Layout>
     );
 }

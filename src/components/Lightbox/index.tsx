@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { MdChevronLeft, MdChevronRight, MdClose } from "react-icons/md";
+import { MdChevronLeft, MdChevronRight, MdClose, MdEdit } from "react-icons/md";
 
-import { useResults } from "helpers/globalState";
+import { useIsSignedIn, useResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 
 import Sidebar from "components/Sidebar";
 
 import "./index.scss";
 import { IResult, ITags } from "types";
+import { Link } from "react-router-dom";
 
 type IProps = {
     id: number;
@@ -30,6 +31,7 @@ const Lightbox: React.FC<IProps> = ({
     loadNext,
 }) => {
     // States
+    const [isSignedIn] = useIsSignedIn();
     const [results] = useResults();
 
     const [result, setResult] = useState<IResult | undefined>(results[id]);
@@ -110,7 +112,7 @@ const Lightbox: React.FC<IProps> = ({
                             <img src={result.content} alt="Lightbox Panel" />
                         ) : null}
                         {result.type === 1 ? (
-                            <div>
+                            <div className="no-flash">
                                 <p>Flash not functional.</p>
                             </div>
                         ) : null}
@@ -138,6 +140,18 @@ const Lightbox: React.FC<IProps> = ({
                 >
                     <MdClose />
                 </button>
+
+                {isSignedIn ? (
+                    <div className="control-btn-area">
+                        <Link
+                            to={`/edit/${result?.page}`}
+                            className="control-btn control-edit"
+                            data-testid="controls-edit-btn"
+                        >
+                            <MdEdit />
+                        </Link>
+                    </div>
+                ) : null}
 
                 <Sidebar
                     title="Asset Tags"

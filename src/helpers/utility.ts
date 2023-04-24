@@ -56,19 +56,6 @@ export function showOutdatedSessionDialog() {
 }
 
 /**
- * Whether or not edits have been made.
- */
-export let isEdited = false;
-
-/**
- * Sets isEdited.
- * @param value
- */
-export function setIsEdited(value: boolean) {
-    isEdited = value;
-}
-
-/**
  * Focuses on an element.
  * @param el
  */

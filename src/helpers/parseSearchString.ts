@@ -2,8 +2,8 @@ import { ITags } from "types/index";
 
 /**
  * Separate tags from a string and return an array of tags and page ranges based on the inserted tags
- * @param str
- * @param tags
+ *
+ * Page range syntax: (FROM-TO)
  */
 const parseSearchString = (str: string, tags: ITags) => {
     let prevWasSpace = true;
