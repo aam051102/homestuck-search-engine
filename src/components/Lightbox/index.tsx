@@ -13,6 +13,8 @@ import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 import { IResult, ITagStructure, ITags } from "types";
 import "./index.scss";
+import ENDPOINT from "helpers/endpoint";
+import { getCookie } from "helpers/utility";
 
 type IProps = {
     id: number;
@@ -63,8 +65,29 @@ const Lightbox: React.FC<IProps> = ({
         setIsEditing(!isEditing);
     }
 
-    function saveEdits() {
-        setIsEditing(false);
+    async function saveEdits() {
+        const authToken = getCookie("hsse_token");
+
+        await fetch(`${ENDPOINT}/api/app/1/edit/${result?._id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ tags: Array.from(tagsEditing) }),
+        })
+            .then((e) => e.json())
+            .then((data) => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                toggleEditing();
+            })
+            .catch((e) => {
+                console.error(`Failed to fetch due to error: ${e}`);
+            });
     }
 
     function addTagToAsset(tagId: number) {
