@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { MdChevronLeft, MdChevronRight, MdClose, MdEdit } from "react-icons/md";
+import {
+    MdChevronLeft,
+    MdChevronRight,
+    MdClose,
+    MdEdit,
+    MdSave,
+} from "react-icons/md";
 
 import { useIsSignedIn, useResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
@@ -35,6 +41,7 @@ const Lightbox: React.FC<IProps> = ({
 
     const [result, setResult] = useState<IResult | undefined>(results[id]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     // Variables
     const resultTags = result?.tags.map((tag) => tags?.definitions?.[tag]);
@@ -46,6 +53,14 @@ const Lightbox: React.FC<IProps> = ({
      */
     function handleSidebarToggle(val: boolean) {
         setIsSidebarOpen(val);
+    }
+
+    function toggleEditing() {
+        setIsEditing(!isEditing);
+    }
+
+    function saveEdits() {
+        setIsEditing(false);
     }
 
     // Effects
@@ -142,10 +157,22 @@ const Lightbox: React.FC<IProps> = ({
 
                 {isSignedIn ? (
                     <div className="control-btn-area">
+                        {isEditing ? (
+                            <button
+                                type="button"
+                                className="control-btn control-save"
+                                data-testid="controls-save-btn"
+                                onClick={saveEdits}
+                            >
+                                <MdSave />
+                            </button>
+                        ) : null}
+
                         <button
                             type="button"
                             className="control-btn control-edit"
                             data-testid="controls-edit-btn"
+                            onClick={toggleEditing}
                         >
                             <MdEdit />
                         </button>

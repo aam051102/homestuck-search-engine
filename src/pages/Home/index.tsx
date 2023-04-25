@@ -7,10 +7,15 @@ import React, {
     useState,
 } from "react";
 import { CgMaximize, CgSearch } from "react-icons/cg";
-import { setIsSignedIn, useResults, setResults } from "helpers/globalState";
+import {
+    setIsSignedIn,
+    useResults,
+    setResults,
+    useIsSignedIn,
+} from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
-import { checkIsSignedIn } from "helpers/utility";
+import { checkIsSignedIn, signOut } from "helpers/utility";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
@@ -18,9 +23,11 @@ import parseSearchString from "helpers/parseSearchString";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
 import useParams from "hooks/useParams";
-import { BsPlus, BsTriangleFill } from "react-icons/bs";
+import { BsPersonFill, BsPlus, BsTriangleFill } from "react-icons/bs";
+import { GoSignOut } from "react-icons/go";
 const Lightbox = lazy(() => import("components/Lightbox"));
 import "./index.scss";
+import { Link } from "react-router-dom";
 
 /**
  * Global counter for tag
@@ -32,6 +39,7 @@ let tagKeyCounter = 0;
  */
 function HomePage() {
     /* States */
+    const [isSignedIn] = useIsSignedIn();
     const [tags, setTags] = useState<ITags>({
         definitions: undefined,
         synonyms: undefined,
@@ -393,6 +401,23 @@ function HomePage() {
                         : 0
                 }
             />
+
+            {isSignedIn ? (
+                <button
+                    className="login-state logout-btn"
+                    type="button"
+                    onClick={() => signOut()}
+                >
+                    <p className="login-text">Sign out</p>
+
+                    <GoSignOut className="login-icon" />
+                </button>
+            ) : (
+                <Link to="/login" className="login-state">
+                    <p className="login-text">Sign in</p>
+                    <BsPersonFill className="login-icon" />
+                </Link>
+            )}
 
             <form className="search-form" onSubmit={handleSubmit}>
                 <label className="search-term-label" htmlFor="search-term">

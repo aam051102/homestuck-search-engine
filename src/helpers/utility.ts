@@ -1,5 +1,50 @@
 import ENDPOINT from "helpers/endpoint";
 import { setDialog } from "helpers/globalState";
+import { setIsSignedIn } from "helpers/globalState";
+
+function setCookie(params: {
+    name: string;
+    value: string;
+    days?: number;
+    hours?: number;
+    minutes?: number;
+    seconds?: number;
+}) {
+    const name = params.name;
+    const value = params.value;
+    const expireDays = params.days;
+    const expireHours = params.hours;
+    const expireMinutes = params.minutes;
+    const expireSeconds = params.seconds;
+
+    const expireDate = new Date();
+    if (expireDays) {
+        expireDate.setDate(expireDate.getDate() + expireDays);
+    }
+    if (expireHours) {
+        expireDate.setHours(expireDate.getHours() + expireHours);
+    }
+    if (expireMinutes) {
+        expireDate.setMinutes(expireDate.getMinutes() + expireMinutes);
+    }
+    if (expireSeconds) {
+        expireDate.setSeconds(expireDate.getSeconds() + expireSeconds);
+    }
+
+    document.cookie =
+        name +
+        "=" +
+        escape(value) +
+        ";domain=" +
+        window.location.hostname +
+        ";path=/" +
+        ";expires=" +
+        expireDate.toUTCString();
+}
+
+function deleteCookie(name: string) {
+    setCookie({ name: name, value: "", seconds: 1 });
+}
 
 /**
  * Gets a cookie by name
@@ -41,6 +86,14 @@ export async function checkIsSignedIn() {
             return false;
         }
     });
+}
+
+/**
+ * Signs the user out, removing their token
+ */
+export function signOut() {
+    deleteCookie("hsse_token");
+    setIsSignedIn(false);
 }
 
 /**

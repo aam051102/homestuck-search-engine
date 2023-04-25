@@ -1,6 +1,29 @@
 @import "assets/css/Colors";
 
 .home-page {
+    .login-state {
+        position: fixed;
+        top: 0;
+        right: 0;
+        color: $text-color;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem;
+
+        &.logout-btn {
+            cursor: pointer;
+        }
+
+        .login-text {
+            color: inherit;
+        }
+
+        .login-icon {
+            font-size: 1.5rem;
+        }
+    }
+
     .page-content {
         display: grid;
         grid-template-columns: 1fr 1fr #{"min(95ch, 100%)"} 1fr 1fr;
