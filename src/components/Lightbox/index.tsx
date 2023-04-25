@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     MdAdd,
     MdChevronLeft,
@@ -13,7 +13,6 @@ import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 import { IResult, ITagStructure, ITags } from "types";
 import "./index.scss";
-import { ITag } from "types";
 
 type IProps = {
     id: number;
@@ -40,14 +39,11 @@ const Lightbox: React.FC<IProps> = ({
     // States
     const [isSignedIn] = useIsSignedIn();
     const [results] = useResults();
-
     const [result, setResult] = useState<IResult | undefined>(results[id]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-
-    // Variables
-    const resultTags = result?.tags.map(
-        (tag) => tags?.definitions?.[tag] as ITag
+    const [tagsEditing, setTagsEditing] = useState<Set<number>>(
+        new Set(result?.tags)
     );
 
     // Functions
@@ -60,6 +56,10 @@ const Lightbox: React.FC<IProps> = ({
     }
 
     function toggleEditing() {
+        if (isEditing) {
+            setTagsEditing(new Set(result?.tags));
+        }
+
         setIsEditing(!isEditing);
     }
 
@@ -68,17 +68,26 @@ const Lightbox: React.FC<IProps> = ({
     }
 
     function addTagToAsset(tagId: number) {
-        //TODO
+        setTagsEditing((lastState) => {
+            const newState = new Set(lastState);
+            newState.add(tagId);
+            return newState;
+        });
     }
 
     function removeTagFromAsset(tagId: number) {
-        //TODO
+        setTagsEditing((lastState) => {
+            const newState = new Set(lastState);
+            newState.delete(tagId);
+            return newState;
+        });
     }
 
     // Effects
     useEffect(() => {
         if (results?.[id]) {
             setResult(results[id]);
+            setTagsEditing(new Set(results[id]?.tags));
         }
     }, [id, results]);
 
@@ -109,9 +118,11 @@ const Lightbox: React.FC<IProps> = ({
         const definitions = tags.definitions;
         if (!definitions) return;
 
-        const elements = [];
+        const elements: React.ReactNode[] = [];
 
-        for (const tagInfo of resultTags ?? []) {
+        tagsEditing.forEach((tagId) => {
+            const tagInfo = definitions[tagId];
+
             elements.push(
                 <li
                     className="tag-title"
@@ -135,27 +146,50 @@ const Lightbox: React.FC<IProps> = ({
                     ) : null}
                 </li>
             );
-        }
+        });
 
         return elements;
     };
 
-    const constructTagElements = (children: ITagStructure[]) => {
-        return children?.map((child) => {
-            const tag = tags.definitions?.[child.id];
+    const constructTagElements = useCallback(
+        (children: ITagStructure[]) => {
+            return children?.map((child) => {
+                const tag = tags.definitions?.[child.id];
 
-            if (!tag) return null;
+                if (!tag) return null;
 
-            const assetHasTag = resultTags?.some(
-                (resTag) => resTag._id === tag._id
-            );
+                const assetHasTag = tagsEditing?.has(tag._id);
 
-            return (
-                <li key={tag._id}>
-                    {tag.children?.length ? (
-                        <details className="tag-details">
-                            <summary className="tag-title tag-title_summary">
-                                <MdChevronRight className="tag-dropdown-icon" />
+                return (
+                    <li key={tag._id}>
+                        {tag.children?.length ? (
+                            <details className="tag-details">
+                                <summary className="tag-title tag-title_summary">
+                                    <MdChevronRight className="tag-dropdown-icon" />
+                                    <p className="tag-title_text">{tag.name}</p>
+
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+
+                                            if (!assetHasTag)
+                                                addTagToAsset(tag._id);
+                                            else removeTagFromAsset(tag._id);
+                                        }}
+                                        type="button"
+                                        className="tag-add-btn"
+                                    >
+                                        {assetHasTag ? <MdRemove /> : <MdAdd />}
+                                    </button>
+                                </summary>
+
+                                <ul className="sidebar-text focusable">
+                                    {constructTagElements(child.children)}
+                                </ul>
+                            </details>
+                        ) : (
+                            <div className="tag-title">
                                 <p className="tag-title_text">{tag.name}</p>
 
                                 <button
@@ -172,39 +206,18 @@ const Lightbox: React.FC<IProps> = ({
                                 >
                                     {assetHasTag ? <MdRemove /> : <MdAdd />}
                                 </button>
-                            </summary>
-
-                            <ul className="sidebar-text focusable">
-                                {constructTagElements(child.children)}
-                            </ul>
-                        </details>
-                    ) : (
-                        <div className="tag-title">
-                            <p className="tag-title_text">{tag.name}</p>
-
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-
-                                    if (!assetHasTag) addTagToAsset(tag._id);
-                                    else removeTagFromAsset(tag._id);
-                                }}
-                                type="button"
-                                className="tag-add-btn"
-                            >
-                                {assetHasTag ? <MdRemove /> : <MdAdd />}
-                            </button>
-                        </div>
-                    )}
-                </li>
-            );
-        });
-    };
+                            </div>
+                        )}
+                    </li>
+                );
+            });
+        },
+        [tagsEditing, tags.definitions]
+    );
 
     const tagListElements = useMemo(
         () => (tags.definitions ? constructTagElements(tagStructure) : null),
-        [tags.definitions]
+        [tags.definitions, tagStructure, constructTagElements]
     );
 
     return (
