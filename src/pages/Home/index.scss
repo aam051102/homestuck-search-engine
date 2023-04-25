@@ -257,8 +257,10 @@
             .tag-title {
                 display: flex;
                 align-items: center;
+                padding-right: 2.5rem;
 
-                .tag-add-btn {
+                .tag-add-btn,
+                .tag-remove-btn {
                     font-size: 1.5rem;
                     position: absolute;
                     right: 0;
@@ -275,6 +277,10 @@
 
                 .tag-title_text {
                     margin-left: 1.5rem;
+                    white-space: pre;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
                     transition: transform 0.15s ease-in-out;
                 }
 
@@ -286,7 +292,8 @@
                         transform: translateX(0.5rem);
                     }
 
-                    .tag-add-btn {
+                    .tag-add-btn,
+                    .tag-remove-btn {
                         display: block;
                     }
                 }

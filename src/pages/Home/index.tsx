@@ -15,12 +15,12 @@ import {
 } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT from "helpers/endpoint";
-import { checkIsSignedIn, signOut } from "helpers/utility";
+import { checkIsSignedIn, createTagStructure, signOut } from "helpers/utility";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
 import parseSearchString from "helpers/parseSearchString";
-import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
+import { ITagStructure, IResult, IResultTags, ITags } from "types/index";
 import Pagination from "components/Pagination";
 import useParams from "hooks/useParams";
 import { GoSignOut } from "react-icons/go";
@@ -41,9 +41,10 @@ function HomePage() {
     /* States */
     const [isSignedIn] = useIsSignedIn();
     const [tags, setTags] = useState<ITags>({
-        definitions: undefined,
         synonyms: undefined,
+        definitions: undefined,
     });
+
     const [visibleResults, setVisibleResults] = useState(20);
     const [resultTags, setResultTags] = useState<IResultTags>({});
     const [failedTags, setFailedTags] = useState<string[]>([]);
@@ -65,54 +66,7 @@ function HomePage() {
     const asset = params.asset ?? -1;
 
     // Tag structure
-    const createTagStructure = () => {
-        const definitions = tags.definitions;
-        if (!definitions) return [];
-
-        // Find top-level tags
-        const topTags: Record<number, ITag> = {};
-        const childrenTags: Record<string, boolean> = {};
-
-        Object.keys(definitions).forEach((tag) => {
-            const parsedTag = parseInt(tag);
-
-            if (!childrenTags[parsedTag]) {
-                topTags[parsedTag] = definitions[parsedTag];
-            }
-
-            definitions[parsedTag].children?.forEach((child) => {
-                delete topTags[child];
-
-                childrenTags[child] = true;
-            });
-        });
-
-        return createTagStructureRecursive(
-            Object.keys(topTags).map((tag) => parseInt(tag))
-        );
-    };
-
-    const createTagStructureRecursive = (tagList?: number[]) => {
-        if (!tagList) return [];
-
-        const tagStructure: ITagStructure[] = [];
-
-        const definitions = tags.definitions;
-        if (!definitions) return [];
-
-        for (const tag of tagList) {
-            tagStructure.push({
-                id: tag,
-                children: createTagStructureRecursive(
-                    definitions[tag].children
-                ),
-            });
-        }
-
-        return tagStructure;
-    };
-
-    const tagStructure = useMemo(createTagStructure, [tags.definitions]);
+    const tagStructure = useMemo(() => createTagStructure(tags), [tags]);
 
     /* Functions */
     const restructureResultTags = async (data: IResult[]) => {
@@ -313,15 +267,22 @@ function HomePage() {
                     className="tag-title"
                     key={key || index}
                     data-testid="used-tag-item"
-                    onClick={() =>
-                        addTagToSearch(
-                            definitions[tagInfo.tag]?.name.toLowerCase()
-                        )
-                    }
                 >
                     <p className="tag-title_text">
                         {definitions[tagInfo.tag]?.name} ({tagInfo.appearances})
                     </p>
+
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addTagToSearch(definitions[tagInfo.tag]?.name);
+                        }}
+                        type="button"
+                        className="tag-add-btn"
+                    >
+                        <MdAdd />
+                    </button>
                 </li>
             );
 
@@ -603,6 +564,7 @@ function HomePage() {
                 }}
                 visible={asset !== -1}
                 id={asset}
+                tagStructure={tagStructure}
                 tags={tags}
             />
         </Layout>

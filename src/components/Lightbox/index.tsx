@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+    MdAdd,
     MdChevronLeft,
     MdChevronRight,
     MdClose,
     MdEdit,
+    MdRemove,
     MdSave,
 } from "react-icons/md";
-
 import { useIsSignedIn, useResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
-
 import Sidebar from "components/Sidebar";
-
+import { IResult, ITagStructure, ITags } from "types";
 import "./index.scss";
-import { IResult, ITags } from "types";
+import { ITag } from "types";
 
 type IProps = {
     id: number;
@@ -21,7 +21,8 @@ type IProps = {
     closeLightbox: () => void;
     loadPrevious: () => void;
     loadNext: () => void;
-    tags?: ITags;
+    tags: ITags;
+    tagStructure: ITagStructure[];
 };
 
 /**
@@ -30,6 +31,7 @@ type IProps = {
 const Lightbox: React.FC<IProps> = ({
     id,
     tags,
+    tagStructure,
     visible,
     closeLightbox,
     loadPrevious,
@@ -44,7 +46,9 @@ const Lightbox: React.FC<IProps> = ({
     const [isEditing, setIsEditing] = useState(false);
 
     // Variables
-    const resultTags = result?.tags.map((tag) => tags?.definitions?.[tag]);
+    const resultTags = result?.tags.map(
+        (tag) => tags?.definitions?.[tag] as ITag
+    );
 
     // Functions
     /**
@@ -61,6 +65,14 @@ const Lightbox: React.FC<IProps> = ({
 
     function saveEdits() {
         setIsEditing(false);
+    }
+
+    function addTagToAsset(tagId: number) {
+        //TODO
+    }
+
+    function removeTagFromAsset(tagId: number) {
+        //TODO
     }
 
     // Effects
@@ -90,6 +102,109 @@ const Lightbox: React.FC<IProps> = ({
             }
         },
         document
+    );
+
+    /// DOM Construction
+    const constructUsedTagsElements = () => {
+        const definitions = tags.definitions;
+        if (!definitions) return;
+
+        const elements = [];
+
+        for (const tagInfo of resultTags ?? []) {
+            elements.push(
+                <li
+                    className="tag-title"
+                    key={tagInfo._id}
+                    data-testid="used-tag-item"
+                >
+                    <p className="tag-title_text">{tagInfo.name}</p>
+
+                    {isEditing ? (
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeTagFromAsset(tagInfo._id);
+                            }}
+                            type="button"
+                            className="tag-remove-btn"
+                        >
+                            <MdRemove />
+                        </button>
+                    ) : null}
+                </li>
+            );
+        }
+
+        return elements;
+    };
+
+    const constructTagElements = (children: ITagStructure[]) => {
+        return children?.map((child) => {
+            const tag = tags.definitions?.[child.id];
+
+            if (!tag) return null;
+
+            const assetHasTag = resultTags?.some(
+                (resTag) => resTag._id === tag._id
+            );
+
+            return (
+                <li key={tag._id}>
+                    {tag.children?.length ? (
+                        <details className="tag-details">
+                            <summary className="tag-title tag-title_summary">
+                                <MdChevronRight className="tag-dropdown-icon" />
+                                <p className="tag-title_text">{tag.name}</p>
+
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+
+                                        if (!assetHasTag)
+                                            addTagToAsset(tag._id);
+                                        else removeTagFromAsset(tag._id);
+                                    }}
+                                    type="button"
+                                    className="tag-add-btn"
+                                >
+                                    {assetHasTag ? <MdRemove /> : <MdAdd />}
+                                </button>
+                            </summary>
+
+                            <ul className="sidebar-text focusable">
+                                {constructTagElements(child.children)}
+                            </ul>
+                        </details>
+                    ) : (
+                        <div className="tag-title">
+                            <p className="tag-title_text">{tag.name}</p>
+
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+
+                                    if (!assetHasTag) addTagToAsset(tag._id);
+                                    else removeTagFromAsset(tag._id);
+                                }}
+                                type="button"
+                                className="tag-add-btn"
+                            >
+                                {assetHasTag ? <MdRemove /> : <MdAdd />}
+                            </button>
+                        </div>
+                    )}
+                </li>
+            );
+        });
+    };
+
+    const tagListElements = useMemo(
+        () => (tags.definitions ? constructTagElements(tagStructure) : null),
+        [tags.definitions]
     );
 
     return (
@@ -185,19 +300,27 @@ const Lightbox: React.FC<IProps> = ({
                     onToggle={handleSidebarToggle}
                     isOpen={isSidebarOpen}
                 >
-                    <ul className="sidebar-text">
-                        {resultTags?.map((tag) => {
-                            if (!tag) return null;
+                    <ul className="sidebar-text focusable">
+                        <li>
+                            <details className="tag-details">
+                                <summary className="tag-title tag-title_summary">
+                                    <MdChevronRight className="tag-dropdown-icon" />
+                                    <p className="tag-title_text">Used Tags</p>
+                                </summary>
 
-                            return (
-                                <li
-                                    key={tag._id}
-                                    data-testid="lightbox-tag-item"
-                                >
-                                    {tag.name}
-                                </li>
-                            );
-                        })}
+                                <ul className="sidebar-text">
+                                    {constructUsedTagsElements()}
+                                </ul>
+                            </details>
+                        </li>
+
+                        {isEditing ? (
+                            <>
+                                <hr />
+
+                                {tagListElements}
+                            </>
+                        ) : null}
                     </ul>
                 </Sidebar>
             </>

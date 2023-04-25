@@ -1,6 +1,7 @@
 import ENDPOINT from "helpers/endpoint";
 import { setDialog } from "helpers/globalState";
 import { setIsSignedIn } from "helpers/globalState";
+import { ITag, ITagStructure, ITags } from "types";
 
 function setCookie(params: {
     name: string;
@@ -117,4 +118,53 @@ export function focusElement(el?: HTMLInputElement | null) {
         el.focus();
         el.selectionStart = el.selectionEnd = el.value.length;
     }
+}
+
+export function createTagStructure(tags: ITags) {
+    const definitions = tags.definitions;
+    if (!definitions) return [];
+
+    // Find top-level tags
+    const topTags: Record<number, ITag> = {};
+    const childrenTags: Record<string, boolean> = {};
+
+    Object.keys(definitions).forEach((tag) => {
+        const parsedTag = parseInt(tag);
+
+        if (!childrenTags[parsedTag]) {
+            topTags[parsedTag] = definitions[parsedTag];
+        }
+
+        definitions[parsedTag].children?.forEach((child) => {
+            delete topTags[child];
+
+            childrenTags[child] = true;
+        });
+    });
+
+    return createTagStructureRecursive(
+        tags,
+        Object.keys(topTags).map((tag) => parseInt(tag))
+    );
+}
+
+function createTagStructureRecursive(tags: ITags, tagList?: number[]) {
+    if (!tagList) return [];
+
+    const tagStructure: ITagStructure[] = [];
+
+    const definitions = tags.definitions;
+    if (!definitions) return [];
+
+    for (const tag of tagList) {
+        tagStructure.push({
+            id: tag,
+            children: createTagStructureRecursive(
+                tags,
+                definitions[tag].children
+            ),
+        });
+    }
+
+    return tagStructure;
 }
