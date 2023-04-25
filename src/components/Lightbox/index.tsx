@@ -15,6 +15,7 @@ import { IResult, ITagStructure, ITags } from "types";
 import "./index.scss";
 import ENDPOINT from "helpers/endpoint";
 import { getCookie } from "helpers/utility";
+import Dialog from "components/Dialog";
 
 type IProps = {
     id: number;
@@ -47,6 +48,13 @@ const Lightbox: React.FC<IProps> = ({
     const [tagsEditing, setTagsEditing] = useState<Set<number>>(
         new Set(result?.tags)
     );
+    const [error, setError] = useState<string | undefined>();
+    const [showHasUnsavedChangesDialog, setShowHasUnsavedChangesDialog] =
+        useState<boolean>(false);
+    const [
+        showHasUnsavedChangesCloseDialog,
+        setShowHasUnsavedChangesCloseDialog,
+    ] = useState<boolean>(false);
 
     // Functions
     /**
@@ -86,7 +94,8 @@ const Lightbox: React.FC<IProps> = ({
                 toggleEditing();
             })
             .catch((e) => {
-                console.error(`Failed to fetch due to error: ${e}`);
+                console.error(`Failed to update due to error: ${e}`);
+                setError("Failed to update asset");
             });
     }
 
@@ -298,8 +307,12 @@ const Lightbox: React.FC<IProps> = ({
                 <button
                     className="lightbox-btn-clear lightbox-close"
                     onClick={() => {
-                        toggleEditing();
-                        closeLightbox();
+                        if (isEditing) {
+                            setShowHasUnsavedChangesCloseDialog(true);
+                        } else {
+                            toggleEditing();
+                            closeLightbox();
+                        }
                     }}
                     aria-label="Close sidebar"
                     title="Close"
@@ -324,12 +337,99 @@ const Lightbox: React.FC<IProps> = ({
                             type="button"
                             className="control-btn control-edit"
                             data-testid="controls-edit-btn"
-                            onClick={toggleEditing}
+                            onClick={() => {
+                                if (isEditing) {
+                                    setShowHasUnsavedChangesDialog(true);
+                                } else {
+                                    toggleEditing();
+                                }
+                            }}
                         >
                             <MdEdit />
                         </button>
                     </div>
                 ) : null}
+
+                <Dialog
+                    visible={showHasUnsavedChangesCloseDialog}
+                    title="Unsaved changes"
+                    buttons={[
+                        {
+                            title: "Save & stop editing",
+                            callback: () => {
+                                saveEdits();
+                                closeLightbox();
+                                setShowHasUnsavedChangesCloseDialog(false);
+                            },
+                        },
+                        {
+                            title: "Stop editing",
+                            callback: () => {
+                                toggleEditing();
+                                closeLightbox();
+                                setShowHasUnsavedChangesCloseDialog(false);
+                            },
+                        },
+                        {
+                            title: "Cancel",
+                            callback: () => {
+                                setShowHasUnsavedChangesCloseDialog(false);
+                            },
+                        },
+                    ]}
+                >
+                    <p>
+                        You have unsaved changes. If you close the asset now,
+                        you will lose them. Would you like to save?
+                    </p>
+                </Dialog>
+
+                <Dialog
+                    visible={showHasUnsavedChangesDialog}
+                    title="Unsaved changes"
+                    buttons={[
+                        {
+                            title: "Save & stop editing",
+                            callback: () => {
+                                saveEdits();
+                                setShowHasUnsavedChangesDialog(false);
+                            },
+                        },
+                        {
+                            title: "Stop editing",
+                            callback: () => {
+                                toggleEditing();
+                                setShowHasUnsavedChangesDialog(false);
+                            },
+                        },
+                        {
+                            title: "Cancel",
+                            callback: () => {
+                                setShowHasUnsavedChangesDialog(false);
+                            },
+                        },
+                    ]}
+                >
+                    <p>
+                        You have unsaved changes. If you stop editing now, you
+                        will lose them. Would you like to save?
+                    </p>
+                </Dialog>
+
+                <Dialog
+                    visible={!!error}
+                    title="Error"
+                    buttons={[
+                        {
+                            title: "Ok",
+                            callback: () => {
+                                setError(undefined);
+                            },
+                        },
+                    ]}
+                >
+                    <p>{error}</p>
+                </Dialog>
 
                 <Sidebar
                     title="Asset Tags"

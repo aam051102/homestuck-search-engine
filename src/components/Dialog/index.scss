@@ -30,10 +30,11 @@
             color: #fff;
             box-sizing: border-box;
             border: 0.2rem solid #ffe000;
-            padding: 2rem 1rem;
+            padding: 2rem 2rem 1rem 2rem;
             font-family: "Courier New";
             font-weight: bold;
             font-size: 1rem;
+            text-align: left;
 
             .dialog-title {
                 font-size: 1.25rem;
@@ -46,8 +47,10 @@
             }
 
             .dialog-button-wrapper {
-                text-align: right;
-                margin-top: 3rem;
+                display: flex;
+                gap: 0.5rem;
+                justify-content: flex-start;
+                margin-top: 2rem;
             }
 
             .dialog-close {
@@ -56,12 +59,15 @@
                 color: #fff;
                 padding: 0.5rem 1rem;
                 outline: none;
+                opacity: 0.75;
+                transition: opacity 0.3s ease-in-out;
 
                 &::before {
                     content: "> ";
                 }
 
                 &:hover {
+                    opacity: 1;
                     cursor: pointer;
                 }
             }

@@ -6,9 +6,9 @@ import "./index.scss";
 
 type IProps = {
     title?: React.ReactNode;
-    content?: React.ReactNode;
+    children?: React.ReactNode;
     visible: boolean;
-    buttons?: { title?: string; callbacks?: (() => void)[] }[];
+    buttons?: { title?: string; callback?: () => void }[];
 };
 
 /**
@@ -24,7 +24,7 @@ const Dialog: React.FC<IProps> = (props) => {
             <div className="dialog-outer">
                 <div className="dialog">
                     <p className="dialog-title">{props.title}</p>
-                    <p className="dialog-content">{props.content}</p>
+                    <p className="dialog-content">{props.children}</p>
 
                     <div className="dialog-button-wrapper">
                         {props.buttons ? (
@@ -32,15 +32,7 @@ const Dialog: React.FC<IProps> = (props) => {
                                 <button
                                     className="dialog-close"
                                     onClick={async () => {
-                                        if (button.callbacks) {
-                                            for (
-                                                let i = 0;
-                                                i < button.callbacks.length;
-                                                i++
-                                            ) {
-                                                await button.callbacks[i]();
-                                            }
-                                        }
+                                        button.callback?.();
 
                                         handleCloseBtnClick();
                                     }}
