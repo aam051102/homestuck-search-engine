@@ -232,6 +232,12 @@
     }
 
     .sidebar {
+        hr {
+            background: #ffffff;
+            border: 0;
+            height: 1px;
+        }
+
         .sidebar-text {
             list-style: none;
             padding: 0;
@@ -239,6 +245,14 @@
             font-size: 1.5rem;
             margin: 0;
             font-size: 1rem;
+
+            .tag-details {
+                &[open] {
+                    & > .tag-title > .tag-dropdown-icon {
+                        transform: rotate(90deg);
+                    }
+                }
+            }
 
             .tag-title {
                 display: flex;
@@ -251,10 +265,16 @@
                     margin-right: 0.25rem;
                     display: none;
                     cursor: pointer;
+                    opacity: 0.75;
+                    transition: opacity 0.3s ease-in-out;
+
+                    &:hover {
+                        opacity: 1;
+                    }
                 }
 
                 .tag-title_text {
-                    margin-left: 0.75rem;
+                    margin-left: 1.5rem;
                     transition: transform 0.15s ease-in-out;
                 }
 
@@ -273,9 +293,7 @@
 
                 &.tag-title_summary {
                     .tag-dropdown-icon {
-                        margin-right: 0.25rem;
-                        font-size: 0.5rem;
-                        transform: rotate(180deg);
+                        font-size: 1.5rem;
                         position: absolute;
                     }
                 }
@@ -283,7 +301,15 @@
 
             .sidebar-text {
                 padding-left: 0.75rem;
-                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                position: relative;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    border-left: 1px solid rgba(90, 90, 90, 0.1);
+                    transform: translateX(0rem) translateX(-50%);
+                    height: 100%;
+                }
             }
 
             li {

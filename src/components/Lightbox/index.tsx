@@ -147,6 +147,7 @@ const Lightbox: React.FC<IProps> = ({
                 <button
                     className="lightbox-btn-clear lightbox-close"
                     onClick={() => {
+                        toggleEditing();
                         closeLightbox();
                     }}
                     aria-label="Close sidebar"

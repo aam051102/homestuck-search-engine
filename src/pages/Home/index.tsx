@@ -23,11 +23,11 @@ import parseSearchString from "helpers/parseSearchString";
 import { ITags, ITag, ITagStructure, IResult, IResultTags } from "types/index";
 import Pagination from "components/Pagination";
 import useParams from "hooks/useParams";
-import { BsPersonFill, BsPlus, BsTriangleFill } from "react-icons/bs";
 import { GoSignOut } from "react-icons/go";
 const Lightbox = lazy(() => import("components/Lightbox"));
 import "./index.scss";
 import { Link } from "react-router-dom";
+import { MdAdd, MdChevronRight, MdPerson } from "react-icons/md";
 
 /**
  * Global counter for tag
@@ -310,7 +310,7 @@ function HomePage() {
 
             elements.push(
                 <li
-                    className="tag-title tag-title_summary"
+                    className="tag-title"
                     key={key || index}
                     data-testid="used-tag-item"
                     onClick={() =>
@@ -319,7 +319,9 @@ function HomePage() {
                         )
                     }
                 >
-                    {definitions[tagInfo.tag]?.name} ({tagInfo.appearances})
+                    <p className="tag-title_text">
+                        {definitions[tagInfo.tag]?.name} ({tagInfo.appearances})
+                    </p>
                 </li>
             );
 
@@ -338,9 +340,9 @@ function HomePage() {
             return (
                 <li key={tag._id}>
                     {tag.children?.length ? (
-                        <details>
+                        <details className="tag-details">
                             <summary className="tag-title tag-title_summary">
-                                <BsTriangleFill className="tag-dropdown-icon" />
+                                <MdChevronRight className="tag-dropdown-icon" />
                                 <p className="tag-title_text">{tag.name}</p>
 
                                 <button
@@ -352,7 +354,7 @@ function HomePage() {
                                     type="button"
                                     className="tag-add-btn"
                                 >
-                                    <BsPlus />
+                                    <MdAdd />
                                 </button>
                             </summary>
 
@@ -373,7 +375,7 @@ function HomePage() {
                                 type="button"
                                 className="tag-add-btn"
                             >
-                                <BsPlus />
+                                <MdAdd />
                             </button>
                         </div>
                     )}
@@ -415,7 +417,7 @@ function HomePage() {
             ) : (
                 <Link to="/login" className="login-state">
                     <p className="login-text">Sign in</p>
-                    <BsPersonFill className="login-icon" />
+                    <MdPerson className="login-icon" />
                 </Link>
             )}
 
@@ -559,9 +561,9 @@ function HomePage() {
             >
                 <ul className="sidebar-text focusable">
                     <li>
-                        <details>
+                        <details className="tag-details">
                             <summary className="tag-title tag-title_summary">
-                                <BsTriangleFill className="tag-dropdown-icon" />
+                                <MdChevronRight className="tag-dropdown-icon" />
                                 <p className="tag-title_text">Used Tags</p>
                             </summary>
 
