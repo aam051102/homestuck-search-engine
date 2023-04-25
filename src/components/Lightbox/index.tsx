@@ -17,6 +17,19 @@ import ENDPOINT from "helpers/endpoint";
 import { getCookie } from "helpers/utility";
 import Dialog from "components/Dialog";
 
+function compareArr<T>(a: T[], b: T[]) {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; i++) {
+        if (!b.includes(a[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 type IProps = {
     id: number;
     visible?: boolean;
@@ -44,10 +57,12 @@ const Lightbox: React.FC<IProps> = ({
     const [results] = useResults();
     const [result, setResult] = useState<IResult | undefined>(results[id]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     const [isEditing, setIsEditing] = useState(false);
     const [tagsEditing, setTagsEditing] = useState<Set<number>>(
         new Set(result?.tags)
     );
+
     const [error, setError] = useState<string | undefined>();
     const [showHasUnsavedChangesDialog, setShowHasUnsavedChangesDialog] =
         useState<boolean>(false);
@@ -307,7 +322,13 @@ const Lightbox: React.FC<IProps> = ({
                 <button
                     className="lightbox-btn-clear lightbox-close"
                     onClick={() => {
-                        if (isEditing) {
+                        if (
+                            isEditing &&
+                            !compareArr(
+                                result?.tags ?? [],
+                                Array.from(tagsEditing)
+                            )
+                        ) {
                             setShowHasUnsavedChangesCloseDialog(true);
                         } else {
                             toggleEditing();
@@ -338,7 +359,13 @@ const Lightbox: React.FC<IProps> = ({
                             className="control-btn control-edit"
                             data-testid="controls-edit-btn"
                             onClick={() => {
-                                if (isEditing) {
+                                if (
+                                    isEditing &&
+                                    !compareArr(
+                                        result?.tags ?? [],
+                                        Array.from(tagsEditing)
+                                    )
+                                ) {
                                     setShowHasUnsavedChangesDialog(true);
                                 } else {
                                     toggleEditing();
@@ -355,7 +382,7 @@ const Lightbox: React.FC<IProps> = ({
                     title="Unsaved changes"
                     buttons={[
                         {
-                            title: "Save & stop editing",
+                            title: "Save & close",
                             callback: () => {
                                 saveEdits();
                                 closeLightbox();
@@ -363,7 +390,7 @@ const Lightbox: React.FC<IProps> = ({
                             },
                         },
                         {
-                            title: "Stop editing",
+                            title: "Close",
                             callback: () => {
                                 toggleEditing();
                                 closeLightbox();
