@@ -8,7 +8,7 @@ import {
     MdRemove,
     MdSave,
 } from "react-icons/md";
-import { useIsSignedIn, useResults } from "helpers/globalState";
+import { setResults, useIsSignedIn, useResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 import { IResult, ITagStructure, ITags } from "types";
@@ -90,8 +90,10 @@ const Lightbox: React.FC<IProps> = ({
 
     async function saveEdits() {
         const authToken = getCookie("hsse_token");
+        const tagId = result?._id;
+        if (!tagId) return;
 
-        await fetch(`${ENDPOINT}/api/app/1/edit/${result?._id}`, {
+        await fetch(`${ENDPOINT}/api/app/1/edit/${tagId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -100,13 +102,21 @@ const Lightbox: React.FC<IProps> = ({
             body: JSON.stringify({ tags: Array.from(tagsEditing) }),
         })
             .then((e) => e.json())
-            .then((data) => {
-                if (data.error) {
-                    console.error(data.error);
+            .then((data: IResult | { error: string }) => {
+                const errData = data as { error: string };
+                if (errData.error) {
+                    console.error(errData.error);
                     return;
                 }
 
+                const tagData = data as IResult;
+
                 toggleEditing();
+                setResults((oldState) => {
+                    const newState = [...oldState];
+                    newState[id] = tagData;
+                    return newState;
+                });
             })
             .catch((e) => {
                 console.error(`Failed to update due to error: ${e}`);
@@ -331,7 +341,10 @@ const Lightbox: React.FC<IProps> = ({
                         ) {
                             setShowHasUnsavedChangesCloseDialog(true);
                         } else {
-                            toggleEditing();
+                            if (isEditing) {
+                                toggleEditing();
+                            }
+
                             closeLightbox();
                         }
                     }}
