@@ -14,7 +14,7 @@ import {
     useIsSignedIn,
 } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
-import ENDPOINT from "helpers/endpoint";
+import ENDPOINT, { BASE_URL } from "helpers/endpoint";
 import { checkIsSignedIn, createTagStructure, signOut } from "helpers/utility";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
@@ -376,7 +376,7 @@ function HomePage() {
                     <GoSignOut className="login-icon" />
                 </button>
             ) : (
-                <Link to="/login" className="login-state">
+                <Link to={`${BASE_URL}login`} className="login-state">
                     <p className="login-text">Sign in</p>
                     <MdPerson className="login-icon" />
                 </Link>

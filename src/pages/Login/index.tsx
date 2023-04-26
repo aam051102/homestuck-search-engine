@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { useNavigate } from "react-router";
 
-import ENDPOINT from "helpers/endpoint";
+import ENDPOINT, { BASE_URL } from "helpers/endpoint";
 import { checkIsSignedIn } from "helpers/utility";
 import { setIsSignedIn, useIsSignedIn } from "helpers/globalState";
 
@@ -24,11 +24,7 @@ function LoginPage() {
             }
 
             if (thisIsSignedIn) {
-                navigate(
-                    window.location.hostname === "localhost"
-                        ? "/"
-                        : "/app/hsse/"
-                );
+                navigate(BASE_URL);
             }
         })();
     }, [isSignedIn]);
