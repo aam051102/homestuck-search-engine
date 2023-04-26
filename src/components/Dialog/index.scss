@@ -11,30 +11,32 @@
         background-color: #ff9b00;
         padding: 0.4rem 0.3rem;
         border: 0.1rem solid #0004;
-        box-shadow: 0px 0px 0px 1px #af4b00;
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        box-shadow: 1px 1px #af4b00, 2px 2px #af4b00, 3px 3px #af4b00,
+            4px 4px #af4b00, 5px 5px #af4b00;
 
         .dialog {
             max-width: 100%;
             max-height: 40rem;
             width: 100%;
             min-width: 25rem;
-            background: #0009;
             color: #fff;
             box-sizing: border-box;
             outline: none;
-            background-color: black;
-            color: #fff;
+            background-color: #000000;
             box-sizing: border-box;
-            border: 0.2rem solid #ffe000;
-            padding: 2rem 2rem 1rem 2rem;
+            padding: 2rem 2rem 2rem 2rem;
             font-family: "Courier New";
             font-weight: bold;
             font-size: 1rem;
             text-align: left;
+
+            p {
+                margin-bottom: 1rem;
+            }
 
             .dialog-title {
                 font-size: 1.25rem;
@@ -53,21 +55,21 @@
                 margin-top: 2rem;
             }
 
-            .dialog-close {
+            .dialog-btn {
                 border: 0;
                 background: transparent;
                 color: #fff;
-                padding: 0.5rem 1rem;
+                padding: 0;
                 outline: none;
-                opacity: 0.75;
-                transition: opacity 0.3s ease-in-out;
+                padding: 0.5rem 1rem;
+                opacity: 1;
+                background: #000000;
 
                 &::before {
                     content: "> ";
                 }
 
                 &:hover {
-                    opacity: 1;
                     cursor: pointer;
                 }
             }

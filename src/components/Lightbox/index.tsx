@@ -555,8 +555,16 @@ const Lightbox: React.FC<IProps> = ({
                     isOpen={isSidebarOpen}
                 >
                     <ul className="sidebar-text focusable">
+                        {isEditing ? (
+                            <>
+                                {tagListElements}
+
+                                <hr />
+                            </>
+                        ) : null}
+
                         <li>
-                            <details className="tag-details">
+                            <details className="tag-details" open>
                                 <summary className="tag-title tag-title_summary">
                                     <MdChevronRight className="tag-dropdown-icon" />
                                     <p className="tag-title_text">Used Tags</p>
@@ -567,14 +575,6 @@ const Lightbox: React.FC<IProps> = ({
                                 </ul>
                             </details>
                         </li>
-
-                        {isEditing ? (
-                            <>
-                                <hr />
-
-                                {tagListElements}
-                            </>
-                        ) : null}
                     </ul>
                 </Sidebar>
             </>

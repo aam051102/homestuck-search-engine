@@ -6,7 +6,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { CgMaximize, CgSearch } from "react-icons/cg";
+import { CgInfo, CgMaximize, CgSearch } from "react-icons/cg";
 import {
     setIsSignedIn,
     useResults,
@@ -28,6 +28,7 @@ const Lightbox = lazy(() => import("components/Lightbox"));
 import "./index.scss";
 import { Link } from "react-router-dom";
 import { MdAdd, MdChevronRight, MdPerson } from "react-icons/md";
+import Dialog from "components/Dialog";
 
 /**
  * Global counter for tag
@@ -53,6 +54,8 @@ function HomePage() {
 
     const searchRef = useRef<HTMLInputElement>(null);
     const visibleResultsRef = useRef<HTMLInputElement>(null);
+
+    const [searchHintDialog, setSearchHintDialog] = useState<boolean>(false);
 
     // URL parameters
     const [params, setParams] = useParams<{
@@ -383,9 +386,23 @@ function HomePage() {
             )}
 
             <form className="search-form" onSubmit={handleSubmit}>
-                <label className="search-term-label" htmlFor="search-term">
-                    Search
-                </label>
+                <div className="search-term-label-wrapper">
+                    <label className="search-term-label" htmlFor="search-term">
+                        Search
+                    </label>
+
+                    <button
+                        className="search-hint-btn"
+                        aria-label="Search syntax hint"
+                        type="button"
+                        onClick={() => setSearchHintDialog(true)}
+                        data-testid="search-hint-btn"
+                        title="Search syntax hint"
+                    >
+                        <CgInfo />
+                    </button>
+                </div>
+
                 <div className="search-term-wrapper">
                     <input
                         ref={searchRef}
@@ -397,6 +414,7 @@ function HomePage() {
                         data-testid="search-field"
                         defaultValue={query}
                     />
+
                     <button
                         className="search-button"
                         aria-label="Search"
@@ -513,6 +531,45 @@ function HomePage() {
                 )}
             </section>
 
+            <Dialog
+                title="Search syntax"
+                visible={searchHintDialog}
+                buttons={[
+                    {
+                        title: "Ok.",
+                        callback: () => {
+                            setSearchHintDialog(false);
+                        },
+                    },
+                ]}
+            >
+                <p>There are two primary search methods.</p>
+                <p>
+                    Method #1 is using tags. You can find the list of tags in
+                    the sidebar. This method allows you to search for specific
+                    elements, but it only works on tagged images. For example,
+                    &quot;Dave Strider&quot; would display results with Dave
+                    Strider.
+                </p>
+                <p>
+                    Tags are not case-sensitive, so &quot;John Egbert&quot;,
+                    &quot;jOhN eGbeRt&quot;, and &quot;john egbert&quot; are all
+                    equivalent.
+                </p>
+                <p>
+                    Method #2 is using page ranges. The format for a page range
+                    is (FROM-TO). For example, &quot;(8000-8001)&quot; would
+                    display results from pages 8000 and 8001.
+                </p>
+                <p>
+                    Both search methods can be combined freely in a
+                    comma-separated list any number of times. For example,
+                    &quot;(1-1000), John Egbert&quot; would show results from
+                    pages 1 through 1000, as long as John Egbert is in the
+                    result. Feel free to experiment with different combinations.
+                </p>
+            </Dialog>
+
             <Sidebar
                 title="Tags"
                 clearSearch={() => {
@@ -521,6 +578,10 @@ function HomePage() {
                 }}
             >
                 <ul className="sidebar-text focusable">
+                    {tagListElements}
+
+                    <hr />
+
                     <li>
                         <details className="tag-details">
                             <summary className="tag-title tag-title_summary">
@@ -533,10 +594,6 @@ function HomePage() {
                             </ul>
                         </details>
                     </li>
-
-                    <hr />
-
-                    {tagListElements}
                 </ul>
             </Sidebar>
 

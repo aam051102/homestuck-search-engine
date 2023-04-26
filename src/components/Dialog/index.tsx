@@ -30,13 +30,13 @@ const Dialog: React.FC<IProps> = (props) => {
                         {props.buttons ? (
                             props.buttons.map((button) => (
                                 <button
-                                    className="dialog-close"
+                                    key={button.title}
+                                    className="dialog-btn"
                                     onClick={async () => {
                                         button.callback?.();
 
                                         handleCloseBtnClick();
                                     }}
-                                    key={button.title}
                                 >
                                     {button.title}
                                 </button>
