@@ -64,14 +64,167 @@ const Lightbox: React.FC<IProps> = ({
     );
 
     const [error, setError] = useState<string | undefined>();
-    const [showHasUnsavedChangesDialog, setShowHasUnsavedChangesDialog] =
-        useState<boolean>(false);
-    const [
-        showHasUnsavedChangesCloseDialog,
-        setShowHasUnsavedChangesCloseDialog,
-    ] = useState<boolean>(false);
+    const [unsavedChangesDialog, setUnsavedChangesDialog] = useState<
+        { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
 
     // Functions
+    function tryLoadNext() {
+        if (
+            isEditing &&
+            !compareArr(result?.tags ?? [], Array.from(tagsEditing))
+        ) {
+            setUnsavedChangesDialog({
+                buttons: [
+                    {
+                        title: "Save & continue",
+                        callback: async () => {
+                            if (!(await saveEdits())) return;
+                            loadNext();
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Continue without saving",
+                        callback: () => {
+                            toggleEditing();
+                            loadNext();
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Cancel",
+                        callback: () => {
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                ],
+            });
+        } else {
+            if (isEditing) {
+                toggleEditing();
+            }
+
+            loadNext();
+        }
+    }
+
+    function tryLoadPrevious() {
+        if (
+            isEditing &&
+            !compareArr(result?.tags ?? [], Array.from(tagsEditing))
+        ) {
+            setUnsavedChangesDialog({
+                buttons: [
+                    {
+                        title: "Save & continue",
+                        callback: async () => {
+                            if (!(await saveEdits())) return;
+                            loadPrevious();
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Continue without saving",
+                        callback: () => {
+                            toggleEditing();
+                            loadPrevious();
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Cancel",
+                        callback: () => {
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                ],
+            });
+        } else {
+            if (isEditing) {
+                toggleEditing();
+            }
+
+            loadPrevious();
+        }
+    }
+
+    function tryCloseLightbox() {
+        if (
+            isEditing &&
+            !compareArr(result?.tags ?? [], Array.from(tagsEditing))
+        ) {
+            setUnsavedChangesDialog({
+                buttons: [
+                    {
+                        title: "Save & close",
+                        callback: async () => {
+                            if (!(await saveEdits())) return;
+                            closeLightbox();
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Close",
+                        callback: () => {
+                            toggleEditing();
+                            closeLightbox();
+
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Cancel",
+                        callback: () => {
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                ],
+            });
+        } else {
+            if (isEditing) {
+                toggleEditing();
+            }
+
+            closeLightbox();
+        }
+    }
+
+    function tryToggleEditing() {
+        if (
+            isEditing &&
+            !compareArr(result?.tags ?? [], Array.from(tagsEditing))
+        ) {
+            setUnsavedChangesDialog({
+                buttons: [
+                    {
+                        title: "Save & continue",
+                        callback: async () => {
+                            if (!(await saveEdits())) return;
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Continue without saving",
+                        callback: () => {
+                            toggleEditing();
+
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Cancel",
+                        callback: () => {
+                            setUnsavedChangesDialog(undefined);
+                        },
+                    },
+                ],
+            });
+        } else {
+            toggleEditing();
+        }
+    }
+
     /**
      * Toggles outer value defining whether or not sidebar is open.
      * @param val
@@ -93,7 +246,7 @@ const Lightbox: React.FC<IProps> = ({
         const tagId = result?._id;
         if (!tagId) return;
 
-        await fetch(`${ENDPOINT}/api/app/1/edit/${tagId}`, {
+        return await fetch(`${ENDPOINT}/api/app/1/edit/${tagId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -111,16 +264,20 @@ const Lightbox: React.FC<IProps> = ({
 
                 const tagData = data as IResult;
 
-                toggleEditing();
                 setResults((oldState) => {
                     const newState = [...oldState];
                     newState[id] = tagData;
                     return newState;
                 });
+
+                toggleEditing();
+
+                return true;
             })
             .catch((e) => {
                 console.error(`Failed to update due to error: ${e}`);
-                setError("Failed to update asset");
+                setError(`Failed to update asset. Error: ${e}`);
+                return false;
             });
     }
 
@@ -154,16 +311,16 @@ const Lightbox: React.FC<IProps> = ({
         (e) => {
             if (visible) {
                 if (e.key === "Escape") {
-                    closeLightbox();
+                    tryCloseLightbox();
                     return;
-                }
-
-                if (e.key === "ArrowLeft") {
+                } else if (e.key === "ArrowLeft") {
                     // Previous asset
-                    loadPrevious();
+                    tryLoadPrevious();
+                    return;
                 } else if (e.key === "ArrowRight") {
                     // Next asset
-                    loadNext();
+                    tryLoadNext();
+                    return;
                 }
             }
         },
@@ -292,7 +449,7 @@ const Lightbox: React.FC<IProps> = ({
                     className={`lightbox-btn-clear lightbox-left`}
                     disabled={id <= 0 ? true : false}
                     onClick={() => {
-                        loadPrevious();
+                        tryLoadPrevious();
                     }}
                     aria-label="Previous asset"
                 >
@@ -322,7 +479,7 @@ const Lightbox: React.FC<IProps> = ({
                     className="lightbox-btn-clear lightbox-right"
                     disabled={id >= results.length - 1 ? true : false}
                     onClick={() => {
-                        loadNext();
+                        tryLoadNext();
                     }}
                     aria-label="Next asset"
                 >
@@ -332,21 +489,7 @@ const Lightbox: React.FC<IProps> = ({
                 <button
                     className="lightbox-btn-clear lightbox-close"
                     onClick={() => {
-                        if (
-                            isEditing &&
-                            !compareArr(
-                                result?.tags ?? [],
-                                Array.from(tagsEditing)
-                            )
-                        ) {
-                            setShowHasUnsavedChangesCloseDialog(true);
-                        } else {
-                            if (isEditing) {
-                                toggleEditing();
-                            }
-
-                            closeLightbox();
-                        }
+                        tryCloseLightbox();
                     }}
                     aria-label="Close sidebar"
                     title="Close"
@@ -372,17 +515,7 @@ const Lightbox: React.FC<IProps> = ({
                             className="control-btn control-edit"
                             data-testid="controls-edit-btn"
                             onClick={() => {
-                                if (
-                                    isEditing &&
-                                    !compareArr(
-                                        result?.tags ?? [],
-                                        Array.from(tagsEditing)
-                                    )
-                                ) {
-                                    setShowHasUnsavedChangesDialog(true);
-                                } else {
-                                    toggleEditing();
-                                }
+                                tryToggleEditing();
                             }}
                         >
                             <MdEdit />
@@ -391,68 +524,13 @@ const Lightbox: React.FC<IProps> = ({
                 ) : null}
 
                 <Dialog
-                    visible={showHasUnsavedChangesCloseDialog}
+                    visible={!!unsavedChangesDialog}
+                    buttons={unsavedChangesDialog?.buttons}
                     title="Unsaved changes"
-                    buttons={[
-                        {
-                            title: "Save & close",
-                            callback: () => {
-                                saveEdits();
-                                closeLightbox();
-                                setShowHasUnsavedChangesCloseDialog(false);
-                            },
-                        },
-                        {
-                            title: "Close",
-                            callback: () => {
-                                toggleEditing();
-                                closeLightbox();
-                                setShowHasUnsavedChangesCloseDialog(false);
-                            },
-                        },
-                        {
-                            title: "Cancel",
-                            callback: () => {
-                                setShowHasUnsavedChangesCloseDialog(false);
-                            },
-                        },
-                    ]}
                 >
                     <p>
-                        You have unsaved changes. If you close the asset now,
+                        You have unsaved changes. If you continue this action,
                         you will lose them. Would you like to save?
-                    </p>
-                </Dialog>
-
-                <Dialog
-                    visible={showHasUnsavedChangesDialog}
-                    title="Unsaved changes"
-                    buttons={[
-                        {
-                            title: "Save & stop editing",
-                            callback: () => {
-                                saveEdits();
-                                setShowHasUnsavedChangesDialog(false);
-                            },
-                        },
-                        {
-                            title: "Stop editing",
-                            callback: () => {
-                                toggleEditing();
-                                setShowHasUnsavedChangesDialog(false);
-                            },
-                        },
-                        {
-                            title: "Cancel",
-                            callback: () => {
-                                setShowHasUnsavedChangesDialog(false);
-                            },
-                        },
-                    ]}
-                >
-                    <p>
-                        You have unsaved changes. If you stop editing now, you
-                        will lose them. Would you like to save?
                     </p>
                 </Dialog>
 
