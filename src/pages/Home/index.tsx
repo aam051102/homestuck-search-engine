@@ -6,7 +6,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { CgInfo, CgMaximize, CgSearch } from "react-icons/cg";
+import { CgInfo, CgMaximize } from "react-icons/cg";
 import {
     setIsSignedIn,
     useResults,
@@ -27,8 +27,9 @@ import { GoSignOut } from "react-icons/go";
 const Lightbox = lazy(() => import("components/Lightbox"));
 import "./index.scss";
 import { Link } from "react-router-dom";
-import { MdAdd, MdChevronRight, MdPerson } from "react-icons/md";
+import { MdAdd, MdChevronRight, MdPerson, MdSearch } from "react-icons/md";
 import Dialog from "components/Dialog";
+import useTimeout from "hooks/useTimeout";
 
 /**
  * Global counter for tag
@@ -56,6 +57,7 @@ function HomePage() {
     const visibleResultsRef = useRef<HTMLInputElement>(null);
 
     const [searchHintDialog, setSearchHintDialog] = useState<boolean>(false);
+    const [tagQuery, setTagQuery] = useState<string>("");
 
     // URL parameters
     const [params, setParams] = useParams<{
@@ -69,7 +71,15 @@ function HomePage() {
     const asset = params.asset ?? -1;
 
     // Tag structure
-    const tagStructure = useMemo(() => createTagStructure(tags), [tags]);
+    const [tagStructure, setTagStructure] = useState<ITagStructure[]>([]);
+
+    useTimeout(
+        () => {
+            setTagStructure(createTagStructure(tags, tagQuery));
+        },
+        300,
+        [tags, tagQuery]
+    );
 
     /* Functions */
     const restructureResultTags = async (data: IResult[]) => {
@@ -239,7 +249,10 @@ function HomePage() {
     useEventListener(
         "keydown",
         (e) => {
-            if (asset === -1 && searchRef.current !== document.activeElement) {
+            if (
+                asset === -1 &&
+                "input" !== document.activeElement?.tagName.toLowerCase()
+            ) {
                 if (e.key === "ArrowLeft") {
                     e.preventDefault();
 
@@ -350,7 +363,7 @@ function HomePage() {
 
     const tagListElements = useMemo(
         () => (tags.definitions ? constructTagElements(tagStructure) : null),
-        [tags.definitions]
+        [tags.definitions, tagStructure]
     );
 
     /* Return */
@@ -421,7 +434,7 @@ function HomePage() {
                         type="submit"
                         data-testid="search-button"
                     >
-                        <CgSearch />
+                        <MdSearch />
                     </button>
                 </div>
             </form>
@@ -578,6 +591,17 @@ function HomePage() {
                 }}
             >
                 <ul className="sidebar-text focusable">
+                    <div className="tag-search-wrapper">
+                        <input
+                            type="text"
+                            className="tag-search-input"
+                            value={tagQuery}
+                            placeholder="Find tags"
+                            onChange={(e) => setTagQuery(e.target.value)}
+                        />
+                        <MdSearch className="tag-search-icon" />
+                    </div>
+
                     {tagListElements}
 
                     <hr />

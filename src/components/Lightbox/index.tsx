@@ -14,21 +14,8 @@ import Sidebar from "components/Sidebar";
 import { IResult, ITagStructure, ITags } from "types";
 import "./index.scss";
 import ENDPOINT from "helpers/endpoint";
-import { getCookie } from "helpers/utility";
+import { compareArr, getCookie } from "helpers/utility";
 import Dialog from "components/Dialog";
-
-function compareArr<T>(a: T[], b: T[]) {
-    if (a === b) return true;
-    if (a.length !== b.length) return false;
-
-    for (let i = 0; i < a.length; i++) {
-        if (!b.includes(a[i])) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 type IProps = {
     id: number;
@@ -235,7 +222,9 @@ const Lightbox: React.FC<IProps> = ({
 
     function toggleEditing() {
         if (isEditing) {
-            setTagsEditing(new Set(result?.tags));
+            setTagsEditing(() => new Set(result?.tags));
+        } else {
+            setIsSidebarOpen(true);
         }
 
         setIsEditing(!isEditing);
@@ -301,7 +290,7 @@ const Lightbox: React.FC<IProps> = ({
     useEffect(() => {
         if (results?.[id]) {
             setResult(results[id]);
-            setTagsEditing(new Set(results[id]?.tags));
+            setTagsEditing(() => new Set(results[id]?.tags));
         }
     }, [id, results]);
 

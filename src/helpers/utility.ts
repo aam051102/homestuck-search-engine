@@ -89,6 +89,19 @@ export async function checkIsSignedIn() {
     });
 }
 
+export function compareArr<T>(a: T[], b: T[]) {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; i++) {
+        if (!b.includes(a[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /**
  * Signs the user out, removing their token
  */
@@ -120,7 +133,7 @@ export function focusElement(el?: HTMLInputElement | null) {
     }
 }
 
-export function createTagStructure(tags: ITags) {
+export function createTagStructure(tags: ITags, query?: string) {
     const definitions = tags.definitions;
     if (!definitions) return [];
 
@@ -144,11 +157,16 @@ export function createTagStructure(tags: ITags) {
 
     return createTagStructureRecursive(
         tags,
-        Object.keys(topTags).map((tag) => parseInt(tag))
+        Object.keys(topTags).map((tag) => parseInt(tag)),
+        query?.toLowerCase()
     );
 }
 
-function createTagStructureRecursive(tags: ITags, tagList?: number[]) {
+function createTagStructureRecursive(
+    tags: ITags,
+    tagList?: number[],
+    query?: string
+) {
     if (!tagList) return [];
 
     const tagStructure: ITagStructure[] = [];
@@ -157,12 +175,26 @@ function createTagStructureRecursive(tags: ITags, tagList?: number[]) {
     if (!definitions) return [];
 
     for (const tag of tagList) {
+        const recRes = createTagStructureRecursive(
+            tags,
+            definitions[tag].children,
+            query
+        );
+
+        const isSelfValid = query
+            ? definitions[tag].name.toLowerCase().includes(query)
+            : true;
+
+        const isValid = isSelfValid || recRes?.some((r) => r.valid);
+
+        if (!isValid) {
+            continue;
+        }
+
         tagStructure.push({
             id: tag,
-            children: createTagStructureRecursive(
-                tags,
-                definitions[tag].children
-            ),
+            children: recRes,
+            valid: isValid,
         });
     }
 

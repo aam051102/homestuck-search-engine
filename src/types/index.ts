@@ -10,7 +10,11 @@ export type ITags = {
     synonyms?: Record<string, { ref: number }>;
 };
 
-export type ITagStructure = { id: number; children: ITagStructure[] };
+export type ITagStructure = {
+    id: number;
+    children: ITagStructure[];
+    valid?: boolean;
+};
 
 /// Result tags
 export type IResultTags = Record<
