@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Home from "pages/Home";
 const Login = lazy(() => import("pages/Login"));
+const Tags = lazy(() => import("pages/Tags"));
 
 import "./index.scss";
 
@@ -17,6 +18,7 @@ ReactDOM.render(
                 <BrowserRouter>
                     <Routes>
                         <Route path={`${BASE}/`} element={<Home />} />
+                        <Route path={`${BASE}/tags`} element={<Tags />} />
                         <Route path={`${BASE}/login`} element={<Login />} />
                     </Routes>
                 </BrowserRouter>

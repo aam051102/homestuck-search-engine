@@ -14,7 +14,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: opacity 0.3s ease-in-out;
+        transition: opacity 100ms ease-in-out;
         color: $text-color;
         cursor: pointer;
         font-size: 1.5rem;
@@ -127,7 +127,7 @@
         margin: 1rem;
         color: $text-color;
         opacity: 0.75;
-        transition: opacity 0.3s ease-in-out;
+        transition: opacity 100ms ease-in-out;
 
         &:hover {
             opacity: 1;

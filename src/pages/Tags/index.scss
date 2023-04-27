@@ -1,0 +1,162 @@
+@import "assets/css/Colors";
+
+.tags-page {
+    .page-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-grow: 1;
+        flex-direction: column;
+        max-width: 95ch;
+    }
+
+    h1 {
+        margin-bottom: 1rem;
+    }
+
+    .tags-wrapper {
+        background-color: rgba($shadow-color, 0.75);
+        max-height: 40rem;
+        width: 100%;
+        padding: 2rem 1rem 2rem 1rem;
+        box-sizing: border-box;
+        overflow: auto;
+
+        .sidebar-text {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 1.5rem;
+            margin: 0;
+            font-size: 1rem;
+
+            .tag-details {
+                &[open] {
+                    & > .tag-title > .tag-dropdown-icon {
+                        transform: rotate(90deg);
+                    }
+                }
+            }
+
+            .tag-title {
+                display: flex;
+                align-items: center;
+                padding-right: 2.5rem;
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+
+                .tag-buttons {
+                    display: none;
+                    align-items: center;
+                    position: absolute;
+                    right: 0;
+                }
+
+                .tag-btn {
+                    font-size: 1.5rem;
+                    margin-right: 0.25rem;
+                    cursor: pointer;
+                    opacity: 0.75;
+                    transition: opacity 100ms ease-in-out;
+
+                    &.tag-drag-btn {
+                        cursor: grab;
+                    }
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+
+                .tag-title_text {
+                    margin-left: 1.5rem;
+                    white-space: pre;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                    transition: transform 0.15s ease-in-out;
+                }
+
+                &:hover {
+                    background-color: #ffffff09;
+                    cursor: pointer;
+                    color: white;
+
+                    .tag-title_text {
+                        transform: translateX(0.5rem);
+                    }
+
+                    .tag-buttons {
+                        display: flex;
+                    }
+                }
+
+                &.tag-title_summary {
+                    .tag-dropdown-icon {
+                        font-size: 1.5rem;
+                        position: absolute;
+                    }
+                }
+            }
+
+            .sidebar-text {
+                padding-left: 0.75rem;
+                position: relative;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    border-left: 1px solid rgba(90, 90, 90, 0.1);
+                    height: 100%;
+                    left: 0.75rem;
+                }
+            }
+
+            li {
+                position: relative;
+                color: #c6c6c6;
+                text-transform: capitalize;
+            }
+
+            details {
+                summary {
+                    list-style: none;
+                    outline: none;
+                    user-select: none;
+                }
+
+                &:not(:last-child) {
+                    margin-bottom: 1rem;
+                }
+            }
+        }
+    }
+
+    .controls-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+
+        & > div {
+            display: flex;
+            align-items: center;
+        }
+
+        .control-btn {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 100ms ease-in-out;
+            color: $text-color;
+            cursor: pointer;
+            font-size: 1.5rem;
+            opacity: 0.75;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}

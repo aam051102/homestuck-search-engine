@@ -590,18 +590,18 @@ function HomePage() {
                     if (search) search.value = "";
                 }}
             >
-                <ul className="sidebar-text focusable">
-                    <div className="tag-search-wrapper">
-                        <input
-                            type="text"
-                            className="tag-search-input"
-                            value={tagQuery}
-                            placeholder="Find tags"
-                            onChange={(e) => setTagQuery(e.target.value)}
-                        />
-                        <MdSearch className="tag-search-icon" />
-                    </div>
+                <div className="tag-search-wrapper">
+                    <input
+                        type="text"
+                        className="tag-search-input"
+                        value={tagQuery}
+                        placeholder="Find tags"
+                        onChange={(e) => setTagQuery(e.target.value)}
+                    />
+                    <MdSearch className="tag-search-icon" />
+                </div>
 
+                <ul className="sidebar-text focusable">
                     {tagListElements}
 
                     <hr />

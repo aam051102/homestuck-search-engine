@@ -7,6 +7,11 @@ import { IResult } from "types";
 export const [useResults, setResults] = createGlobalState<IResult[]>([]);
 
 /**
+ * Whether or not user is in editing mode
+ */
+export const [useIsEditing, setIsEditing] = createGlobalState<boolean>(false);
+
+/**
  * Whether or not user is signed in
  */
 export const [useIsSignedIn, setIsSignedIn] = createGlobalState<boolean>(false);

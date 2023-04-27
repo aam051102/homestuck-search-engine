@@ -9,14 +9,22 @@ import {
     MdSave,
     MdSearch,
 } from "react-icons/md";
-import { setResults, useIsSignedIn, useResults } from "helpers/globalState";
+import { AiFillTags } from "react-icons/ai";
+import {
+    setIsEditing,
+    setResults,
+    useIsEditing,
+    useIsSignedIn,
+    useResults,
+} from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 import { IResult, ITagStructure, ITags } from "types";
 import "./index.scss";
-import ENDPOINT from "helpers/endpoint";
+import ENDPOINT, { BASE_URL } from "helpers/endpoint";
 import { compareArr, getCookie } from "helpers/utility";
 import Dialog from "components/Dialog";
+import { Link } from "react-router-dom";
 
 type IProps = {
     id: number;
@@ -47,10 +55,10 @@ const Lightbox: React.FC<IProps> = ({
     // States
     const [isSignedIn] = useIsSignedIn();
     const [results] = useResults();
-    const [result, setResult] = useState<IResult | undefined>(results[id]);
+    const result = results[id];
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing] = useIsEditing();
     const [tagsEditing, setTagsEditing] = useState<Set<number>>(
         new Set(result?.tags)
     );
@@ -79,7 +87,6 @@ const Lightbox: React.FC<IProps> = ({
                     {
                         title: "Continue without saving",
                         callback: () => {
-                            toggleEditing();
                             loadNext();
                             setUnsavedChangesDialog(undefined);
                         },
@@ -93,10 +100,6 @@ const Lightbox: React.FC<IProps> = ({
                 ],
             });
         } else {
-            if (isEditing) {
-                toggleEditing();
-            }
-
             loadNext();
         }
     }
@@ -119,7 +122,6 @@ const Lightbox: React.FC<IProps> = ({
                     {
                         title: "Continue without saving",
                         callback: () => {
-                            toggleEditing();
                             loadPrevious();
                             setUnsavedChangesDialog(undefined);
                         },
@@ -133,10 +135,6 @@ const Lightbox: React.FC<IProps> = ({
                 ],
             });
         } else {
-            if (isEditing) {
-                toggleEditing();
-            }
-
             loadPrevious();
         }
     }
@@ -159,9 +157,7 @@ const Lightbox: React.FC<IProps> = ({
                     {
                         title: "Close",
                         callback: () => {
-                            toggleEditing();
                             closeLightbox();
-
                             setUnsavedChangesDialog(undefined);
                         },
                     },
@@ -174,10 +170,6 @@ const Lightbox: React.FC<IProps> = ({
                 ],
             });
         } else {
-            if (isEditing) {
-                toggleEditing();
-            }
-
             closeLightbox();
         }
     }
@@ -193,6 +185,7 @@ const Lightbox: React.FC<IProps> = ({
                         title: "Save & continue",
                         callback: async () => {
                             if (!(await saveEdits())) return;
+                            toggleEditing();
                             setUnsavedChangesDialog(undefined);
                         },
                     },
@@ -200,7 +193,6 @@ const Lightbox: React.FC<IProps> = ({
                         title: "Continue without saving",
                         callback: () => {
                             toggleEditing();
-
                             setUnsavedChangesDialog(undefined);
                         },
                     },
@@ -264,8 +256,6 @@ const Lightbox: React.FC<IProps> = ({
                     return newState;
                 });
 
-                toggleEditing();
-
                 return true;
             })
             .catch((e) => {
@@ -293,11 +283,10 @@ const Lightbox: React.FC<IProps> = ({
 
     // Effects
     useEffect(() => {
-        if (results?.[id]) {
-            setResult(results[id]);
-            setTagsEditing(() => new Set(results[id]?.tags));
+        if (result) {
+            setTagsEditing(() => new Set(result?.tags));
         }
-    }, [id, results]);
+    }, [result]);
 
     /// Event listeners
     useEventListener(
@@ -384,9 +373,11 @@ const Lightbox: React.FC<IProps> = ({
                                             e.preventDefault();
                                             e.stopPropagation();
 
-                                            if (!assetHasTag)
+                                            if (!assetHasTag) {
                                                 addTagToAsset(tag._id);
-                                            else removeTagFromAsset(tag._id);
+                                            } else {
+                                                removeTagFromAsset(tag._id);
+                                            }
                                         }}
                                         type="button"
                                         className="tag-add-btn"
@@ -408,9 +399,11 @@ const Lightbox: React.FC<IProps> = ({
                                         e.preventDefault();
                                         e.stopPropagation();
 
-                                        if (!assetHasTag)
+                                        if (!assetHasTag) {
                                             addTagToAsset(tag._id);
-                                        else removeTagFromAsset(tag._id);
+                                        } else {
+                                            removeTagFromAsset(tag._id);
+                                        }
                                     }}
                                     type="button"
                                     className="tag-add-btn"
@@ -517,6 +510,14 @@ const Lightbox: React.FC<IProps> = ({
                         >
                             <MdEdit />
                         </button>
+
+                        <Link
+                            to={`${BASE_URL}tags`}
+                            className="control-btn control-tags"
+                            data-testid="controls-tags-btn"
+                        >
+                            <AiFillTags />
+                        </Link>
                     </div>
                 ) : null}
 
@@ -551,22 +552,26 @@ const Lightbox: React.FC<IProps> = ({
                     onToggle={handleSidebarToggle}
                     isOpen={isSidebarOpen}
                 >
+                    {isEditing ? (
+                        <>
+                            <div className="tag-search-wrapper">
+                                <input
+                                    type="text"
+                                    className="tag-search-input"
+                                    value={tagQuery}
+                                    placeholder="Find tags"
+                                    onChange={(e) =>
+                                        setTagQuery(e.target.value)
+                                    }
+                                />
+                                <MdSearch className="tag-search-icon" />
+                            </div>
+                        </>
+                    ) : null}
+
                     <ul className="sidebar-text focusable">
                         {isEditing ? (
                             <>
-                                <div className="tag-search-wrapper">
-                                    <input
-                                        type="text"
-                                        className="tag-search-input"
-                                        value={tagQuery}
-                                        placeholder="Find tags"
-                                        onChange={(e) =>
-                                            setTagQuery(e.target.value)
-                                        }
-                                    />
-                                    <MdSearch className="tag-search-icon" />
-                                </div>
-
                                 {tagListElements}
 
                                 <hr />

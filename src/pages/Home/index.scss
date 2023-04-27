@@ -329,7 +329,7 @@
                     display: none;
                     cursor: pointer;
                     opacity: 0.75;
-                    transition: opacity 0.3s ease-in-out;
+                    transition: opacity 100ms ease-in-out;
 
                     &:hover {
                         opacity: 1;
