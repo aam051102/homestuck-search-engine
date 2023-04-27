@@ -204,3 +204,77 @@ function createTagStructureRecursive(
 
     return tagStructure;
 }
+
+export function createTagStructureFlat(tags: ITags, query?: string) {
+    const definitions = tags.definitions;
+    if (!definitions) return [];
+
+    // Find top-level tags
+    const topTags: Record<number, ITag> = {};
+    const childrenTags: Record<string, boolean> = {};
+
+    Object.keys(definitions).forEach((tag) => {
+        const parsedTag = parseInt(tag);
+
+        if (!childrenTags[parsedTag]) {
+            topTags[parsedTag] = definitions[parsedTag];
+        }
+
+        definitions[parsedTag].children?.forEach((child) => {
+            delete topTags[child];
+
+            childrenTags[child] = true;
+        });
+    });
+
+    return createTagStructureRecursiveFlat(
+        tags,
+        Object.keys(topTags).map((tag) => parseInt(tag)),
+        query?.toLowerCase()
+    );
+}
+
+function createTagStructureRecursiveFlat(
+    tags: ITags,
+    tagList?: number[],
+    query?: string,
+    isParentValid?: boolean
+) {
+    if (!tagList) return [];
+
+    const tagStructure: ITagStructure[] = [];
+
+    const definitions = tags.definitions;
+    if (!definitions) return [];
+
+    for (const tag of tagList) {
+        const isSelfValid =
+            isParentValid ||
+            (query
+                ? definitions[tag].name.toLowerCase().includes(query)
+                : true);
+
+        const recRes = createTagStructureRecursiveFlat(
+            tags,
+            definitions[tag].children,
+            query,
+            isSelfValid
+        );
+
+        const isValid = isSelfValid || recRes?.some((r) => r.valid);
+
+        if (!isValid) {
+            continue;
+        }
+
+        tagStructure.push({
+            id: tag,
+            children: recRes,
+            valid: isValid,
+        });
+
+        tagStructure.push(...recRes);
+    }
+
+    return tagStructure;
+}

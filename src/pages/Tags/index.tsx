@@ -75,8 +75,12 @@ function Tags() {
         };
     }, []);
 
-    const constructTagElements = (children: ITagStructure[]) => {
-        return children?.map((child) => {
+    // TODO: Flatten tagStructure and render correctly. Then start on buttons. Will make everything much easier.
+    const constructTagElements = (
+        children: ITagStructure[],
+        path: number[] = []
+    ) => {
+        return children?.map((child, index) => {
             const tag = tags.definitions?.[child.id];
 
             if (!tag) return null;
@@ -140,7 +144,10 @@ function Tags() {
                             </summary>
 
                             <ul className="sidebar-text focusable">
-                                {constructTagElements(child.children)}
+                                {constructTagElements(child.children, [
+                                    ...path,
+                                    index,
+                                ])}
                             </ul>
                         </details>
                     ) : (
