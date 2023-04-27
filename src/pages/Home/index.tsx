@@ -622,6 +622,8 @@ function HomePage() {
             </Sidebar>
 
             <Lightbox
+                tagQuery={tagQuery}
+                setTagQuery={setTagQuery}
                 closeLightbox={() => {
                     setParams({ query, page });
                 }}

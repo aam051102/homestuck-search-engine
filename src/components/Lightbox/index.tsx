@@ -7,6 +7,7 @@ import {
     MdEdit,
     MdRemove,
     MdSave,
+    MdSearch,
 } from "react-icons/md";
 import { setResults, useIsSignedIn, useResults } from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
@@ -25,6 +26,8 @@ type IProps = {
     loadNext: () => void;
     tags: ITags;
     tagStructure: ITagStructure[];
+    tagQuery: string;
+    setTagQuery: (value: string) => void;
 };
 
 /**
@@ -38,6 +41,8 @@ const Lightbox: React.FC<IProps> = ({
     closeLightbox,
     loadPrevious,
     loadNext,
+    tagQuery,
+    setTagQuery,
 }) => {
     // States
     const [isSignedIn] = useIsSignedIn();
@@ -298,7 +303,10 @@ const Lightbox: React.FC<IProps> = ({
     useEventListener(
         "keydown",
         (e) => {
-            if (visible) {
+            if (
+                visible &&
+                document.activeElement?.tagName.toLowerCase() !== "input"
+            ) {
                 if (e.key === "Escape") {
                     tryCloseLightbox();
                     return;
@@ -429,7 +437,7 @@ const Lightbox: React.FC<IProps> = ({
             onClick={(e) => {
                 const target = e.target as HTMLElement;
                 if (target.classList.contains("lightbox")) {
-                    closeLightbox();
+                    tryCloseLightbox();
                 }
             }}
         >
@@ -546,6 +554,19 @@ const Lightbox: React.FC<IProps> = ({
                     <ul className="sidebar-text focusable">
                         {isEditing ? (
                             <>
+                                <div className="tag-search-wrapper">
+                                    <input
+                                        type="text"
+                                        className="tag-search-input"
+                                        value={tagQuery}
+                                        placeholder="Find tags"
+                                        onChange={(e) =>
+                                            setTagQuery(e.target.value)
+                                        }
+                                    />
+                                    <MdSearch className="tag-search-icon" />
+                                </div>
+
                                 {tagListElements}
 
                                 <hr />

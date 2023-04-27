@@ -165,7 +165,8 @@ export function createTagStructure(tags: ITags, query?: string) {
 function createTagStructureRecursive(
     tags: ITags,
     tagList?: number[],
-    query?: string
+    query?: string,
+    isParentValid?: boolean
 ) {
     if (!tagList) return [];
 
@@ -175,15 +176,18 @@ function createTagStructureRecursive(
     if (!definitions) return [];
 
     for (const tag of tagList) {
+        const isSelfValid =
+            isParentValid ||
+            (query
+                ? definitions[tag].name.toLowerCase().includes(query)
+                : true);
+
         const recRes = createTagStructureRecursive(
             tags,
             definitions[tag].children,
-            query
+            query,
+            isSelfValid
         );
-
-        const isSelfValid = query
-            ? definitions[tag].name.toLowerCase().includes(query)
-            : true;
 
         const isValid = isSelfValid || recRes?.some((r) => r.valid);
 
