@@ -19,17 +19,18 @@ import {
     MdSave,
 } from "react-icons/md";
 import "./index.scss";
+import Dialog from "components/Dialog";
 
 type IChildTagProps = {
     tag: ITag;
     constructTagElements: (val: number[]) => (JSX.Element | null)[] | undefined;
-    setTagStructure: React.Dispatch<React.SetStateAction<ITags>>;
+    deleteTag: (id: number) => void;
 };
 
 const ChildTag: React.FC<IChildTagProps> = ({
     tag,
     constructTagElements,
-    setTagStructure,
+    deleteTag,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isEditing] = useIsEditing();
@@ -46,14 +47,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     e.stopPropagation();
 
                     // TODO: Delete with warning. Options: delete *, delete and move children up, cancel.
-                    setTagStructure((oldState) => {
-                        const newState = {
-                            definitions: { ...oldState.definitions },
-                            synonyms: oldState.synonyms,
-                        };
-                        delete newState.definitions?.[tag._id];
-                        return newState;
-                    });
+                    deleteTag(tag._id);
                 }}
                 type="button"
                 className="tag-btn tag-delete-btn"
@@ -199,7 +193,7 @@ function Tags() {
                 return (
                     <ChildTag
                         constructTagElements={constructTagElements}
-                        setTagStructure={setTagStructure}
+                        deleteTag={tryDeleteTag}
                         key={tag._id}
                         tag={tag}
                     />
@@ -236,6 +230,119 @@ function Tags() {
         );
     }, [tagStructure, constructTagElements]);
 
+    // Controls
+    const [savingDialog, setSavingDialog] = useState<
+        { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
+
+    const [toggleEditingDialog, setToggleEditingDialog] = useState<
+        { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
+
+    const [deleteTagDialog, setDeleteTagDialog] = useState<
+        { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
+
+    function deleteTag(id: number) {
+        setTagStructure((oldState) => {
+            const newState = {
+                definitions: { ...oldState.definitions },
+                synonyms: oldState.synonyms,
+            };
+            delete newState.definitions?.[id];
+            return newState;
+        });
+    }
+
+    function tryDeleteTag(id: number) {
+        setDeleteTagDialog({
+            buttons: [
+                {
+                    title: "Delete and move children up",
+                    callback: async () => {
+                        deleteTag(id);
+                        setDeleteTagDialog(undefined);
+                    },
+                },
+                {
+                    title: "Delete everything",
+                    callback: () => {
+                        deleteTag(id);
+                        setDeleteTagDialog(undefined);
+                    },
+                },
+                {
+                    title: "Cancel",
+                    callback: () => {
+                        setDeleteTagDialog(undefined);
+                    },
+                },
+            ],
+        });
+    }
+
+    async function saveEdits() {
+        // TODO
+        return true;
+    }
+
+    function hasUnsavedChanges() {
+        // TODO
+        return true;
+    }
+
+    function trySaveEdits() {
+        setSavingDialog({
+            buttons: [
+                {
+                    title: "Save",
+                    callback: async () => {
+                        if (!(await saveEdits())) return;
+                        setSavingDialog(undefined);
+                    },
+                },
+                {
+                    title: "Cancel",
+                    callback: () => {
+                        setSavingDialog(undefined);
+                    },
+                },
+            ],
+        });
+    }
+
+    async function tryToggleEditing() {
+        if (isEditing && hasUnsavedChanges()) {
+            setToggleEditingDialog({
+                buttons: [
+                    {
+                        title: "Save & continue",
+                        callback: async () => {
+                            if (!(await saveEdits())) return;
+                            setIsEditing(!isEditing);
+                            setToggleEditingDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Continue without saving",
+                        callback: () => {
+                            setIsEditing(!isEditing);
+                            setToggleEditingDialog(undefined);
+                        },
+                    },
+                    {
+                        title: "Cancel",
+                        callback: () => {
+                            setToggleEditingDialog(undefined);
+                        },
+                    },
+                ],
+            });
+        } else {
+            setIsEditing(!isEditing);
+        }
+    }
+
     return (
         <Layout className="tags-page" title="Homestuck Search Engine | Tags">
             <h1>Tag Hierarchy</h1>
@@ -245,30 +352,76 @@ function Tags() {
             <div className="controls-wrapper">
                 <div></div>
                 <div>
-                    <button
-                        type="button"
-                        className="control-btn control-save"
-                        data-testid="controls-save-btn"
-                        onClick={() => {
-                            // TODO: Warning about edits taking effect immediately. Are you sure?
-                            setIsEditing(false);
-                        }}
-                    >
-                        <MdSave />
-                    </button>
+                    {isEditing ? (
+                        <button
+                            type="button"
+                            className="control-btn control-save"
+                            data-testid="controls-save-btn"
+                            onClick={() => {
+                                trySaveEdits();
+                            }}
+                        >
+                            <MdSave />
+                        </button>
+                    ) : null}
 
                     <button
                         type="button"
                         className="control-btn control-edit"
                         data-testid="controls-edit-btn"
                         onClick={() => {
-                            setIsEditing(!isEditing);
+                            tryToggleEditing();
                         }}
                     >
                         <MdEdit />
                     </button>
                 </div>
             </div>
+
+            <Dialog
+                visible={!!savingDialog}
+                buttons={savingDialog?.buttons}
+                title="Are you sure?"
+            >
+                <p>
+                    Your changes will take effect immediately after saving.
+                    Deleting a tag will result in it being deleted on all
+                    assets. THIS IS IRREVERSIBLE.
+                </p>
+            </Dialog>
+
+            <Dialog
+                visible={!!toggleEditingDialog}
+                buttons={toggleEditingDialog?.buttons}
+                title="Unsaved changes"
+            >
+                <p>
+                    You have unsaved changes. If you do not save, you will lose
+                    them.
+                </p>
+                <p>
+                    WARNING: If you save, your changes will take effect
+                    immediately. Deleting a tag will result in it being deleted
+                    on all assets. THIS IS IRREVERSIBLE.
+                </p>
+            </Dialog>
+
+            <Dialog
+                visible={!!deleteTagDialog}
+                buttons={deleteTagDialog?.buttons}
+                title="Are you sure?"
+            >
+                <p>
+                    You are about to delete this tag and any children it may
+                    have. Alternatively, you may want to delete only this tag
+                    and move its children up to its current position.
+                </p>
+                <p>
+                    Be careful when deleting tags, as the removal of a tag will
+                    also result in its removal from all assets. This takes place
+                    upon saving.
+                </p>
+            </Dialog>
         </Layout>
     );
 }
