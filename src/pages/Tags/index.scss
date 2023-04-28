@@ -33,7 +33,7 @@
             .tag-details {
                 display: flex;
 
-                &[open] {
+                &.open {
                     & > .tag-title > .tag-dropdown-icon {
                         transform: rotate(90deg);
                     }

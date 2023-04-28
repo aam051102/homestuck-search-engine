@@ -90,7 +90,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
         <li>
             {tag.children?.length ? (
                 <>
-                    <div className="tag-details">
+                    <div className={`tag-details ${isOpen ? "open" : ""}`}>
                         {/* TODO: Move tagButtons out of button element */}
                         <button
                             type="button"
