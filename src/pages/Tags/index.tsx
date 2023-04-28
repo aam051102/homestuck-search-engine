@@ -1,10 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
-import { checkIsSignedIn, createTagStructure } from "helpers/utility";
-import { setIsSignedIn, useIsSignedIn } from "helpers/globalState";
+import { checkIsSignedIn } from "helpers/utility";
+import {
+    setIsEditing,
+    setIsSignedIn,
+    useIsEditing,
+    useIsSignedIn,
+} from "helpers/globalState";
 import Layout from "components/Layout";
-import { ITagStructure, ITags } from "types";
+import { ITag, ITags } from "types";
 import {
     MdAdd,
     MdChevronRight,
@@ -15,9 +20,118 @@ import {
 } from "react-icons/md";
 import "./index.scss";
 
+type IChildTagProps = {
+    tag: ITag;
+    constructTagElements: (val: number[]) => (JSX.Element | null)[] | undefined;
+    setTagStructure: React.Dispatch<React.SetStateAction<ITags>>;
+};
+
+const ChildTag: React.FC<IChildTagProps> = ({
+    tag,
+    constructTagElements,
+    setTagStructure,
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isEditing] = useIsEditing();
+
+    {
+        /* TODO: Add new. Use YX org list add locations. */
+    }
+
+    const tagButtons = isEditing ? (
+        <div className="tag-buttons">
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // TODO: Delete with warning. Options: delete *, delete and move children up, cancel.
+                    setTagStructure((oldState) => {
+                        const newState = {
+                            definitions: { ...oldState.definitions },
+                            synonyms: oldState.synonyms,
+                        };
+                        delete newState.definitions?.[tag._id];
+                        return newState;
+                    });
+                }}
+                type="button"
+                className="tag-btn tag-delete-btn"
+            >
+                <MdDelete />
+            </button>
+
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // TODO: Rename
+                }}
+                type="button"
+                className="tag-btn tag-edit-btn"
+            >
+                <MdEdit />
+            </button>
+
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // TODO: Add child
+                }}
+                type="button"
+                className="tag-btn tag-add-btn"
+            >
+                <MdAdd />
+            </button>
+
+            <div className="tag-btn tag-drag-btn">
+                <MdMoreVert />
+            </div>
+        </div>
+    ) : null;
+
+    return (
+        <li>
+            {tag.children?.length ? (
+                <>
+                    <div className="tag-details">
+                        {/* TODO: Move tagButtons out of button element */}
+                        <button
+                            type="button"
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="tag-title tag-title_summary"
+                        >
+                            <MdChevronRight className="tag-dropdown-icon" />
+                            <p className="tag-title_text">{tag.name}</p>
+
+                            {tagButtons}
+                        </button>
+                    </div>
+
+                    {isOpen ? (
+                        <ul className="sidebar-text focusable">
+                            {constructTagElements(tag.children)}
+                        </ul>
+                    ) : null}
+                </>
+            ) : (
+                <div className="tag-title">
+                    <p className="tag-title_text">{tag.name}</p>
+
+                    {tagButtons}
+                </div>
+            )}
+        </li>
+    );
+};
+
 function Tags() {
     const [isSignedIn] = useIsSignedIn();
     const navigate = useNavigate();
+    const [isEditing] = useIsEditing();
 
     useEffect(() => {
         (async () => {
@@ -38,10 +152,10 @@ function Tags() {
         synonyms: undefined,
         definitions: undefined,
     });
-    const [tagStructure, setTagStructure] = useState<ITagStructure[]>([]);
+    const [tagStructure, setTagStructure] = useState(tags);
 
     useEffect(() => {
-        setTagStructure(createTagStructure(tags));
+        setTagStructure(tags);
     }, [tags]);
 
     useEffect(() => {
@@ -75,99 +189,52 @@ function Tags() {
         };
     }, []);
 
-    // TODO: Flatten tagStructure and render correctly. Then start on buttons. Will make everything much easier.
-    const constructTagElements = (
-        children: ITagStructure[],
-        path: number[] = []
-    ) => {
-        return children?.map((child, index) => {
-            const tag = tags.definitions?.[child.id];
+    const constructTagElements = useCallback(
+        (children: number[]) => {
+            if (!tagStructure.definitions) return;
 
-            if (!tag) return null;
-
-            const tagButtons = (
-                <div className="tag-buttons">
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            // TODO: Delete with warning. Options: delete *, delete and move children up, cancel.
-                        }}
-                        type="button"
-                        className="tag-btn tag-delete-btn"
-                    >
-                        <MdDelete />
-                    </button>
-
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            // TODO: Rename
-                        }}
-                        type="button"
-                        className="tag-btn tag-edit-btn"
-                    >
-                        <MdEdit />
-                    </button>
-
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            // TODO: Add child
-                        }}
-                        type="button"
-                        className="tag-btn tag-add-btn"
-                    >
-                        <MdAdd />
-                    </button>
-
-                    <div className="tag-btn tag-drag-btn">
-                        <MdMoreVert />
-                    </div>
-                </div>
-            );
-
-            return (
-                <li key={tag._id}>
-                    {tag.children?.length ? (
-                        <details className="tag-details">
-                            <summary className="tag-title tag-title_summary">
-                                <MdChevronRight className="tag-dropdown-icon" />
-                                <p className="tag-title_text">{tag.name}</p>
-
-                                {tagButtons}
-                            </summary>
-
-                            <ul className="sidebar-text focusable">
-                                {constructTagElements(child.children, [
-                                    ...path,
-                                    index,
-                                ])}
-                            </ul>
-                        </details>
-                    ) : (
-                        <div className="tag-title">
-                            <p className="tag-title_text">{tag.name}</p>
-
-                            {tagButtons}
-
-                            {/* TODO: Add button to grab and button to rename both here and in details. Also add delete button with warning. How to add new? Use YX Org list add placements */}
-                        </div>
-                    )}
-                </li>
-            );
-        });
-    };
-
-    const tagListElements = useMemo(
-        () => (tags.definitions ? constructTagElements(tagStructure) : null),
-        [tags.definitions, tagStructure]
+            return children?.map((child) => {
+                const tag = tagStructure.definitions?.[child];
+                if (!tag) return null;
+                return (
+                    <ChildTag
+                        constructTagElements={constructTagElements}
+                        setTagStructure={setTagStructure}
+                        key={tag._id}
+                        tag={tag}
+                    />
+                );
+            });
+        },
+        [tagStructure.definitions]
     );
+
+    const tagListElements = useMemo(() => {
+        const definitions = tagStructure.definitions;
+        if (!definitions) return [];
+
+        // Find top-level tags
+        const topTags: Record<number, ITag> = {};
+        const childrenTags: Record<string, boolean> = {};
+
+        Object.keys(definitions).forEach((tag) => {
+            const parsedTag = parseInt(tag);
+
+            if (!childrenTags[parsedTag]) {
+                topTags[parsedTag] = definitions[parsedTag];
+            }
+
+            definitions[parsedTag].children?.forEach((child) => {
+                delete topTags[child];
+
+                childrenTags[child] = true;
+            });
+        });
+
+        return constructTagElements(
+            Object.keys(topTags).map((p) => parseInt(p))
+        );
+    }, [tagStructure, constructTagElements]);
 
     return (
         <Layout className="tags-page" title="Homestuck Search Engine | Tags">
@@ -183,7 +250,8 @@ function Tags() {
                         className="control-btn control-save"
                         data-testid="controls-save-btn"
                         onClick={() => {
-                            // TODO
+                            // TODO: Warning about edits taking effect immediately. Are you sure?
+                            setIsEditing(false);
                         }}
                     >
                         <MdSave />
@@ -194,7 +262,7 @@ function Tags() {
                         className="control-btn control-edit"
                         data-testid="controls-edit-btn"
                         onClick={() => {
-                            // TODO
+                            setIsEditing(!isEditing);
                         }}
                     >
                         <MdEdit />

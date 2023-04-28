@@ -1,7 +1,7 @@
 import ENDPOINT from "helpers/endpoint";
 import { setDialog } from "helpers/globalState";
 import { setIsSignedIn } from "helpers/globalState";
-import { ITag, ITagStructure, ITags } from "types";
+import { ITag, ITagStructure, ITagStructureFlat, ITags } from "types";
 
 function setCookie(params: {
     name: string;
@@ -238,11 +238,12 @@ function createTagStructureRecursiveFlat(
     tags: ITags,
     tagList?: number[],
     query?: string,
-    isParentValid?: boolean
+    isParentValid = false,
+    path: number[] = []
 ) {
     if (!tagList) return [];
 
-    const tagStructure: ITagStructure[] = [];
+    const tagStructure: ITagStructureFlat[] = [];
 
     const definitions = tags.definitions;
     if (!definitions) return [];
@@ -258,7 +259,8 @@ function createTagStructureRecursiveFlat(
             tags,
             definitions[tag].children,
             query,
-            isSelfValid
+            isSelfValid,
+            [...path, tag]
         );
 
         const isValid = isSelfValid || recRes?.some((r) => r.valid);
@@ -268,8 +270,8 @@ function createTagStructureRecursiveFlat(
         }
 
         tagStructure.push({
+            key: (path?.join(".") ?? "") + tag,
             id: tag,
-            children: recRes,
             valid: isValid,
         });
 

@@ -31,6 +31,8 @@
             font-size: 1rem;
 
             .tag-details {
+                display: flex;
+
                 &[open] {
                     & > .tag-title > .tag-dropdown-icon {
                         transform: rotate(90deg);
@@ -44,6 +46,7 @@
                 padding-right: 2.5rem;
                 padding-top: 0.25rem;
                 padding-bottom: 0.25rem;
+                flex-grow: 1;
 
                 .tag-buttons {
                     display: none;
