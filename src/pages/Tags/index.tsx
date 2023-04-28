@@ -25,19 +25,19 @@ type IChildTagProps = {
     tag: ITag;
     constructTagElements: (val: number[]) => (JSX.Element | null)[] | undefined;
     deleteTag: (id: number) => void;
+    renameTag: (id: number) => void;
+    addChildToTag: (id: number) => void;
 };
 
 const ChildTag: React.FC<IChildTagProps> = ({
     tag,
     constructTagElements,
     deleteTag,
+    renameTag,
+    addChildToTag,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isEditing] = useIsEditing();
-
-    {
-        /* TODO: Add new. Use YX org list add locations. */
-    }
 
     const tagButtons = isEditing ? (
         <div className="tag-buttons">
@@ -46,7 +46,6 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // TODO: Delete with warning. Options: delete *, delete and move children up, cancel.
                     deleteTag(tag._id);
                 }}
                 type="button"
@@ -60,7 +59,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // TODO: Rename
+                    renameTag(tag._id);
                 }}
                 type="button"
                 className="tag-btn tag-edit-btn"
@@ -73,7 +72,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // TODO: Add child
+                    addChildToTag(tag._id);
                 }}
                 type="button"
                 className="tag-btn tag-add-btn"
@@ -194,6 +193,8 @@ function Tags() {
                     <ChildTag
                         constructTagElements={constructTagElements}
                         deleteTag={tryDeleteTag}
+                        renameTag={(id) => setRenameTagDialog({ id })}
+                        addChildToTag={(id) => setCreateTagDialog({ id })}
                         key={tag._id}
                         tag={tag}
                     />
@@ -241,6 +242,14 @@ function Tags() {
 
     const [deleteTagDialog, setDeleteTagDialog] = useState<
         { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
+
+    const [renameTagDialog, setRenameTagDialog] = useState<
+        { id: number } | undefined
+    >(undefined);
+
+    const [createTagDialog, setCreateTagDialog] = useState<
+        { id: number } | undefined
     >(undefined);
 
     function deleteTag(id: number) {
@@ -421,6 +430,43 @@ function Tags() {
                     also result in its removal from all assets. This takes place
                     upon saving.
                 </p>
+            </Dialog>
+
+            <Dialog visible={!!renameTagDialog} title="Rename tag">
+                {renameTagDialog ? (
+                    <form>
+                        <input
+                            type="text"
+                            value={
+                                tagStructure.definitions?.[
+                                    renameTagDialog?.id as number
+                                ].name
+                            }
+                        />
+
+                        <button type="button">Save</button>
+                        <button type="button">Cancel</button>
+                    </form>
+                ) : null}
+            </Dialog>
+
+            <Dialog visible={!!createTagDialog} title="Create tag">
+                {createTagDialog ? (
+                    <form>
+                        <p>
+                            You are about to add a tag as a child of{" "}
+                            {
+                                tagStructure.definitions?.[createTagDialog.id]
+                                    .name
+                            }
+                        </p>
+
+                        <input type="text" />
+
+                        <button type="button">Save</button>
+                        <button type="button">Cancel</button>
+                    </form>
+                ) : null}
             </Dialog>
         </Layout>
     );

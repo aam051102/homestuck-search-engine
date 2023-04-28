@@ -26,9 +26,9 @@ const Dialog: React.FC<IProps> = (props) => {
                     <p className="dialog-title">{props.title}</p>
                     <p className="dialog-content">{props.children}</p>
 
-                    <div className="dialog-button-wrapper">
-                        {props.buttons ? (
-                            props.buttons.map((button) => (
+                    {props.buttons?.length ? (
+                        <div className="dialog-button-wrapper">
+                            {props.buttons.map((button) => (
                                 <button
                                     key={button.title}
                                     className="dialog-btn"
@@ -40,16 +40,9 @@ const Dialog: React.FC<IProps> = (props) => {
                                 >
                                     {button.title}
                                 </button>
-                            ))
-                        ) : (
-                            <button
-                                className="dialog-close"
-                                onClick={handleCloseBtnClick}
-                            >
-                                Close
-                            </button>
-                        )}
-                    </div>
+                            ))}
+                        </div>
+                    ) : null}
                 </div>
             </div>
         </div>
