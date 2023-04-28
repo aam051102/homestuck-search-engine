@@ -126,39 +126,46 @@ const ChildTag: React.FC<IChildTagProps> = ({
     );
 };
 
-type IRenameTagDialogForm = {
+type IEditTagDialogForm = {
     name: string;
 };
 
-type IRenameTagDialogProps = {
+const editTagDialogFormDefaultValues = { name: null };
+
+type IEditTagDialogProps = {
     isOpen: boolean;
+    mode?: "create" | "edit";
     setIsOpen: (val: boolean) => void;
-    defaultValues?: Nullable<IRenameTagDialogForm>;
-    onSubmit: (data: IRenameTagDialogForm) => boolean | Promise<boolean>;
+    defaultValues?: Partial<Nullable<IEditTagDialogForm>>;
+    onSubmit: (data: IEditTagDialogForm) => boolean | Promise<boolean>;
 };
 
-const RenameTagDialog: React.FC<IRenameTagDialogProps> = ({
+const EditTagDialog: React.FC<IEditTagDialogProps> = ({
     isOpen,
     defaultValues,
     onSubmit,
     setIsOpen,
+    mode,
 }) => {
     const { handleSubmit, control, reset } = useForm<
-        Nullable<IRenameTagDialogForm>
+        Nullable<IEditTagDialogForm>
     >({
-        defaultValues,
+        defaultValues: { ...editTagDialogFormDefaultValues, ...defaultValues },
     });
 
     useEffect(() => {
-        reset(defaultValues);
-    }, [isOpen, reset]);
+        reset({ ...editTagDialogFormDefaultValues, ...defaultValues });
+    }, [isOpen, reset, isOpen]);
 
     return (
-        <Dialog visible={isOpen} title="Rename tag">
+        <Dialog
+            visible={isOpen}
+            title={mode === "create" ? "Create tag" : "Edit tag"}
+        >
             <form
-                id="renameTag"
+                id="editTag"
                 onSubmit={handleSubmit(async (data) => {
-                    await onSubmit(data as IRenameTagDialogForm);
+                    await onSubmit(data as IEditTagDialogForm);
                     setIsOpen(false);
                 })}
                 noValidate
@@ -169,9 +176,9 @@ const RenameTagDialog: React.FC<IRenameTagDialogProps> = ({
                     render={({ field }) => (
                         <input
                             type="text"
-                            id={`renameTag.${field.name}`}
+                            id={`editTag.${field.name}`}
                             name={field.name}
-                            value={field.value ?? undefined}
+                            value={field.value ?? ""}
                             onChange={(e) => field.onChange(e.target.value)}
                         />
                     )}
@@ -180,7 +187,7 @@ const RenameTagDialog: React.FC<IRenameTagDialogProps> = ({
 
                 <div className="dialog-button-wrapper">
                     <button className="dialog-btn" type="submit">
-                        Save
+                        {mode === "create" ? "Create" : "Save"}
                     </button>
                     <button
                         className="dialog-btn"
@@ -268,13 +275,19 @@ function Tags() {
                         constructTagElements={constructTagElements}
                         deleteTag={tryDeleteTag}
                         renameTag={(id) =>
-                            setRenameTagDialog({
-                                data: { id },
+                            setEditTagDialog({
+                                data: { id, mode: "edit" },
                                 visible: true,
                                 defaultValues: { name: tag.name },
                             })
                         }
-                        addChildToTag={(id) => setCreateTagDialog({ id })}
+                        addChildToTag={(id) =>
+                            setEditTagDialog({
+                                data: { id, mode: "create" },
+                                visible: true,
+                                defaultValues: { name: null },
+                            })
+                        }
                         key={tag._id}
                         tag={tag}
                     />
@@ -324,15 +337,11 @@ function Tags() {
         { buttons?: { title?: string; callback?: () => void }[] } | undefined
     >(undefined);
 
-    const [renameTagDialog, setRenameTagDialog] = useState<{
+    const [editTagDialog, setEditTagDialog] = useState<{
         visible: boolean;
-        defaultValues?: Nullable<IRenameTagDialogForm>;
-        data?: { id: number };
+        defaultValues?: Nullable<IEditTagDialogForm>;
+        data?: { id?: number; mode: "create" | "edit"; parentId?: number };
     }>({ visible: false });
-
-    const [createTagDialog, setCreateTagDialog] = useState<
-        { id: number } | undefined
-    >(undefined);
 
     function deleteTag(id: number) {
         setTagStructure((oldState) => {
@@ -514,9 +523,10 @@ function Tags() {
                 </p>
             </Dialog>
 
-            <RenameTagDialog
-                isOpen={!!renameTagDialog?.visible}
-                defaultValues={renameTagDialog?.defaultValues}
+            <EditTagDialog
+                isOpen={!!editTagDialog?.visible}
+                defaultValues={editTagDialog?.defaultValues}
+                mode={editTagDialog.data?.mode}
                 onSubmit={(data) => {
                     setTagStructure((oldState) => {
                         const newState = {
@@ -524,47 +534,30 @@ function Tags() {
                             synonyms: oldState.synonyms,
                         };
 
-                        newState.definitions[
-                            renameTagDialog?.data?.id as number
-                        ].name = data.name;
+                        if (editTagDialog.data?.mode === "create") {
+                            const newId = new Date().getTime();
 
-                        /*const newId = new Date().getTime();
+                            newState.definitions[newId] = {
+                                _id: newId,
+                                name: data.name,
+                            };
 
-                        newState.definitions[newId] = {
-                            _id: newId,
-                            name: data.name,
-                        };
-
-                        newState.definitions[
-                            renameTagDialog?.data.id as number
-                        ].children?.push(0);*/
+                            newState.definitions[
+                                editTagDialog?.data.id as number
+                            ].children?.push(newId);
+                        } else {
+                            newState.definitions[
+                                editTagDialog?.data?.id as number
+                            ].name = data.name;
+                        }
 
                         return newState;
                     });
 
                     return true;
                 }}
-                setIsOpen={() => setRenameTagDialog({ visible: false })}
+                setIsOpen={() => setEditTagDialog({ visible: false })}
             />
-
-            <Dialog visible={!!createTagDialog} title="Create tag">
-                {createTagDialog ? (
-                    <form>
-                        <p>
-                            You are about to add a tag as a child of{" "}
-                            {
-                                tagStructure.definitions?.[createTagDialog.id]
-                                    .name
-                            }
-                        </p>
-
-                        <input type="text" />
-
-                        <button type="button">Save</button>
-                        <button type="button">Cancel</button>
-                    </form>
-                ) : null}
-            </Dialog>
         </Layout>
     );
 }

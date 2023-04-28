@@ -24,7 +24,7 @@ const Dialog: React.FC<IProps> = (props) => {
             <div className="dialog-outer">
                 <div className="dialog">
                     <p className="dialog-title">{props.title}</p>
-                    <p className="dialog-content">{props.children}</p>
+                    <div className="dialog-content">{props.children}</div>
 
                     {props.buttons?.length ? (
                         <div className="dialog-button-wrapper">
