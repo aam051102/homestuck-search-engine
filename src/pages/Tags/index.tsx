@@ -348,7 +348,7 @@ function Tags() {
 
     const [editTagDialog, setEditTagDialog] = useState<{
         visible: boolean;
-        defaultValues?: Nullable<IEditTagDialogForm>;
+        defaultValues?: Partial<Nullable<IEditTagDialogForm>>;
         data?: { id?: number; mode: "create" | "edit" };
     }>({ visible: false });
 
@@ -360,6 +360,60 @@ function Tags() {
     function hasUnsavedChanges() {
         // TODO
         return true;
+    }
+
+    /**
+     * Delets a tag
+     * @param id ID of tag to delete
+     * @param parentId ID of parent tag. -1 for no parent.
+     * @param keepChildren Whether or not to move the children of the tag up to the parent tag
+     */
+    function deleteTag(id: number, parentId: number, keepChildren: boolean) {
+        setTagStructure((oldState) => {
+            const newState = {
+                definitions: { ...oldState.definitions },
+                synonyms: oldState.synonyms,
+            };
+
+            if (parentId !== -1) {
+                newState.definitions[parentId] = {
+                    ...newState.definitions?.[parentId],
+                };
+                const parent = newState.definitions[parentId];
+
+                const childIndex = parent.children?.findIndex(
+                    (child) => child === id
+                );
+                if (childIndex !== undefined) {
+                    parent.children = [...(parent.children ?? [])];
+                    parent.children?.splice(childIndex, 1);
+
+                    if (keepChildren) {
+                        parent.children?.push(
+                            ...(newState.definitions?.[id as number].children ??
+                                [])
+                        );
+                    }
+                }
+            } else {
+                if (keepChildren) {
+                    const children = newState.definitions[id].children ?? [];
+
+                    for (let i = 0; i < children.length; i++) {
+                        delete newState.definitions[children[i]];
+                    }
+                }
+
+                delete newState.definitions[id];
+            }
+
+            // TODO: Figure out whether or not to delete definition.
+            /*delete newState.definitions?.[
+                deleteTagDialog.data?.id as number
+            ];*/
+
+            return newState;
+        });
     }
 
     function trySaveEdits() {
@@ -424,16 +478,33 @@ function Tags() {
                 <div></div>
                 <div>
                     {isEditing ? (
-                        <button
-                            type="button"
-                            className="control-btn control-save"
-                            data-testid="controls-save-btn"
-                            onClick={() => {
-                                trySaveEdits();
-                            }}
-                        >
-                            <MdSave />
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                className="control-btn control-save"
+                                data-testid="controls-save-btn"
+                                onClick={() => {
+                                    setEditTagDialog({
+                                        visible: true,
+                                        data: { mode: "create" },
+                                        defaultValues: { name: null },
+                                    });
+                                }}
+                            >
+                                <MdAdd />
+                            </button>
+
+                            <button
+                                type="button"
+                                className="control-btn control-save"
+                                data-testid="controls-save-btn"
+                                onClick={() => {
+                                    trySaveEdits();
+                                }}
+                            >
+                                <MdSave />
+                            </button>
+                        </>
                     ) : null}
 
                     <button
@@ -483,35 +554,11 @@ function Tags() {
                     {
                         title: "Delete all",
                         callback: () => {
-                            setTagStructure((oldState) => {
-                                const newState = {
-                                    definitions: { ...oldState.definitions },
-                                    synonyms: oldState.synonyms,
-                                };
-                                const parentId = deleteTagDialog.data
-                                    ?.parentId as number;
-
-                                newState.definitions[parentId] = {
-                                    ...newState.definitions?.[parentId],
-                                };
-                                const parent = newState.definitions?.[parentId];
-                                const childIndex = parent.children?.findIndex(
-                                    (child) =>
-                                        child === deleteTagDialog.data?.id
-                                );
-                                if (childIndex !== undefined) {
-                                    parent.children = [
-                                        ...(parent.children ?? []),
-                                    ];
-                                    parent.children?.splice(childIndex, 1);
-                                }
-
-                                /*delete newState.definitions?.[
-                                    deleteTagDialog.data?.id as number
-                                ];*/
-
-                                return newState;
-                            });
+                            deleteTag(
+                                deleteTagDialog.data?.id as number,
+                                deleteTagDialog.data?.parentId ?? -1,
+                                false
+                            );
 
                             setDeleteTagDialog({ visible: false });
                         },
@@ -519,42 +566,11 @@ function Tags() {
                     {
                         title: "Delete and move children up",
                         callback: () => {
-                            setTagStructure((oldState) => {
-                                const newState = {
-                                    definitions: { ...oldState.definitions },
-                                    synonyms: oldState.synonyms,
-                                };
-                                const parentId = deleteTagDialog.data
-                                    ?.parentId as number;
-
-                                newState.definitions[parentId] = {
-                                    ...newState.definitions?.[parentId],
-                                };
-                                const parent = newState.definitions[parentId];
-
-                                const childIndex = parent.children?.findIndex(
-                                    (child) =>
-                                        child === deleteTagDialog.data?.id
-                                );
-                                if (childIndex !== undefined) {
-                                    parent.children = [
-                                        ...(parent.children ?? []),
-                                    ];
-                                    parent.children?.splice(childIndex, 1);
-                                    parent.children?.push(
-                                        ...(newState.definitions?.[
-                                            deleteTagDialog.data?.id as number
-                                        ].children ?? [])
-                                    );
-                                }
-
-                                // TODO: Figure out whether or not to delete definition.
-                                /*delete newState.definitions?.[
-                                    deleteTagDialog.data?.id as number
-                                ];*/
-
-                                return newState;
-                            });
+                            deleteTag(
+                                deleteTagDialog.data?.id as number,
+                                deleteTagDialog.data?.parentId ?? -1,
+                                true
+                            );
                             setDeleteTagDialog({ visible: false });
                         },
                     },
@@ -584,13 +600,16 @@ function Tags() {
                 defaultValues={editTagDialog?.defaultValues}
                 mode={editTagDialog.data?.mode}
                 onSubmit={(data) => {
+                    const editTagDialogData = { ...editTagDialog?.data };
+                    console.log(editTagDialogData);
+
                     setTagStructure((oldState) => {
                         const newState = {
                             definitions: { ...oldState.definitions },
                             synonyms: oldState.synonyms,
                         };
 
-                        if (editTagDialog.data?.mode === "create") {
+                        if (editTagDialogData.mode === "create") {
                             const newId = new Date().getTime();
 
                             newState.definitions[newId] = {
@@ -598,12 +617,33 @@ function Tags() {
                                 name: data.name,
                             };
 
-                            newState.definitions[
-                                editTagDialog?.data.id as number
-                            ].children?.push(newId);
+                            if (editTagDialogData.id) {
+                                newState.definitions[editTagDialogData.id] = {
+                                    ...newState.definitions[
+                                        editTagDialogData.id
+                                    ],
+                                };
+
+                                newState.definitions[
+                                    editTagDialogData.id
+                                ].children = [
+                                    ...(newState.definitions[
+                                        editTagDialogData.id
+                                    ].children ?? []),
+                                    newId,
+                                ];
+                            }
                         } else {
                             newState.definitions[
-                                editTagDialog?.data?.id as number
+                                editTagDialogData.id as number
+                            ] = {
+                                ...newState.definitions[
+                                    editTagDialogData.id as number
+                                ],
+                            };
+
+                            newState.definitions[
+                                editTagDialogData.id as number
                             ].name = data.name;
                         }
 
