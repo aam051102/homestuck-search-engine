@@ -99,7 +99,6 @@ const ChildTag: React.FC<IChildTagProps> = ({
             {tag.children?.length ? (
                 <>
                     <div className={`tag-details ${isOpen ? "open" : ""}`}>
-                        {/* TODO: Move tagButtons out of button element */}
                         <button
                             type="button"
                             onClick={() => setIsOpen(!isOpen)}
@@ -107,9 +106,9 @@ const ChildTag: React.FC<IChildTagProps> = ({
                         >
                             <MdChevronRight className="tag-dropdown-icon" />
                             <p className="tag-title_text">{tag.name}</p>
-
-                            {tagButtons}
                         </button>
+
+                        {tagButtons}
                     </div>
 
                     {isOpen ? (
@@ -160,46 +159,54 @@ const EditTagDialog: React.FC<IEditTagDialogProps> = ({
         reset({ ...editTagDialogFormDefaultValues, ...defaultValues });
     }, [isOpen, reset, isOpen]);
 
+    const submitCallback = handleSubmit(async (data) => {
+        await onSubmit(data as IEditTagDialogForm);
+        setIsOpen(false);
+    });
+
     return (
         <Dialog
             visible={isOpen}
             title={mode === "create" ? "Create tag" : "Edit tag"}
+            buttons={[
+                {
+                    title: mode === "create" ? "Create" : "Save",
+                    callback: () => {
+                        submitCallback();
+                    },
+                },
+                {
+                    title: "Cancel",
+                    callback: () => {
+                        setIsOpen(false);
+                    },
+                },
+            ]}
         >
-            <form
-                id="editTag"
-                onSubmit={handleSubmit(async (data) => {
-                    await onSubmit(data as IEditTagDialogForm);
-                    setIsOpen(false);
-                })}
-                noValidate
-            >
+            <form id="editTag" onSubmit={submitCallback} noValidate>
                 <Controller
                     name="name"
                     control={control}
                     render={({ field }) => (
-                        <input
-                            type="text"
-                            id={`editTag.${field.name}`}
-                            name={field.name}
-                            value={field.value ?? ""}
-                            onChange={(e) => field.onChange(e.target.value)}
-                        />
+                        <div>
+                            <label
+                                className="input-label"
+                                htmlFor={`editTag.${field.name}`}
+                            >
+                                Name:
+                            </label>
+                            <input
+                                className="input-field_text"
+                                type="text"
+                                id={`editTag.${field.name}`}
+                                name={field.name}
+                                value={field.value ?? ""}
+                                onChange={(e) => field.onChange(e.target.value)}
+                            />
+                        </div>
                     )}
                     rules={{ required: true }}
                 />
-
-                <div className="dialog-button-wrapper">
-                    <button className="dialog-btn" type="submit">
-                        {mode === "create" ? "Create" : "Save"}
-                    </button>
-                    <button
-                        className="dialog-btn"
-                        type="button"
-                        onClick={() => setIsOpen(false)}
-                    >
-                        Cancel
-                    </button>
-                </div>
             </form>
         </Dialog>
     );
@@ -601,7 +608,6 @@ function Tags() {
                 mode={editTagDialog.data?.mode}
                 onSubmit={(data) => {
                     const editTagDialogData = { ...editTagDialog?.data };
-                    console.log(editTagDialogData);
 
                     setTagStructure((oldState) => {
                         const newState = {

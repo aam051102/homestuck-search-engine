@@ -20,3 +20,29 @@
         font-size: 1rem;
     }
 }
+
+.input-label {
+    font: inherit;
+    font-size: 1rem;
+}
+
+.input-field_text {
+    background: #ffffff;
+    padding: 0.5rem 1rem;
+    font: inherit;
+    border: 0;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus-visible {
+        outline: 0;
+        outline-style: solid;
+        outline-width: 0.1rem;
+        outline-offset: 0.1rem;
+        outline-color: #ffffff;
+    }
+
+    &::placeholder {
+        color: #a0a0a0;
+    }
+}

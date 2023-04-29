@@ -1,4 +1,5 @@
 @import "assets/css/Colors";
+@import "assets/css/Form";
 
 .tags-page {
     .page-content {
@@ -38,22 +39,19 @@
                         transform: rotate(90deg);
                     }
                 }
+
+                &:hover {
+                    .tag-buttons {
+                        display: flex;
+                    }
+                }
             }
 
-            .tag-title {
-                display: flex;
+            .tag-buttons {
+                display: none;
                 align-items: center;
-                padding-right: 2.5rem;
-                padding-top: 0.25rem;
-                padding-bottom: 0.25rem;
-                flex-grow: 1;
-
-                .tag-buttons {
-                    display: none;
-                    align-items: center;
-                    position: absolute;
-                    right: 0;
-                }
+                position: absolute;
+                right: 0;
 
                 .tag-btn {
                     font-size: 1.5rem;
@@ -70,6 +68,15 @@
                         opacity: 1;
                     }
                 }
+            }
+
+            .tag-title {
+                display: flex;
+                align-items: center;
+                padding-right: 2.5rem;
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+                flex-grow: 1;
 
                 .tag-title_text {
                     margin-left: 1.5rem;
@@ -140,10 +147,12 @@
         align-items: center;
         justify-content: space-between;
         width: 100%;
+        margin-top: 1rem;
 
         & > div {
             display: flex;
             align-items: center;
+            background-color: rgba($shadow-color, 0.75);
         }
 
         .control-btn {
