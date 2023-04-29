@@ -28,7 +28,10 @@ type Nullable<T> = {
 
 type IChildTagProps = {
     tag: ITag;
-    constructTagElements: (val: number[]) => (JSX.Element | null)[] | undefined;
+    constructTagElements: (
+        val: number[],
+        parentId?: number
+    ) => (JSX.Element | null)[] | undefined;
     deleteTag: (id: number) => void;
     renameTag: (id: number) => void;
     addChildToTag: (id: number) => void;
@@ -111,7 +114,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
 
                     {isOpen ? (
                         <ul className="sidebar-text focusable">
-                            {constructTagElements(tag.children)}
+                            {constructTagElements(tag.children, tag._id)}
                         </ul>
                     ) : null}
                 </>
@@ -264,7 +267,7 @@ function Tags() {
     }, []);
 
     const constructTagElements = useCallback(
-        (children: number[]) => {
+        (children: number[], parentId?: number) => {
             if (!tagStructure.definitions) return;
 
             return children?.map((child) => {
@@ -273,7 +276,12 @@ function Tags() {
                 return (
                     <ChildTag
                         constructTagElements={constructTagElements}
-                        deleteTag={tryDeleteTag}
+                        deleteTag={(id) =>
+                            setDeleteTagDialog({
+                                data: { id, parentId },
+                                visible: true,
+                            })
+                        }
                         renameTag={(id) =>
                             setEditTagDialog({
                                 data: { id, mode: "edit" },
@@ -333,53 +341,16 @@ function Tags() {
         { buttons?: { title?: string; callback?: () => void }[] } | undefined
     >(undefined);
 
-    const [deleteTagDialog, setDeleteTagDialog] = useState<
-        { buttons?: { title?: string; callback?: () => void }[] } | undefined
-    >(undefined);
+    const [deleteTagDialog, setDeleteTagDialog] = useState<{
+        visible: boolean;
+        data?: { id: number; parentId?: number };
+    }>({ visible: false });
 
     const [editTagDialog, setEditTagDialog] = useState<{
         visible: boolean;
         defaultValues?: Nullable<IEditTagDialogForm>;
-        data?: { id?: number; mode: "create" | "edit"; parentId?: number };
+        data?: { id?: number; mode: "create" | "edit" };
     }>({ visible: false });
-
-    function deleteTag(id: number) {
-        setTagStructure((oldState) => {
-            const newState = {
-                definitions: { ...oldState.definitions },
-                synonyms: oldState.synonyms,
-            };
-            delete newState.definitions?.[id];
-            return newState;
-        });
-    }
-
-    function tryDeleteTag(id: number) {
-        setDeleteTagDialog({
-            buttons: [
-                {
-                    title: "Delete and move children up",
-                    callback: async () => {
-                        deleteTag(id);
-                        setDeleteTagDialog(undefined);
-                    },
-                },
-                {
-                    title: "Delete everything",
-                    callback: () => {
-                        deleteTag(id);
-                        setDeleteTagDialog(undefined);
-                    },
-                },
-                {
-                    title: "Cancel",
-                    callback: () => {
-                        setDeleteTagDialog(undefined);
-                    },
-                },
-            ],
-        });
-    }
 
     async function saveEdits() {
         // TODO
@@ -507,8 +478,93 @@ function Tags() {
             </Dialog>
 
             <Dialog
-                visible={!!deleteTagDialog}
-                buttons={deleteTagDialog?.buttons}
+                visible={deleteTagDialog.visible}
+                buttons={[
+                    {
+                        title: "Delete all",
+                        callback: () => {
+                            setTagStructure((oldState) => {
+                                const newState = {
+                                    definitions: { ...oldState.definitions },
+                                    synonyms: oldState.synonyms,
+                                };
+                                const parentId = deleteTagDialog.data
+                                    ?.parentId as number;
+
+                                newState.definitions[parentId] = {
+                                    ...newState.definitions?.[parentId],
+                                };
+                                const parent = newState.definitions?.[parentId];
+                                const childIndex = parent.children?.findIndex(
+                                    (child) =>
+                                        child === deleteTagDialog.data?.id
+                                );
+                                if (childIndex !== undefined) {
+                                    parent.children = [
+                                        ...(parent.children ?? []),
+                                    ];
+                                    parent.children?.splice(childIndex, 1);
+                                }
+
+                                /*delete newState.definitions?.[
+                                    deleteTagDialog.data?.id as number
+                                ];*/
+
+                                return newState;
+                            });
+
+                            setDeleteTagDialog({ visible: false });
+                        },
+                    },
+                    {
+                        title: "Delete and move children up",
+                        callback: () => {
+                            setTagStructure((oldState) => {
+                                const newState = {
+                                    definitions: { ...oldState.definitions },
+                                    synonyms: oldState.synonyms,
+                                };
+                                const parentId = deleteTagDialog.data
+                                    ?.parentId as number;
+
+                                newState.definitions[parentId] = {
+                                    ...newState.definitions?.[parentId],
+                                };
+                                const parent = newState.definitions[parentId];
+
+                                const childIndex = parent.children?.findIndex(
+                                    (child) =>
+                                        child === deleteTagDialog.data?.id
+                                );
+                                if (childIndex !== undefined) {
+                                    parent.children = [
+                                        ...(parent.children ?? []),
+                                    ];
+                                    parent.children?.splice(childIndex, 1);
+                                    parent.children?.push(
+                                        ...(newState.definitions?.[
+                                            deleteTagDialog.data?.id as number
+                                        ].children ?? [])
+                                    );
+                                }
+
+                                // TODO: Figure out whether or not to delete definition.
+                                /*delete newState.definitions?.[
+                                    deleteTagDialog.data?.id as number
+                                ];*/
+
+                                return newState;
+                            });
+                            setDeleteTagDialog({ visible: false });
+                        },
+                    },
+                    {
+                        title: "Cancel",
+                        callback: () => {
+                            setDeleteTagDialog({ visible: false });
+                        },
+                    },
+                ]}
                 title="Are you sure?"
             >
                 <p>
