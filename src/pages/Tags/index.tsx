@@ -15,7 +15,6 @@ import {
     MdChevronRight,
     MdDelete,
     MdEdit,
-    MdMoreVert,
     MdSave,
 } from "react-icons/md";
 import "./index.scss";
@@ -88,9 +87,9 @@ const ChildTag: React.FC<IChildTagProps> = ({
                 <MdAdd />
             </button>
 
-            <div className="tag-btn tag-drag-btn">
+            {/*<div className="tag-btn tag-drag-btn">
                 <MdMoreVert />
-            </div>
+            </div>*/}
         </div>
     ) : null;
 
@@ -393,14 +392,14 @@ function Tags() {
                 );
                 if (childIndex !== undefined) {
                     parent.children = [...(parent.children ?? [])];
-                    parent.children?.splice(childIndex, 1);
-
-                    if (keepChildren) {
-                        parent.children?.push(
-                            ...(newState.definitions?.[id as number].children ??
-                                [])
-                        );
-                    }
+                    parent.children?.splice(
+                        childIndex,
+                        1,
+                        ...(keepChildren
+                            ? newState.definitions?.[id as number].children ??
+                              []
+                            : [])
+                    );
                 }
             } else {
                 if (keepChildren) {
