@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
-import { checkIsSignedIn } from "helpers/utility";
+import { checkIsSignedIn, getCookie } from "helpers/utility";
 import {
     setIsEditing,
     setIsSignedIn,
@@ -234,6 +234,54 @@ function Tags() {
     const navigate = useNavigate();
     const [isEditing] = useIsEditing();
 
+    // Dialogs
+    const [savingDialog, setSavingDialog] = useState<
+        { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
+
+    const [toggleEditingDialog, setToggleEditingDialog] = useState<
+        { buttons?: { title?: string; callback?: () => void }[] } | undefined
+    >(undefined);
+
+    const [deleteTagDialog, setDeleteTagDialog] = useState<{
+        visible: boolean;
+        data?: { id: number; parentId?: number };
+    }>({ visible: false });
+
+    const [editTagDialog, setEditTagDialog] = useState<{
+        visible: boolean;
+        defaultValues?: Partial<Nullable<IEditTagDialogForm>>;
+        data?: { id: number; mode: "create" | "edit" };
+    }>({ visible: false });
+
+    // Tags
+    const [tags, setTags] = useState<ITags>({
+        synonyms: undefined,
+        definitions: undefined,
+    });
+    const [tagStructure, setTagStructure] = useState(tags);
+    const [editActions, setEditActions] = useState<
+        (
+            | {
+                  type: "create";
+                  data: { id: number; parentId: number; name: string };
+              }
+            | {
+                  type: "edit";
+                  data: { id: number; name: string };
+              }
+            | {
+                  type: "delete";
+                  data: {
+                      id: number;
+                      parentId: number;
+                      keepChildren?: boolean;
+                  };
+              }
+        )[]
+    >([]);
+    const [isLoadingTags, setIsLoadingTags] = useState(true);
+
     useEffect(() => {
         (async () => {
             const thisIsSignedIn = isSignedIn || (await checkIsSignedIn());
@@ -249,46 +297,36 @@ function Tags() {
     }, [isSignedIn]);
 
     // Tag structure
-    const [tags, setTags] = useState<ITags>({
-        synonyms: undefined,
-        definitions: undefined,
-    });
-    const [tagStructure, setTagStructure] = useState(tags);
 
     useEffect(() => {
+        setEditActions([]);
         setTagStructure(tags);
     }, [tags]);
 
-    useEffect(() => {
-        let ignore = false;
+    const fetchTags = useCallback(async () => {
+        setIsLoadingTags(true);
 
         // Get signed in state
-        // Replace once new React feature is implemented. This async function is necessary for now.
-        async function fetchData() {
-            return await checkIsSignedIn();
-        }
-        fetchData().then((data) => {
-            if (!ignore) {
-                setIsSignedIn(data);
-            }
+        checkIsSignedIn().then((data) => {
+            setIsSignedIn(data);
         });
 
         // Get tags
-        fetch(`${ENDPOINT}/api/app/1/tags`)
+        await fetch(`${ENDPOINT}/api/app/1/tags`)
             .then((e) => e.json())
             .then((data) => {
-                if (!ignore) {
-                    setTags(data);
-                }
+                setTags(data);
             })
             .catch((e) => {
                 console.error(`Failed to fetch due to error: ${e}`);
             });
 
-        return () => {
-            ignore = true;
-        };
+        setIsLoadingTags(false);
     }, []);
+
+    useEffect(() => {
+        fetchTags();
+    }, [fetchTags]);
 
     const constructTagElements = useCallback(
         (children: number[], parentId?: number) => {
@@ -336,34 +374,26 @@ function Tags() {
         return constructTagElements(definitions[-1].children ?? []);
     }, [tagStructure, constructTagElements]);
 
-    // Controls
-    const [savingDialog, setSavingDialog] = useState<
-        { buttons?: { title?: string; callback?: () => void }[] } | undefined
-    >(undefined);
-
-    const [toggleEditingDialog, setToggleEditingDialog] = useState<
-        { buttons?: { title?: string; callback?: () => void }[] } | undefined
-    >(undefined);
-
-    const [deleteTagDialog, setDeleteTagDialog] = useState<{
-        visible: boolean;
-        data?: { id: number; parentId?: number };
-    }>({ visible: false });
-
-    const [editTagDialog, setEditTagDialog] = useState<{
-        visible: boolean;
-        defaultValues?: Partial<Nullable<IEditTagDialogForm>>;
-        data?: { id: number; mode: "create" | "edit" };
-    }>({ visible: false });
-
+    /// Controls
     async function saveEdits() {
-        // TODO
+        const authToken = getCookie("hsse_token");
+
+        await fetch(`${ENDPOINT}/api/app/1/tags`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ actions: editActions }),
+        });
+
+        await fetchTags();
+
         return true;
     }
 
     function hasUnsavedChanges() {
-        // TODO
-        return true;
+        return editActions.length !== 0;
     }
 
     /**
@@ -398,12 +428,22 @@ function Tags() {
                 );
             }
 
-            // TODO: Figure out whether or not to delete definition.
-            /*delete newState.definitions?.[
-                deleteTagDialog.data?.id as number
-            ];*/
-
             return newState;
+        });
+
+        setEditActions((oldEditActions) => {
+            const newEditActions = [...oldEditActions];
+
+            newEditActions.push({
+                type: "delete",
+                data: {
+                    id,
+                    parentId,
+                    keepChildren,
+                },
+            });
+
+            return newEditActions;
         });
     }
 
@@ -463,7 +503,19 @@ function Tags() {
         <Layout className="tags-page" title="Homestuck Search Engine | Tags">
             <h1>Tag Hierarchy</h1>
             <div className="tags-wrapper">
-                <ul className="sidebar-text focusable">{tagListElements}</ul>
+                {/* TODO: Instead of this, just display: none it. */}
+                {isLoadingTags ? (
+                    <>
+                        <p>Loading tags...</p>
+                    </>
+                ) : null}
+
+                <ul
+                    className="sidebar-text focusable"
+                    style={isLoadingTags ? { display: "none" } : undefined}
+                >
+                    {tagListElements}
+                </ul>
             </div>
             <div className="controls-wrapper">
                 <div></div>
@@ -592,6 +644,10 @@ function Tags() {
                 mode={editTagDialog.data?.mode}
                 onSubmit={(data) => {
                     const editTagDialogData = { ...editTagDialog?.data };
+                    /**
+                     * Only used if mode = "create"
+                     */
+                    const newId = new Date().getTime();
 
                     setTagStructure((oldState) => {
                         const newState = {
@@ -599,40 +655,68 @@ function Tags() {
                             synonyms: oldState.synonyms,
                         };
 
-                        if (!editTagDialogData.id) {
-                            console.error("Tag ID missing.");
-                            return newState;
-                        }
-
                         if (editTagDialogData.mode === "create") {
-                            const newId = new Date().getTime();
-
                             newState.definitions[newId] = {
                                 _id: newId,
                                 name: data.name,
                             };
 
-                            newState.definitions[editTagDialogData.id] = {
-                                ...newState.definitions[editTagDialogData.id],
+                            newState.definitions[
+                                editTagDialogData.id as number
+                            ] = {
+                                ...newState.definitions[
+                                    editTagDialogData.id as number
+                                ],
                             };
 
                             newState.definitions[
-                                editTagDialogData.id
+                                editTagDialogData.id as number
                             ].children = [
-                                ...(newState.definitions[editTagDialogData.id]
-                                    .children ?? []),
+                                ...(newState.definitions[
+                                    editTagDialogData.id as number
+                                ].children ?? []),
                                 newId,
                             ];
                         } else {
-                            newState.definitions[editTagDialogData.id] = {
-                                ...newState.definitions[editTagDialogData.id],
+                            newState.definitions[
+                                editTagDialogData.id as number
+                            ] = {
+                                ...newState.definitions[
+                                    editTagDialogData.id as number
+                                ],
                             };
 
-                            newState.definitions[editTagDialogData.id].name =
-                                data.name;
+                            newState.definitions[
+                                editTagDialogData.id as number
+                            ].name = data.name;
                         }
 
                         return newState;
+                    });
+
+                    setEditActions((oldEditActions) => {
+                        const newEditActions = [...oldEditActions];
+
+                        if (editTagDialogData.mode === "create") {
+                            newEditActions.push({
+                                type: "create",
+                                data: {
+                                    id: newId,
+                                    parentId: editTagDialogData.id as number,
+                                    name: data.name,
+                                },
+                            });
+                        } else {
+                            newEditActions.push({
+                                type: "edit",
+                                data: {
+                                    id: editTagDialogData.id as number,
+                                    name: data.name,
+                                },
+                            });
+                        }
+
+                        return newEditActions;
                     });
 
                     return true;
