@@ -353,7 +353,7 @@ function Tags() {
     const [editTagDialog, setEditTagDialog] = useState<{
         visible: boolean;
         defaultValues?: Partial<Nullable<IEditTagDialogForm>>;
-        data?: { id?: number; mode: "create" | "edit" };
+        data?: { id: number; mode: "create" | "edit" };
     }>({ visible: false });
 
     async function saveEdits() {
@@ -477,7 +477,7 @@ function Tags() {
                                 onClick={() => {
                                     setEditTagDialog({
                                         visible: true,
-                                        data: { mode: "create" },
+                                        data: { mode: "create", id: -1 },
                                         defaultValues: { name: null },
                                     });
                                 }}
@@ -599,6 +599,11 @@ function Tags() {
                             synonyms: oldState.synonyms,
                         };
 
+                        if (!editTagDialogData.id) {
+                            console.error("Tag ID missing.");
+                            return newState;
+                        }
+
                         if (editTagDialogData.mode === "create") {
                             const newId = new Date().getTime();
 
@@ -607,34 +612,24 @@ function Tags() {
                                 name: data.name,
                             };
 
-                            if (editTagDialogData.id) {
-                                newState.definitions[editTagDialogData.id] = {
-                                    ...newState.definitions[
-                                        editTagDialogData.id
-                                    ],
-                                };
-
-                                newState.definitions[
-                                    editTagDialogData.id
-                                ].children = [
-                                    ...(newState.definitions[
-                                        editTagDialogData.id
-                                    ].children ?? []),
-                                    newId,
-                                ];
-                            }
-                        } else {
-                            newState.definitions[
-                                editTagDialogData.id as number
-                            ] = {
-                                ...newState.definitions[
-                                    editTagDialogData.id as number
-                                ],
+                            newState.definitions[editTagDialogData.id] = {
+                                ...newState.definitions[editTagDialogData.id],
                             };
 
                             newState.definitions[
-                                editTagDialogData.id as number
-                            ].name = data.name;
+                                editTagDialogData.id
+                            ].children = [
+                                ...(newState.definitions[editTagDialogData.id]
+                                    .children ?? []),
+                                newId,
+                            ];
+                        } else {
+                            newState.definitions[editTagDialogData.id] = {
+                                ...newState.definitions[editTagDialogData.id],
+                            };
+
+                            newState.definitions[editTagDialogData.id].name =
+                                data.name;
                         }
 
                         return newState;
