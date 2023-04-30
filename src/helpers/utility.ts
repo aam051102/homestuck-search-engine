@@ -1,6 +1,4 @@
 import ENDPOINT from "helpers/endpoint";
-import { setDialog } from "helpers/globalState";
-import { setIsSignedIn } from "helpers/globalState";
 import { ITagStructure, ITags } from "types";
 
 function setCookie(params: {
@@ -43,7 +41,7 @@ function setCookie(params: {
         expireDate.toUTCString();
 }
 
-function deleteCookie(name: string) {
+export function deleteCookie(name: string) {
     setCookie({ name: name, value: "", seconds: 1 });
 }
 
@@ -100,26 +98,6 @@ export function compareArr<T>(a: T[], b: T[]) {
     }
 
     return true;
-}
-
-/**
- * Signs the user out, removing their token
- */
-export function signOut() {
-    deleteCookie("hsse_token");
-    setIsSignedIn(false);
-}
-
-/**
- * Shows warning of outdated session.
- */
-export function showOutdatedSessionDialog() {
-    setDialog({
-        visible: true,
-        title: "Login Session Outdated",
-        content:
-            "Login expired. Please sign back in. You may do this in another tab.",
-    });
 }
 
 /**

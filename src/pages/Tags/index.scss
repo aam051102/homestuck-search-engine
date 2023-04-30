@@ -32,6 +32,8 @@
             font-size: 1rem;
 
             .tag-wrapper {
+                border-left: 1px solid rgba(90, 90, 90, 0.1);
+
                 &:hover {
                     background-color: #ffffff09;
                     color: white;
@@ -108,14 +110,6 @@
             .sidebar-text {
                 padding-left: 0.75rem;
                 position: relative;
-
-                &::before {
-                    content: "";
-                    position: absolute;
-                    border-left: 1px solid rgba(90, 90, 90, 0.1);
-                    height: 100%;
-                    left: 0.75rem;
-                }
             }
 
             li {

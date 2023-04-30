@@ -1,18 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { useNavigate } from "react-router";
-
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
 import { checkIsSignedIn } from "helpers/utility";
-import { setIsSignedIn, useIsSignedIn } from "helpers/globalState";
-
 import Layout from "components/Layout";
-
 import "./index.scss";
+import { isSignedInState } from "helpers/globalState";
+import { useRecoilState } from "recoil";
 
 function LoginPage() {
     const passwordInputRef = useRef<HTMLInputElement>(null);
-    const [isSignedIn] = useIsSignedIn();
+    const [isSignedIn, setIsSignedIn] = useRecoilState(isSignedInState);
     const navigate = useNavigate();
 
     useEffect(() => {

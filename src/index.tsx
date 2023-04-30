@@ -4,6 +4,7 @@ import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Home from "pages/Home";
+import { RecoilRoot } from "recoil";
 const Login = lazy(() => import("pages/Login"));
 const Tags = lazy(() => import("pages/Tags"));
 
@@ -27,15 +28,17 @@ ReactDOM.render(
                 </div>
             }
         >
-            <HelmetProvider>
-                <BrowserRouter>
-                    <Routes>
-                        <Route path={`${BASE}/`} element={<Home />} />
-                        <Route path={`${BASE}/tags`} element={<Tags />} />
-                        <Route path={`${BASE}/login`} element={<Login />} />
-                    </Routes>
-                </BrowserRouter>
-            </HelmetProvider>
+            <RecoilRoot>
+                <HelmetProvider>
+                    <BrowserRouter>
+                        <Routes>
+                            <Route path={`${BASE}/`} element={<Home />} />
+                            <Route path={`${BASE}/tags`} element={<Tags />} />
+                            <Route path={`${BASE}/login`} element={<Login />} />
+                        </Routes>
+                    </BrowserRouter>
+                </HelmetProvider>
+            </RecoilRoot>
         </Suspense>
     </React.StrictMode>,
     document.getElementById("root")

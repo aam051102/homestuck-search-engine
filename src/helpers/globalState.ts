@@ -1,32 +1,23 @@
-import createGlobalState from "global-react-state";
+import { atom } from "recoil";
 import { IResult } from "types";
 
 /**
  * Contains result information
  */
-export const [useResults, setResults] = createGlobalState<IResult[]>([]);
+export const resultsState = atom<IResult[]>({ key: "results", default: [] });
 
 /**
  * Whether or not user is in editing mode
  */
-export const [useIsEditing, setIsEditing] = createGlobalState<boolean>(false);
+export const isEditingState = atom<boolean>({
+    key: "isEditing",
+    default: false,
+});
 
 /**
  * Whether or not user is signed in
  */
-export const [useIsSignedIn, setIsSignedIn] = createGlobalState<boolean>(false);
-
-/**
- * Dialog information
- */
-export const [useDialog, setDialog] = createGlobalState<{
-    title?: React.ReactNode;
-    content?: React.ReactNode;
-    visible: boolean;
-    buttons?: { title?: string; callbacks?: (() => void)[] }[];
-}>({
-    visible: false,
-    title: "",
-    content: "",
-    buttons: [],
+export const isSignedInState = atom<boolean>({
+    key: "isSignedIn",
+    default: false,
 });

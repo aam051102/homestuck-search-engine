@@ -2,12 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
 import { checkIsSignedIn, getCookie } from "helpers/utility";
-import {
-    setIsEditing,
-    setIsSignedIn,
-    useIsEditing,
-    useIsSignedIn,
-} from "helpers/globalState";
 import Layout from "components/Layout";
 import { ITag, ITags } from "types";
 import {
@@ -16,24 +10,13 @@ import {
     MdDelete,
     MdEdit,
     MdSave,
+    MdMoreVert,
 } from "react-icons/md";
 import "./index.scss";
 import Dialog from "components/Dialog";
 import { useForm, Controller } from "react-hook-form";
-
-/*
-    TODO: ADD -1 ELEMENT TO PROD DB
-    CHILDREN:
-0
-255
-469
-1237
-1281
-1315
-1341
-1348
-1382
- */
+import { isEditingState, isSignedInState } from "helpers/globalState";
+import { useRecoilValue, useRecoilState } from "recoil";
 
 type Nullable<T> = {
     [K in keyof T]: T[K] | null;
@@ -58,7 +41,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
     addChildToTag,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [isEditing] = useIsEditing();
+    const isEditing = useRecoilValue(isEditingState);
 
     const tagButtons = isEditing ? (
         <div className="tag-buttons">
@@ -101,9 +84,9 @@ const ChildTag: React.FC<IChildTagProps> = ({
                 <MdAdd />
             </button>
 
-            {/*<div className="tag-btn tag-drag-btn">
+            <div className="tag-btn tag-drag-btn">
                 <MdMoreVert />
-            </div>*/}
+            </div>
         </div>
     ) : null;
 
@@ -230,9 +213,9 @@ const EditTagDialog: React.FC<IEditTagDialogProps> = ({
 };
 
 function Tags() {
-    const [isSignedIn] = useIsSignedIn();
+    const [isSignedIn, setIsSignedIn] = useRecoilState(isSignedInState);
     const navigate = useNavigate();
-    const [isEditing] = useIsEditing();
+    const [isEditing, setIsEditing] = useRecoilState(isEditingState);
 
     // Dialogs
     const [savingDialog, setSavingDialog] = useState<
@@ -503,7 +486,6 @@ function Tags() {
         <Layout className="tags-page" title="Homestuck Search Engine | Tags">
             <h1>Tag Hierarchy</h1>
             <div className="tags-wrapper">
-                {/* TODO: Instead of this, just display: none it. */}
                 {isLoadingTags ? (
                     <>
                         <p>Loading tags...</p>

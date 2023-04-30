@@ -1,7 +1,5 @@
 import React from "react";
 
-import { setDialog } from "helpers/globalState";
-
 import "./index.scss";
 
 type IProps = {
@@ -15,10 +13,6 @@ type IProps = {
  * A basic dialog with info
  */
 const Dialog: React.FC<IProps> = (props) => {
-    function handleCloseBtnClick() {
-        setDialog({ visible: false });
-    }
-
     return props.visible ? (
         <div className="dialog-wrapper">
             <div className="dialog-outer">
@@ -34,8 +28,6 @@ const Dialog: React.FC<IProps> = (props) => {
                                     className="dialog-btn"
                                     onClick={async () => {
                                         button.callback?.();
-
-                                        handleCloseBtnClick();
                                     }}
                                 >
                                     {button.title}

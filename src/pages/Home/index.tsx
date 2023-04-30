@@ -7,15 +7,13 @@ import React, {
     useState,
 } from "react";
 import { CgInfo, CgMaximize } from "react-icons/cg";
-import {
-    setIsSignedIn,
-    useResults,
-    setResults,
-    useIsSignedIn,
-} from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
-import { checkIsSignedIn, createTagStructure, signOut } from "helpers/utility";
+import {
+    checkIsSignedIn,
+    createTagStructure,
+    deleteCookie,
+} from "helpers/utility";
 import Layout from "components/Layout";
 import Sidebar from "components/Sidebar";
 import StaticCanvas from "components/StaticCanvas";
@@ -30,6 +28,8 @@ import { Link } from "react-router-dom";
 import { MdAdd, MdChevronRight, MdPerson, MdSearch } from "react-icons/md";
 import Dialog from "components/Dialog";
 import useTimeout from "hooks/useTimeout";
+import { useRecoilState } from "recoil";
+import { isSignedInState, resultsState } from "helpers/globalState";
 
 /**
  * Global counter for tag
@@ -41,7 +41,9 @@ let tagKeyCounter = 0;
  */
 function HomePage() {
     /* States */
-    const [isSignedIn] = useIsSignedIn();
+    const [isSignedIn, setIsSignedIn] = useRecoilState(isSignedInState);
+    const [results, setResults] = useRecoilState(resultsState);
+
     const [tags, setTags] = useState<ITags>({
         synonyms: undefined,
         definitions: undefined,
@@ -50,8 +52,6 @@ function HomePage() {
     const [visibleResults, setVisibleResults] = useState(20);
     const [resultTags, setResultTags] = useState<IResultTags>({});
     const [failedTags, setFailedTags] = useState<string[]>([]);
-
-    const [results] = useResults();
 
     const searchRef = useRef<HTMLInputElement>(null);
     const visibleResultsRef = useRef<HTMLInputElement>(null);
@@ -385,7 +385,10 @@ function HomePage() {
                 <button
                     className="login-state logout-btn"
                     type="button"
-                    onClick={() => signOut()}
+                    onClick={() => {
+                        deleteCookie("hsse_token");
+                        setIsSignedIn(false);
+                    }}
                 >
                     <p className="login-text">Sign out</p>
 

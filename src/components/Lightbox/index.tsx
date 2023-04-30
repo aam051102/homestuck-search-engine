@@ -10,13 +10,6 @@ import {
     MdSearch,
 } from "react-icons/md";
 import { AiFillTags } from "react-icons/ai";
-import {
-    setIsEditing,
-    setResults,
-    useIsEditing,
-    useIsSignedIn,
-    useResults,
-} from "helpers/globalState";
 import useEventListener from "hooks/useEventListener";
 import Sidebar from "components/Sidebar";
 import { IResult, ITagStructure, ITags } from "types";
@@ -25,6 +18,12 @@ import ENDPOINT, { BASE_URL } from "helpers/endpoint";
 import { compareArr, getCookie } from "helpers/utility";
 import Dialog from "components/Dialog";
 import { Link } from "react-router-dom";
+import {
+    isEditingState,
+    isSignedInState,
+    resultsState,
+} from "helpers/globalState";
+import { useRecoilValue, useRecoilState } from "recoil";
 
 type IProps = {
     id: number;
@@ -53,12 +52,12 @@ const Lightbox: React.FC<IProps> = ({
     setTagQuery,
 }) => {
     // States
-    const [isSignedIn] = useIsSignedIn();
-    const [results] = useResults();
+    const isSignedIn = useRecoilValue(isSignedInState);
+    const [results, setResults] = useRecoilState(resultsState);
     const result = results[id];
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const [isEditing] = useIsEditing();
+    const [isEditing, setIsEditing] = useRecoilState(isEditingState);
     const [tagsEditing, setTagsEditing] = useState<Set<number>>(
         new Set(result?.tags)
     );
