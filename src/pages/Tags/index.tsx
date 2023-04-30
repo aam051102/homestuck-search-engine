@@ -379,36 +379,23 @@ function Tags() {
                 synonyms: oldState.synonyms,
             };
 
-            if (parentId !== -1) {
-                newState.definitions[parentId] = {
-                    ...newState.definitions?.[parentId],
-                };
-                const parent = newState.definitions[parentId];
+            newState.definitions[parentId] = {
+                ...newState.definitions?.[parentId],
+            };
+            const parent = newState.definitions[parentId];
 
-                const childIndex = parent.children?.findIndex(
-                    (child) => child === id
+            const childIndex = parent.children?.findIndex(
+                (child) => child === id
+            );
+            if (childIndex !== undefined) {
+                parent.children = [...(parent.children ?? [])];
+                parent.children?.splice(
+                    childIndex,
+                    1,
+                    ...(keepChildren
+                        ? newState.definitions?.[id as number].children ?? []
+                        : [])
                 );
-                if (childIndex !== undefined) {
-                    parent.children = [...(parent.children ?? [])];
-                    parent.children?.splice(
-                        childIndex,
-                        1,
-                        ...(keepChildren
-                            ? newState.definitions?.[id as number].children ??
-                              []
-                            : [])
-                    );
-                }
-            } else {
-                if (keepChildren) {
-                    const children = newState.definitions[id].children ?? [];
-
-                    for (let i = 0; i < children.length; i++) {
-                        delete newState.definitions[children[i]];
-                    }
-                }
-
-                delete newState.definitions[id];
             }
 
             // TODO: Figure out whether or not to delete definition.
