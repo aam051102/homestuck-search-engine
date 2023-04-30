@@ -31,18 +31,27 @@
             margin: 0;
             font-size: 1rem;
 
+            .tag-wrapper {
+                &:hover {
+                    background-color: #ffffff09;
+                    color: white;
+
+                    .tag-title_text {
+                        transform: translateX(0.5rem);
+                    }
+
+                    .tag-buttons {
+                        display: flex;
+                    }
+                }
+            }
+
             .tag-details {
                 display: flex;
 
                 &.open {
                     & > .tag-title > .tag-dropdown-icon {
                         transform: rotate(90deg);
-                    }
-                }
-
-                &:hover {
-                    .tag-buttons {
-                        display: flex;
                     }
                 }
             }
@@ -77,6 +86,7 @@
                 padding-top: 0.25rem;
                 padding-bottom: 0.25rem;
                 flex-grow: 1;
+                cursor: pointer;
 
                 .tag-title_text {
                     margin-left: 1.5rem;
@@ -85,20 +95,6 @@
                     text-overflow: ellipsis;
                     max-width: 100%;
                     transition: transform 0.15s ease-in-out;
-                }
-
-                &:hover {
-                    background-color: #ffffff09;
-                    cursor: pointer;
-                    color: white;
-
-                    .tag-title_text {
-                        transform: translateX(0.5rem);
-                    }
-
-                    .tag-buttons {
-                        display: flex;
-                    }
                 }
 
                 &.tag-title_summary {

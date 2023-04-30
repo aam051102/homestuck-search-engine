@@ -1,7 +1,7 @@
 import ENDPOINT from "helpers/endpoint";
 import { setDialog } from "helpers/globalState";
 import { setIsSignedIn } from "helpers/globalState";
-import { ITag, ITagStructure, ITagStructureFlat, ITags } from "types";
+import { ITagStructure, ITags } from "types";
 
 function setCookie(params: {
     name: string;
@@ -137,27 +137,9 @@ export function createTagStructure(tags: ITags, query?: string) {
     const definitions = tags.definitions;
     if (!definitions) return [];
 
-    // Find top-level tags
-    const topTags: Record<number, ITag> = {};
-    const childrenTags: Record<string, boolean> = {};
-
-    Object.keys(definitions).forEach((tag) => {
-        const parsedTag = parseInt(tag);
-
-        if (!childrenTags[parsedTag]) {
-            topTags[parsedTag] = definitions[parsedTag];
-        }
-
-        definitions[parsedTag].children?.forEach((child) => {
-            delete topTags[child];
-
-            childrenTags[child] = true;
-        });
-    });
-
     return createTagStructureRecursive(
         tags,
-        Object.keys(topTags).map((tag) => parseInt(tag)),
+        definitions[-1].children ?? [],
         query?.toLowerCase()
     );
 }
@@ -200,82 +182,6 @@ function createTagStructureRecursive(
             children: recRes,
             valid: isValid,
         });
-    }
-
-    return tagStructure;
-}
-
-export function createTagStructureFlat(tags: ITags, query?: string) {
-    const definitions = tags.definitions;
-    if (!definitions) return [];
-
-    // Find top-level tags
-    const topTags: Record<number, ITag> = {};
-    const childrenTags: Record<string, boolean> = {};
-
-    Object.keys(definitions).forEach((tag) => {
-        const parsedTag = parseInt(tag);
-
-        if (!childrenTags[parsedTag]) {
-            topTags[parsedTag] = definitions[parsedTag];
-        }
-
-        definitions[parsedTag].children?.forEach((child) => {
-            delete topTags[child];
-
-            childrenTags[child] = true;
-        });
-    });
-
-    return createTagStructureRecursiveFlat(
-        tags,
-        Object.keys(topTags).map((tag) => parseInt(tag)),
-        query?.toLowerCase()
-    );
-}
-
-function createTagStructureRecursiveFlat(
-    tags: ITags,
-    tagList?: number[],
-    query?: string,
-    isParentValid = false,
-    path: number[] = []
-) {
-    if (!tagList) return [];
-
-    const tagStructure: ITagStructureFlat[] = [];
-
-    const definitions = tags.definitions;
-    if (!definitions) return [];
-
-    for (const tag of tagList) {
-        const isSelfValid =
-            isParentValid ||
-            (query
-                ? definitions[tag].name.toLowerCase().includes(query)
-                : true);
-
-        const recRes = createTagStructureRecursiveFlat(
-            tags,
-            definitions[tag].children,
-            query,
-            isSelfValid,
-            [...path, tag]
-        );
-
-        const isValid = isSelfValid || recRes?.some((r) => r.valid);
-
-        if (!isValid) {
-            continue;
-        }
-
-        tagStructure.push({
-            key: (path?.join(".") ?? "") + tag,
-            id: tag,
-            valid: isValid,
-        });
-
-        tagStructure.push(...recRes);
     }
 
     return tagStructure;

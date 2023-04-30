@@ -16,12 +16,6 @@ export type ITagStructure = {
     valid?: boolean;
 };
 
-export type ITagStructureFlat = {
-    key: string;
-    id: number;
-    valid?: boolean;
-};
-
 /// Result tags
 export type IResultTags = Record<
     string,

@@ -21,6 +21,20 @@ import "./index.scss";
 import Dialog from "components/Dialog";
 import { useForm, Controller } from "react-hook-form";
 
+/*
+    TODO: ADD -1 ELEMENT TO PROD DB
+    CHILDREN:
+0
+255
+469
+1237
+1281
+1315
+1341
+1348
+1382
+ */
+
 type Nullable<T> = {
     [K in keyof T]: T[K] | null;
 };
@@ -97,7 +111,11 @@ const ChildTag: React.FC<IChildTagProps> = ({
         <li>
             {tag.children?.length ? (
                 <>
-                    <div className={`tag-details ${isOpen ? "open" : ""}`}>
+                    <div
+                        className={`tag-wrapper tag-details ${
+                            isOpen ? "open" : ""
+                        }`}
+                    >
                         <button
                             type="button"
                             onClick={() => setIsOpen(!isOpen)}
@@ -117,7 +135,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     ) : null}
                 </>
             ) : (
-                <div className="tag-title">
+                <div className="tag-wrapper tag-title">
                     <p className="tag-title_text">{tag.name}</p>
 
                     {tagButtons}
@@ -315,27 +333,7 @@ function Tags() {
         const definitions = tagStructure.definitions;
         if (!definitions) return [];
 
-        // Find top-level tags
-        const topTags: Record<number, ITag> = {};
-        const childrenTags: Record<string, boolean> = {};
-
-        Object.keys(definitions).forEach((tag) => {
-            const parsedTag = parseInt(tag);
-
-            if (!childrenTags[parsedTag]) {
-                topTags[parsedTag] = definitions[parsedTag];
-            }
-
-            definitions[parsedTag].children?.forEach((child) => {
-                delete topTags[child];
-
-                childrenTags[child] = true;
-            });
-        });
-
-        return constructTagElements(
-            Object.keys(topTags).map((p) => parseInt(p))
-        );
+        return constructTagElements(definitions[-1].children ?? []);
     }, [tagStructure, constructTagElements]);
 
     // Controls
