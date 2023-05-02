@@ -136,6 +136,12 @@ const ChildTag: React.FC<IChildTagProps> = ({
     >(() => ({
         accept: "tag",
         canDrop: (item) => {
+            // TODO: Prevent drops in children of selected child tag. Don't forget to make that work across varying recursive parent tags. (example: recuperacoon)
+
+            if (tag.children?.includes(item.tag._id)) {
+                return false;
+            }
+
             return tag._id !== item.tag._id;
         },
         drop: (item) => {
