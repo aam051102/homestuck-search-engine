@@ -101,7 +101,11 @@ type IChildTagProps = {
     deleteTag: (id: number) => void;
     renameTag: (id: number) => void;
     createChild: (id: number) => void;
-    addChildToTag: (id: number, childId: number, parentId: number) => void;
+    addChildToTag: (
+        newParentId: number,
+        childId: number,
+        oldParentId: number
+    ) => void;
     parentId: number;
 };
 
@@ -137,9 +141,11 @@ const ChildTag: React.FC<IChildTagProps> = ({
         drop: (item) => {
             addChildToTag(tag._id, item.tag._id, item.parentId);
         },
-        /*hover: (item, monitor) => ({
-            isOver: monitor.isOver(),
-        }),*/
+        hover: (item, monitor) => {
+            if (!isOpen && monitor.canDrop()) {
+                setIsOpen(true);
+            }
+        },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
@@ -367,7 +373,11 @@ function Tags() {
               }
             | {
                   type: "move";
-                  data: { id: number; parentId: number; newParentId: number };
+                  data: {
+                      childId: number;
+                      oldParentId: number;
+                      newParentId: number;
+                  };
               }
             | {
                   type: "delete";
@@ -457,19 +467,20 @@ function Tags() {
                                 defaultValues: { name: null },
                             });
                         }}
-                        addChildToTag={(id, childId, parentId) => {
+                        addChildToTag={(newParentId, childId, oldParentId) => {
                             setTagStructure((oldState) => {
                                 const newState = {
                                     definitions: { ...oldState.definitions },
                                     synonyms: oldState.synonyms,
                                 };
 
-                                newState.definitions[id] = {
-                                    ...newState.definitions?.[id],
+                                newState.definitions[newParentId] = {
+                                    ...newState.definitions?.[newParentId],
                                 };
 
                                 // Add to new parent
-                                const newParent = newState.definitions[id];
+                                const newParent =
+                                    newState.definitions[newParentId];
                                 newParent.children = [
                                     ...(newParent.children ?? []),
                                 ];
@@ -477,15 +488,15 @@ function Tags() {
 
                                 // Remove from old parent
                                 const oldParent =
-                                    newState.definitions[parentId];
+                                    newState.definitions[oldParentId];
 
                                 const childIndex =
                                     oldParent.children?.findIndex(
                                         (child) => child === childId
-                                    );
-                                if (!childIndex) {
+                                    ) ?? -1;
+                                if (childIndex === -1) {
                                     console.error(
-                                        `Tag ${childId} not found in ${parentId}`
+                                        `Tag ${childId} not found in ${oldParentId}`
                                     );
                                     return oldState;
                                 }
@@ -504,9 +515,9 @@ function Tags() {
                                 newEditActions.push({
                                     type: "move",
                                     data: {
-                                        id: childId,
-                                        parentId,
-                                        newParentId: id,
+                                        childId,
+                                        oldParentId,
+                                        newParentId,
                                     },
                                 });
 
@@ -572,10 +583,9 @@ function Tags() {
             };
             const parent = newState.definitions[parentId];
 
-            const childIndex = parent.children?.findIndex(
-                (child) => child === id
-            );
-            if (childIndex !== undefined) {
+            const childIndex =
+                parent.children?.findIndex((child) => child === id) ?? -1;
+            if (childIndex !== -1) {
                 parent.children = [...(parent.children ?? [])];
                 parent.children?.splice(
                     childIndex,
