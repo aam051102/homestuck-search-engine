@@ -1,18 +1,21 @@
 import { useEffect, useRef } from "react";
 
 /**
- * useEventListener from https://usehooks.com/useEventListener/
- * @param eventName The event to listen to
- * @param handler The function to be called when the event occurs
- * @param element The element which listens to the event
+ * Listen for KeyBoard events with handler function
+ * @param handler function to call on event trigger
+ * @param eventTypes type of event to listen for (e.g. "resize")
+ * @param el HTML element on which to bind event listener
+ * @param removeListener setting to true will remove the eventListener
  */
-function useEventListener<T extends keyof WindowEventMap>(
-    eventName: T,
-    handler: (e: WindowEventMap[T]) => void,
-    element: HTMLElement | Window | Document = window
-) {
+export default function useEventListener<T extends keyof WindowEventMap>(
+    eventType: T,
+    handler: (event: WindowEventMap[T]) => void,
+    el: HTMLElement | null | Document = null,
+    removeListener = false,
+    listenerOptions?: AddEventListenerOptions
+): void {
     // Create a ref that stores handler
-    const savedHandler = useRef<(e: WindowEventMap[T]) => void>();
+    const savedHandler = useRef<(event: WindowEventMap[T]) => void>();
 
     // Update ref.current value if handler changes.
     // This allows our effect below to always get latest handler ...
@@ -22,33 +25,27 @@ function useEventListener<T extends keyof WindowEventMap>(
         savedHandler.current = handler;
     }, [handler]);
 
-    useEffect(
-        () => {
-            // Make sure element supports addEventListener
-            // On
-            const isSupported = element && element.addEventListener;
-            if (!isSupported) return;
+    useEffect(() => {
+        if (removeListener) return;
 
-            // Create event listener that calls handler function stored in ref
-            const eventListener = (event: WindowEventMap[T]) =>
-                savedHandler.current && savedHandler.current(event);
+        const eventListener = (event: WindowEventMap[T]) => {
+            savedHandler.current && savedHandler.current(event);
+        };
 
-            // Add event listener
-            element.addEventListener(
-                eventName,
-                eventListener as (e: Event) => void
+        // Bind the event listener
+        (el || window).addEventListener(
+            eventType,
+            eventListener as (e: Event) => void,
+            listenerOptions
+        );
+
+        return () => {
+            // Unbind the event listener on clean up
+            (el || window).removeEventListener(
+                eventType,
+                eventListener as (e: Event) => void,
+                listenerOptions
             );
-
-            // Remove event listener on cleanup
-            return () => {
-                element.removeEventListener(
-                    eventName,
-                    eventListener as (e: Event) => void
-                );
-            };
-        },
-        [eventName, element] // Re-run if eventName or element changes
-    );
+        };
+    }, [el, removeListener, listenerOptions, eventType]);
 }
-
-export default useEventListener;

@@ -288,29 +288,25 @@ const Lightbox: React.FC<IProps> = ({
     }, [result]);
 
     /// Event listeners
-    useEventListener(
-        "keydown",
-        (e) => {
-            if (
-                visible &&
-                document.activeElement?.tagName.toLowerCase() !== "input"
-            ) {
-                if (e.key === "Escape") {
-                    tryCloseLightbox();
-                    return;
-                } else if (e.key === "ArrowLeft") {
-                    // Previous asset
-                    tryLoadPrevious();
-                    return;
-                } else if (e.key === "ArrowRight") {
-                    // Next asset
-                    tryLoadNext();
-                    return;
-                }
+    useEventListener("keydown", (e) => {
+        if (
+            visible &&
+            document.activeElement?.tagName.toLowerCase() !== "input"
+        ) {
+            if (e.key === "Escape") {
+                tryCloseLightbox();
+                return;
+            } else if (e.key === "ArrowLeft") {
+                // Previous asset
+                tryLoadPrevious();
+                return;
+            } else if (e.key === "ArrowRight") {
+                // Next asset
+                tryLoadNext();
+                return;
             }
-        },
-        document
-    );
+        }
+    });
 
     /// DOM Construction
     const constructUsedTagsElements = () => {

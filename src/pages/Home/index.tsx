@@ -246,26 +246,22 @@ function HomePage() {
     }, [query, tags]);
 
     /* Event listeners */
-    useEventListener(
-        "keydown",
-        (e) => {
-            if (
-                asset === -1 &&
-                "input" !== document.activeElement?.tagName.toLowerCase()
-            ) {
-                if (e.key === "ArrowLeft") {
-                    e.preventDefault();
+    useEventListener("keydown", (e) => {
+        if (
+            asset === -1 &&
+            "input" !== document.activeElement?.tagName.toLowerCase()
+        ) {
+            if (e.key === "ArrowLeft") {
+                e.preventDefault();
 
-                    loadPreviousPage();
-                } else if (e.key === "ArrowRight") {
-                    e.preventDefault();
+                loadPreviousPage();
+            } else if (e.key === "ArrowRight") {
+                e.preventDefault();
 
-                    loadNextPage();
-                }
+                loadNextPage();
             }
-        },
-        document
-    );
+        }
+    });
 
     /// DOM Construction
     const constructUsedTagsElements = () => {

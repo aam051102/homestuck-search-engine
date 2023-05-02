@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
@@ -12,7 +12,9 @@ import "./index.scss";
 
 const BASE = window.location.hostname === "localhost" ? "" : "/app/hsse";
 
-ReactDOM.render(
+const root = createRoot(document.getElementById("root") as HTMLElement);
+
+root.render(
     <React.StrictMode>
         <Suspense
             fallback={
@@ -40,8 +42,7 @@ ReactDOM.render(
                 </HelmetProvider>
             </RecoilRoot>
         </Suspense>
-    </React.StrictMode>,
-    document.getElementById("root")
+    </React.StrictMode>
 );
 
 // If you want your app to work offline and load faster, you can change
