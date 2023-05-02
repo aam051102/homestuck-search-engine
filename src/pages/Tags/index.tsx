@@ -197,7 +197,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
     ) : null;
 
     return (
-        <li>
+        <li className="tag-container">
             {tag.children?.length ? (
                 <>
                     <div
@@ -366,6 +366,10 @@ function Tags() {
                   data: { id: number; name: string };
               }
             | {
+                  type: "move";
+                  data: { id: number; parentId: number; newParentId: number };
+              }
+            | {
                   type: "delete";
                   data: {
                       id: number;
@@ -492,6 +496,21 @@ function Tags() {
                                 oldParent.children?.splice(childIndex, 1);
 
                                 return newState;
+                            });
+
+                            setEditActions((oldEditActions) => {
+                                const newEditActions = [...oldEditActions];
+
+                                newEditActions.push({
+                                    type: "move",
+                                    data: {
+                                        id: childId,
+                                        parentId,
+                                        newParentId: id,
+                                    },
+                                });
+
+                                return newEditActions;
                             });
                         }}
                         key={tag._id}
