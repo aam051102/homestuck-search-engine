@@ -54,9 +54,12 @@
             .tag-wrapper {
                 border-left: 1px solid rgba(90, 90, 90, 0.1);
 
+                &.hovered {
+                    background-color: #ffffff09;
+                }
+
                 &:hover {
                     background-color: #ffffff09;
-                    color: white;
 
                     .tag-title_text {
                         transform: translateX(0.5rem);

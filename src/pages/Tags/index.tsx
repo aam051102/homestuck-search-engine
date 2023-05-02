@@ -26,6 +26,8 @@ import {
 } from "react-dnd";
 import { HTML5Backend, getEmptyImage } from "react-dnd-html5-backend";
 
+const TOP_TAG_PARENT_ID = -1;
+
 /*
  * Use react-dnd for file explorer system? Or should I just go straight in for react-dnd-treeview
  * It might be better to make the primary system yourself instead of using two layers and having to deal with react-dnd-treeview's tree system.
@@ -94,11 +96,13 @@ type IChildTagProps = {
     tag: ITag;
     constructTagElements: (
         val: number[],
-        parentId?: number
+        parentId: number
     ) => (JSX.Element | null)[] | undefined;
     deleteTag: (id: number) => void;
     renameTag: (id: number) => void;
-    addChildToTag: (id: number) => void;
+    createChild: (id: number) => void;
+    addChildToTag: (id: number, childId: number, parentId: number) => void;
+    parentId: number;
 };
 
 const ChildTag: React.FC<IChildTagProps> = ({
@@ -106,16 +110,38 @@ const ChildTag: React.FC<IChildTagProps> = ({
     constructTagElements,
     deleteTag,
     renameTag,
+    createChild,
     addChildToTag,
+    parentId,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const isEditing = useRecoilValue(isEditingState);
 
     const [, drag, preview] = useDrag(() => ({
         type: "tag",
-        item: { tag },
+        item: { tag, parentId },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
+        }),
+    }));
+
+    const [dropProps, drop] = useDrop<
+        { tag: ITag; parentId: number },
+        unknown,
+        { isOver: boolean }
+    >(() => ({
+        accept: "tag",
+        canDrop: (item) => {
+            return tag._id !== item.tag._id;
+        },
+        drop: (item) => {
+            addChildToTag(tag._id, item.tag._id, item.parentId);
+        },
+        /*hover: (item, monitor) => ({
+            isOver: monitor.isOver(),
+        }),*/
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
         }),
     }));
 
@@ -156,7 +182,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
 
-                    addChildToTag(tag._id);
+                    createChild(tag._id);
                 }}
                 type="button"
                 className="tag-btn tag-add-btn"
@@ -175,9 +201,10 @@ const ChildTag: React.FC<IChildTagProps> = ({
             {tag.children?.length ? (
                 <>
                     <div
+                        ref={drop}
                         className={`tag-wrapper tag-details ${
                             isOpen ? "open" : ""
-                        }`}
+                        } ${dropProps.isOver ? "hovered" : ""}`}
                     >
                         <button
                             type="button"
@@ -192,7 +219,12 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     </div>
                 </>
             ) : (
-                <div className="tag-wrapper tag-title">
+                <div
+                    className={`tag-wrapper tag-title ${
+                        dropProps.isOver ? "hovered" : ""
+                    }`}
+                    ref={drop}
+                >
                     <p className="tag-title_text">{tag.name}</p>
 
                     {tagButtons}
@@ -391,7 +423,7 @@ function Tags() {
     }, [fetchTags]);
 
     const constructTagElements = useCallback(
-        (children: number[], parentId?: number) => {
+        (children: number[], parentId: number) => {
             if (!tagStructure.definitions) return;
 
             return children?.map((child) => {
@@ -399,27 +431,69 @@ function Tags() {
                 if (!tag) return null;
                 return (
                     <ChildTag
+                        parentId={parentId}
                         constructTagElements={constructTagElements}
-                        deleteTag={(id) =>
+                        deleteTag={(id) => {
                             setDeleteTagDialog({
                                 data: { id, parentId },
                                 visible: true,
-                            })
-                        }
-                        renameTag={(id) =>
+                            });
+                        }}
+                        renameTag={(id) => {
                             setEditTagDialog({
                                 data: { id, mode: "edit" },
                                 visible: true,
                                 defaultValues: { name: tag.name },
-                            })
-                        }
-                        addChildToTag={(id) =>
+                            });
+                        }}
+                        createChild={(id) => {
                             setEditTagDialog({
                                 data: { id, mode: "create" },
                                 visible: true,
                                 defaultValues: { name: null },
-                            })
-                        }
+                            });
+                        }}
+                        addChildToTag={(id, childId, parentId) => {
+                            setTagStructure((oldState) => {
+                                const newState = {
+                                    definitions: { ...oldState.definitions },
+                                    synonyms: oldState.synonyms,
+                                };
+
+                                newState.definitions[id] = {
+                                    ...newState.definitions?.[id],
+                                };
+
+                                // Add to new parent
+                                const newParent = newState.definitions[id];
+                                newParent.children = [
+                                    ...(newParent.children ?? []),
+                                ];
+                                newParent.children?.push(childId);
+
+                                // Remove from old parent
+                                const oldParent =
+                                    newState.definitions[parentId];
+
+                                const childIndex =
+                                    oldParent.children?.findIndex(
+                                        (child) => child === childId
+                                    );
+                                if (!childIndex) {
+                                    console.error(
+                                        `Tag ${childId} not found in ${parentId}`
+                                    );
+                                    return oldState;
+                                }
+
+                                oldParent.children = [
+                                    ...(oldParent.children ?? []),
+                                ];
+                                oldParent.children?.splice(childIndex, 1);
+
+                                return newState;
+                            });
+                        }}
                         key={tag._id}
                         tag={tag}
                     />
@@ -433,7 +507,10 @@ function Tags() {
         const definitions = tagStructure.definitions;
         if (!definitions) return [];
 
-        return constructTagElements(definitions[-1].children ?? []);
+        return constructTagElements(
+            definitions[TOP_TAG_PARENT_ID].children ?? [],
+            TOP_TAG_PARENT_ID
+        );
     }, [tagStructure, constructTagElements]);
 
     /// Controls
@@ -461,7 +538,7 @@ function Tags() {
     /**
      * Delets a tag
      * @param id ID of tag to delete
-     * @param parentId ID of parent tag. -1 for no parent.
+     * @param parentId ID of parent tag. TOP_TAG_PARENT_ID for no parent.
      * @param keepChildren Whether or not to move the children of the tag up to the parent tag
      */
     function deleteTag(id: number, parentId: number, keepChildren: boolean) {
@@ -594,7 +671,10 @@ function Tags() {
                                     onClick={() => {
                                         setEditTagDialog({
                                             visible: true,
-                                            data: { mode: "create", id: -1 },
+                                            data: {
+                                                mode: "create",
+                                                id: TOP_TAG_PARENT_ID,
+                                            },
                                             defaultValues: { name: null },
                                         });
                                     }}
@@ -666,7 +746,8 @@ function Tags() {
                             callback: () => {
                                 deleteTag(
                                     deleteTagDialog.data?.id as number,
-                                    deleteTagDialog.data?.parentId ?? -1,
+                                    deleteTagDialog.data?.parentId ??
+                                        TOP_TAG_PARENT_ID,
                                     false
                                 );
 
@@ -678,7 +759,8 @@ function Tags() {
                             callback: () => {
                                 deleteTag(
                                     deleteTagDialog.data?.id as number,
-                                    deleteTagDialog.data?.parentId ?? -1,
+                                    deleteTagDialog.data?.parentId ??
+                                        TOP_TAG_PARENT_ID,
                                     true
                                 );
                                 setDeleteTagDialog({ visible: false });
