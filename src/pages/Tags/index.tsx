@@ -417,6 +417,7 @@ function Tags() {
                       childId: number;
                       newParentId: number;
                       oldParentId?: number;
+                      placeBeforeTagId?: number;
                   };
               }
             | {
@@ -542,6 +543,7 @@ function Tags() {
                         childId,
                         oldParentId,
                         newParentId,
+                        placeBeforeTagId,
                     },
                 });
 
