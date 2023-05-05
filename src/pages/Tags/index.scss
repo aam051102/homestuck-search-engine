@@ -55,6 +55,32 @@
                 border-left: 1px solid rgba(90, 90, 90, 0.1);
             }
 
+            .tag-droppoint-top {
+                width: 100%;
+                height: 0.1rem;
+                padding: 0.3rem 0;
+                position: absolute;
+                transform: translateY(-0.3rem);
+                z-index: 5;
+
+                &:not(.visible) {
+                    pointer-events: none;
+                }
+
+                &.hovered {
+                    &::before {
+                        content: "";
+                        width: 100%;
+                        position: absolute;
+                        left: 0;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        height: 0.1rem;
+                        background: rgba(90, 90, 90, 0.5);
+                    }
+                }
+            }
+
             .tag-wrapper {
                 &.hovered {
                     background-color: #ffffff09;

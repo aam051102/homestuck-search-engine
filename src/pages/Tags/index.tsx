@@ -92,6 +92,40 @@ const CustomDragLayer: React.FC = () => {
     );
 };
 
+type IDroppointProps = {
+    addChildToTag: (childId: number, oldParentId: number) => void;
+};
+
+const Droppoint: React.FC<IDroppointProps> = ({ addChildToTag }) => {
+    const [dropProps, drop] = useDrop<
+        { tag: ITag; parentId: number },
+        unknown,
+        { isOver: boolean; isMidDrag: boolean }
+    >(() => ({
+        accept: "tag",
+        canDrop: (item) => {
+            // TODO: Prevent drops in children of selected child tag. Don't forget to make that work across varying recursive parent tags. (example: recuperacoon)
+            return true;
+        },
+        drop: (item) => {
+            addChildToTag(item.tag._id, item.parentId);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+            isMidDrag: !!monitor.getItem(),
+        }),
+    }));
+
+    return (
+        <div
+            className={`tag-droppoint-top ${
+                dropProps.isOver ? "hovered" : ""
+            } ${dropProps.isMidDrag ? "visible" : ""}`}
+            ref={drop}
+        ></div>
+    );
+};
+
 type IChildTagProps = {
     tag: ITag;
     constructTagElements: (
@@ -159,7 +193,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
 
     useEffect(() => {
         preview(getEmptyImage(), { captureDraggingState: true });
-    }, []);
+    }, [preview]);
 
     const tagButtons = isEditing ? (
         <div className="tag-buttons">
@@ -209,7 +243,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
     ) : null;
 
     return (
-        <li className="tag-container">
+        <div className="tag-container">
             {tag.children?.length ? (
                 <>
                     <div
@@ -248,7 +282,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
                     {constructTagElements(tag.children, tag._id)}
                 </ul>
             ) : null}
-        </li>
+        </div>
     );
 };
 
@@ -281,7 +315,7 @@ const EditTagDialog: React.FC<IEditTagDialogProps> = ({
 
     useEffect(() => {
         reset({ ...editTagDialogFormDefaultValues, ...defaultValues });
-    }, [isOpen, reset, isOpen]);
+    }, [isOpen, reset, isOpen, defaultValues]);
 
     const submitCallback = handleSubmit(async (data) => {
         await onSubmit(data as IEditTagDialogForm);
@@ -381,8 +415,8 @@ function Tags() {
                   type: "move";
                   data: {
                       childId: number;
-                      oldParentId: number;
                       newParentId: number;
+                      oldParentId?: number;
                   };
               }
             | {
@@ -409,7 +443,7 @@ function Tags() {
                 navigate(BASE_URL);
             }
         })();
-    }, [isSignedIn]);
+    }, [isSignedIn, navigate, setIsSignedIn]);
 
     // Tag structure
     useEffect(() => {
@@ -436,11 +470,86 @@ function Tags() {
             });
 
         setIsLoadingTags(false);
-    }, []);
+    }, [setIsSignedIn]);
 
     useEffect(() => {
         fetchTags();
     }, [fetchTags]);
+
+    const addChildToTag = useCallback(
+        (
+            newParentId: number,
+            childId: number,
+            oldParentId?: number,
+            placeBeforeTagId?: number
+        ) => {
+            setTagStructure((oldState) => {
+                const newState = {
+                    definitions: { ...oldState.definitions },
+                    synonyms: oldState.synonyms,
+                };
+
+                // Remove from old parent
+                if (oldParentId) {
+                    newState.definitions[oldParentId] = {
+                        ...newState.definitions[oldParentId],
+                    };
+
+                    const oldParent = newState.definitions[oldParentId];
+
+                    const childIndex =
+                        oldParent.children?.findIndex(
+                            (child) => child === childId
+                        ) ?? -1;
+                    if (childIndex === -1) {
+                        console.error(
+                            `Tag ${childId} not found in ${oldParentId}`
+                        );
+                        return oldState;
+                    }
+
+                    oldParent.children = [...(oldParent.children ?? [])];
+                    oldParent.children.splice(childIndex, 1);
+                }
+
+                // Add to new parent
+                newState.definitions[newParentId] = {
+                    ...newState.definitions[newParentId],
+                };
+
+                const newParent = newState.definitions[newParentId];
+                newParent.children = [...(newParent.children ?? [])];
+
+                if (placeBeforeTagId !== undefined) {
+                    const placeBeforeTagIndex =
+                        newParent.children?.findIndex(
+                            (child) => child === placeBeforeTagId
+                        ) ?? -1;
+                    newParent.children.splice(placeBeforeTagIndex, 0, childId);
+                } else {
+                    newParent.children.push(childId);
+                }
+
+                return newState;
+            });
+
+            setEditActions((oldEditActions) => {
+                const newEditActions = [...oldEditActions];
+
+                newEditActions.push({
+                    type: "move",
+                    data: {
+                        childId,
+                        oldParentId,
+                        newParentId,
+                    },
+                });
+
+                return newEditActions;
+            });
+        },
+        []
+    );
 
     const constructTagElements = useCallback(
         (children: number[], parentId: number) => {
@@ -450,93 +559,51 @@ function Tags() {
                 const tag = tagStructure.definitions?.[child];
                 if (!tag) return null;
                 return (
-                    <ChildTag
-                        parentId={parentId}
-                        constructTagElements={constructTagElements}
-                        deleteTag={(id) => {
-                            setDeleteTagDialog({
-                                data: { id, parentId },
-                                visible: true,
-                            });
-                        }}
-                        renameTag={(id) => {
-                            setEditTagDialog({
-                                data: { id, mode: "edit" },
-                                visible: true,
-                                defaultValues: { name: tag.name },
-                            });
-                        }}
-                        createChild={(id) => {
-                            setEditTagDialog({
-                                data: { id, mode: "create" },
-                                visible: true,
-                                defaultValues: { name: null },
-                            });
-                        }}
-                        addChildToTag={(newParentId, childId, oldParentId) => {
-                            setTagStructure((oldState) => {
-                                const newState = {
-                                    definitions: { ...oldState.definitions },
-                                    synonyms: oldState.synonyms,
-                                };
-
-                                newState.definitions[newParentId] = {
-                                    ...newState.definitions?.[newParentId],
-                                };
-
-                                // Add to new parent
-                                const newParent =
-                                    newState.definitions[newParentId];
-                                newParent.children = [
-                                    ...(newParent.children ?? []),
-                                ];
-                                newParent.children?.push(childId);
-
-                                // Remove from old parent
-                                const oldParent =
-                                    newState.definitions[oldParentId];
-
-                                const childIndex =
-                                    oldParent.children?.findIndex(
-                                        (child) => child === childId
-                                    ) ?? -1;
-                                if (childIndex === -1) {
-                                    console.error(
-                                        `Tag ${childId} not found in ${oldParentId}`
-                                    );
-                                    return oldState;
-                                }
-
-                                oldParent.children = [
-                                    ...(oldParent.children ?? []),
-                                ];
-                                oldParent.children?.splice(childIndex, 1);
-
-                                return newState;
-                            });
-
-                            setEditActions((oldEditActions) => {
-                                const newEditActions = [...oldEditActions];
-
-                                newEditActions.push({
-                                    type: "move",
-                                    data: {
+                    <li key={tag._id}>
+                        {isEditing ? (
+                            <Droppoint
+                                addChildToTag={(childId, oldParentId) => {
+                                    addChildToTag(
+                                        parentId,
                                         childId,
                                         oldParentId,
-                                        newParentId,
-                                    },
-                                });
+                                        tag._id
+                                    );
+                                }}
+                            />
+                        ) : null}
 
-                                return newEditActions;
-                            });
-                        }}
-                        key={tag._id}
-                        tag={tag}
-                    />
+                        <ChildTag
+                            parentId={parentId}
+                            constructTagElements={constructTagElements}
+                            deleteTag={(id) => {
+                                setDeleteTagDialog({
+                                    data: { id, parentId },
+                                    visible: true,
+                                });
+                            }}
+                            renameTag={(id) => {
+                                setEditTagDialog({
+                                    data: { id, mode: "edit" },
+                                    visible: true,
+                                    defaultValues: { name: tag.name },
+                                });
+                            }}
+                            createChild={(id) => {
+                                setEditTagDialog({
+                                    data: { id, mode: "create" },
+                                    visible: true,
+                                    defaultValues: { name: null },
+                                });
+                            }}
+                            addChildToTag={addChildToTag}
+                            tag={tag}
+                        />
+                    </li>
                 );
             });
         },
-        [tagStructure.definitions]
+        [tagStructure.definitions, isEditing, addChildToTag]
     );
 
     const tagListElements = useMemo(() => {
