@@ -151,7 +151,6 @@ type IChildTagProps = {
         oldParentId: number
     ) => void;
     path: number[];
-    parentTag: ITag;
 };
 
 const ChildTag: React.FC<IChildTagProps> = ({
@@ -162,7 +161,6 @@ const ChildTag: React.FC<IChildTagProps> = ({
     createChild,
     addChildToTag,
     path,
-    parentTag,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const isEditing = useRecoilValue(isEditingState);
@@ -624,7 +622,6 @@ function Tags() {
                                 ) : null}
 
                                 <ChildTag
-                                    parentTag={definitions[parentId]}
                                     path={path}
                                     constructTagElements={constructTagElements}
                                     deleteTag={(id) => {
