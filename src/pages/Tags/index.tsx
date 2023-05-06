@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
-import { checkIsSignedIn, getCookie } from "helpers/utility";
+import { checkIsSignedIn, compareArr, getCookie } from "helpers/utility";
 import Layout from "components/Layout";
 import { ITag, ITags } from "types";
 import {
@@ -94,21 +94,34 @@ const CustomDragLayer: React.FC = () => {
 
 type IDroppointProps = {
     addChildToTag: (childId: number, oldParentId: number) => void;
+    path: number[];
+    parentTag: ITag;
 };
 
-const Droppoint: React.FC<IDroppointProps> = ({ addChildToTag }) => {
+const Droppoint: React.FC<IDroppointProps> = ({
+    addChildToTag,
+    path,
+    parentTag,
+}) => {
     const [dropProps, drop] = useDrop<
-        { tag: ITag; parentId: number },
+        { tag: ITag; path: number[] },
         unknown,
         { isOver: boolean; isMidDrag: boolean }
     >(() => ({
         accept: "tag",
         canDrop: (item) => {
-            // TODO: Prevent drops in children of selected child tag. Don't forget to make that work across varying recursive parent tags. (example: recuperacoon)
-            return true;
+            if (compareArr(path, item.path)) {
+                return true;
+            }
+
+            if (parentTag.children?.includes(item.tag._id)) {
+                return false;
+            }
+
+            return !path.includes(item.tag._id);
         },
         drop: (item) => {
-            addChildToTag(item.tag._id, item.parentId);
+            addChildToTag(item.tag._id, item.path[item.path.length - 1]);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -128,10 +141,7 @@ const Droppoint: React.FC<IDroppointProps> = ({ addChildToTag }) => {
 
 type IChildTagProps = {
     tag: ITag;
-    constructTagElements: (
-        val: number[],
-        parentId: number
-    ) => (JSX.Element | null)[] | undefined;
+    constructTagElements: (val: number[], path: number[]) => React.ReactNode;
     deleteTag: (id: number) => void;
     renameTag: (id: number) => void;
     createChild: (id: number) => void;
@@ -140,7 +150,8 @@ type IChildTagProps = {
         childId: number,
         oldParentId: number
     ) => void;
-    parentId: number;
+    path: number[];
+    parentTag: ITag;
 };
 
 const ChildTag: React.FC<IChildTagProps> = ({
@@ -150,36 +161,63 @@ const ChildTag: React.FC<IChildTagProps> = ({
     renameTag,
     createChild,
     addChildToTag,
-    parentId,
+    path,
+    parentTag,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const isEditing = useRecoilValue(isEditingState);
 
     const [, drag, preview] = useDrag(() => ({
         type: "tag",
-        item: { tag, parentId },
+        item: { tag, path },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
     }));
 
     const [dropProps, drop] = useDrop<
-        { tag: ITag; parentId: number },
+        { tag: ITag; path: number[] },
         unknown,
         { isOver: boolean }
     >(() => ({
         accept: "tag",
         canDrop: (item) => {
-            // TODO: Prevent drops in children of selected child tag. Don't forget to make that work across varying recursive parent tags. (example: recuperacoon)
+            if (path.includes(item.tag._id)) {
+                return false;
+            }
+
+            if (compareArr(path, item.path)) {
+                if (tag.children?.includes(item.tag._id)) {
+                    return false;
+                }
+
+                return tag._id !== item.tag._id;
+            }
+
+            if (item.path[item.path.length - 1] === path[path.length - 1]) {
+                return false;
+            }
 
             if (tag.children?.includes(item.tag._id)) {
+                const parentPath = [...item.path];
+                parentPath.pop();
+
+                if (compareArr(path, parentPath)) {
+                    return true;
+                    //return item.path[item.path.length - 1] !== tag._id;
+                }
+
                 return false;
             }
 
             return tag._id !== item.tag._id;
         },
         drop: (item) => {
-            addChildToTag(tag._id, item.tag._id, item.parentId);
+            addChildToTag(
+                tag._id,
+                item.tag._id,
+                item.path[item.path.length - 1]
+            );
         },
         hover: (item, monitor) => {
             if (!isOpen && monitor.canDrop()) {
@@ -279,7 +317,7 @@ const ChildTag: React.FC<IChildTagProps> = ({
 
             {isOpen && tag.children ? (
                 <ul className="sidebar-text focusable">
-                    {constructTagElements(tag.children, tag._id)}
+                    {constructTagElements(tag.children, [...path, tag._id])}
                 </ul>
             ) : null}
         </div>
@@ -554,56 +592,69 @@ function Tags() {
     );
 
     const constructTagElements = useCallback(
-        (children: number[], parentId: number) => {
-            if (!tagStructure.definitions) return;
+        (children: number[], path: number[]) => {
+            const definitions = tagStructure.definitions;
+            if (!definitions) return null;
 
-            return children?.map((child) => {
-                const tag = tagStructure.definitions?.[child];
-                if (!tag) return null;
-                return (
-                    <li key={tag._id}>
-                        {isEditing ? (
-                            <Droppoint
-                                addChildToTag={(childId, oldParentId) => {
-                                    addChildToTag(
-                                        parentId,
-                                        childId,
-                                        oldParentId,
-                                        tag._id
-                                    );
-                                }}
-                            />
-                        ) : null}
+            const parentId = path[path.length - 1];
 
-                        <ChildTag
-                            parentId={parentId}
-                            constructTagElements={constructTagElements}
-                            deleteTag={(id) => {
-                                setDeleteTagDialog({
-                                    data: { id, parentId },
-                                    visible: true,
-                                });
-                            }}
-                            renameTag={(id) => {
-                                setEditTagDialog({
-                                    data: { id, mode: "edit" },
-                                    visible: true,
-                                    defaultValues: { name: tag.name },
-                                });
-                            }}
-                            createChild={(id) => {
-                                setEditTagDialog({
-                                    data: { id, mode: "create" },
-                                    visible: true,
-                                    defaultValues: { name: null },
-                                });
-                            }}
-                            addChildToTag={addChildToTag}
-                            tag={tag}
-                        />
-                    </li>
-                );
-            });
+            return (
+                <>
+                    {children?.map((child) => {
+                        const tag = definitions[child];
+                        if (!tag) return null;
+                        return (
+                            <li key={tag._id}>
+                                {isEditing ? (
+                                    <Droppoint
+                                        path={path}
+                                        parentTag={definitions[parentId]}
+                                        addChildToTag={(
+                                            childId,
+                                            oldParentId
+                                        ) => {
+                                            addChildToTag(
+                                                parentId,
+                                                childId,
+                                                oldParentId,
+                                                tag._id
+                                            );
+                                        }}
+                                    />
+                                ) : null}
+
+                                <ChildTag
+                                    parentTag={definitions[parentId]}
+                                    path={path}
+                                    constructTagElements={constructTagElements}
+                                    deleteTag={(id) => {
+                                        setDeleteTagDialog({
+                                            data: { id, parentId },
+                                            visible: true,
+                                        });
+                                    }}
+                                    renameTag={(id) => {
+                                        setEditTagDialog({
+                                            data: { id, mode: "edit" },
+                                            visible: true,
+                                            defaultValues: { name: tag.name },
+                                        });
+                                    }}
+                                    createChild={(id) => {
+                                        setEditTagDialog({
+                                            data: { id, mode: "create" },
+                                            visible: true,
+                                            defaultValues: { name: null },
+                                        });
+                                    }}
+                                    addChildToTag={addChildToTag}
+                                    tag={tag}
+                                />
+                            </li>
+                        );
+                    })}
+                </>
+            );
         },
         [tagStructure.definitions, isEditing, addChildToTag]
     );
@@ -614,7 +665,7 @@ function Tags() {
 
         return constructTagElements(
             definitions[TOP_TAG_PARENT_ID].children ?? [],
-            TOP_TAG_PARENT_ID
+            [TOP_TAG_PARENT_ID]
         );
     }, [tagStructure, constructTagElements]);
 
@@ -821,8 +872,7 @@ function Tags() {
                 >
                     <p>
                         Your changes will take effect immediately after saving.
-                        Deleting a tag will result in it being deleted on all
-                        assets. THIS IS IRREVERSIBLE.
+                        This action is irreversible.
                     </p>
                 </Dialog>
 
@@ -837,8 +887,7 @@ function Tags() {
                     </p>
                     <p>
                         WARNING: If you save, your changes will take effect
-                        immediately. Deleting a tag will result in it being
-                        deleted on all assets. THIS IS IRREVERSIBLE.
+                        immediately. This action is irreversible.
                     </p>
                 </Dialog>
 
@@ -883,11 +932,6 @@ function Tags() {
                         You are about to delete this tag and any children it may
                         have. Alternatively, you may want to delete only this
                         tag and move its children up to its current position.
-                    </p>
-                    <p>
-                        Be careful when deleting tags, as the removal of a tag
-                        will also result in its removal from all assets. This
-                        takes place upon saving.
                     </p>
                 </Dialog>
 
