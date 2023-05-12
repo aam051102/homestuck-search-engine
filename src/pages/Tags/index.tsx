@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import ENDPOINT, { BASE_URL } from "helpers/endpoint";
-import { checkIsSignedIn, compareArr, getCookie } from "helpers/utility";
+import {
+    checkIsSignedIn,
+    compareArr,
+    getCookie,
+    getUniqueId,
+} from "helpers/utility";
 import Layout from "components/Layout";
 import { ITag, ITags } from "types";
 import {
@@ -11,10 +16,11 @@ import {
     MdEdit,
     MdSave,
     MdMoreVert,
+    MdRemove,
 } from "react-icons/md";
 import "./index.scss";
 import Dialog from "components/Dialog";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { isEditingState, isSignedInState } from "helpers/globalState";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
@@ -324,9 +330,13 @@ const ChildTag: React.FC<IChildTagProps> = ({
 
 type IEditTagDialogForm = {
     name: string;
+    synonyms: { id: string; value: string }[];
 };
 
-const editTagDialogFormDefaultValues = { name: null };
+const editTagDialogFormDefaultValues: Nullable<IEditTagDialogForm> = {
+    name: null,
+    synonyms: [],
+};
 
 type IEditTagDialogProps = {
     isOpen: boolean;
@@ -343,7 +353,7 @@ const EditTagDialog: React.FC<IEditTagDialogProps> = ({
     setIsOpen,
     mode,
 }) => {
-    const { handleSubmit, control, reset } = useForm<
+    const { handleSubmit, control, reset, watch } = useForm<
         Nullable<IEditTagDialogForm>
     >({
         defaultValues: { ...editTagDialogFormDefaultValues, ...defaultValues },
@@ -351,11 +361,23 @@ const EditTagDialog: React.FC<IEditTagDialogProps> = ({
 
     useEffect(() => {
         reset({ ...editTagDialogFormDefaultValues, ...defaultValues });
-    }, [isOpen, reset, isOpen, defaultValues]);
+    }, [isOpen, reset, defaultValues]);
 
     const submitCallback = handleSubmit(async (data) => {
         await onSubmit(data as IEditTagDialogForm);
         setIsOpen(false);
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "synonyms",
+    });
+    const watchSynonyms = watch("synonyms");
+    const controlledSynonyms = fields.map((field, index) => {
+        return {
+            ...field,
+            ...watchSynonyms?.[index],
+        };
     });
 
     return (
@@ -401,6 +423,63 @@ const EditTagDialog: React.FC<IEditTagDialogProps> = ({
                     )}
                     rules={{ required: true }}
                 />
+
+                <div className="input-group">
+                    <label className="input-label">Synonyms:</label>
+
+                    <div className="input-synonym-group">
+                        {controlledSynonyms.map((item, i) => (
+                            <Controller
+                                key={item.id}
+                                name={`synonyms.${i}`}
+                                control={control}
+                                render={({ field }) => {
+                                    if (!field.value) return <></>;
+
+                                    return (
+                                        <div className="input-synonym">
+                                            <input
+                                                className="input-field_text"
+                                                type="text"
+                                                id={`editTag.${field.name}`}
+                                                name={field.name}
+                                                value={field.value.value ?? ""}
+                                                onChange={(e) =>
+                                                    field.onChange({
+                                                        id: field.value.id,
+                                                        value: e.target.value,
+                                                    })
+                                                }
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={() => remove(i)}
+                                                className="input-btn input-btn--square"
+                                            >
+                                                <MdRemove />
+                                            </button>
+                                        </div>
+                                    );
+                                }}
+                                rules={{ required: true }}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    className="input-btn input-group_primary-btn input-btn--square"
+                    onClick={() => append({ id: getUniqueId(), value: "" })}
+                >
+                    <MdAdd />
+                </button>
+
+                <p className="edit-dialog_note">
+                    Note: A tag should have at least one synonym, which should
+                    be the same as its name.
+                </p>
             </form>
         </Dialog>
     );
@@ -441,11 +520,20 @@ function Tags() {
         (
             | {
                   type: "create";
-                  data: { id: number; parentId: number; name: string };
+                  data: {
+                      id: number;
+                      parentId: number;
+                      name: string;
+                      synonyms: string[];
+                  };
               }
             | {
                   type: "edit";
-                  data: { id: number; name: string };
+                  data: {
+                      id: number;
+                      name: string;
+                      synonyms: string[];
+                  };
               }
             | {
                   type: "move";
@@ -497,7 +585,7 @@ function Tags() {
         });
 
         // Get tags
-        await fetch(`${ENDPOINT}/api/app/1/tags`)
+        await fetch(`${ENDPOINT}/api/app/1/tags?include=synonyms`)
             .then((e) => e.json())
             .then((data) => {
                 setTags(data);
@@ -634,7 +722,16 @@ function Tags() {
                                         setEditTagDialog({
                                             data: { id, mode: "edit" },
                                             visible: true,
-                                            defaultValues: { name: tag.name },
+                                            defaultValues: {
+                                                name: tag.name,
+                                                synonyms:
+                                                    tag.synonyms?.map(
+                                                        (synonym, i) => ({
+                                                            id: i.toString(),
+                                                            value: synonym,
+                                                        })
+                                                    ) ?? [],
+                                            },
                                         });
                                     }}
                                     createChild={(id) => {
@@ -953,6 +1050,10 @@ function Tags() {
                                 newState.definitions[newId] = {
                                     _id: newId,
                                     name: data.name,
+                                    children: [],
+                                    synonyms: data.synonyms.map(
+                                        (synonym) => synonym.value
+                                    ),
                                 };
 
                                 newState.definitions[
@@ -975,14 +1076,16 @@ function Tags() {
                                 newState.definitions[
                                     editTagDialogData.id as number
                                 ] = {
-                                    ...newState.definitions[
-                                        editTagDialogData.id as number
-                                    ],
+                                    _id: editTagDialogData.id as number,
+                                    children:
+                                        newState.definitions[
+                                            editTagDialogData.id as number
+                                        ].children,
+                                    name: data.name,
+                                    synonyms: data.synonyms.map(
+                                        (synonym) => synonym.value
+                                    ),
                                 };
-
-                                newState.definitions[
-                                    editTagDialogData.id as number
-                                ].name = data.name;
                             }
 
                             return newState;
@@ -999,6 +1102,9 @@ function Tags() {
                                         parentId:
                                             editTagDialogData.id as number,
                                         name: data.name,
+                                        synonyms: data.synonyms.map(
+                                            (synonym) => synonym.value
+                                        ),
                                     },
                                 });
                             } else {
@@ -1007,6 +1113,9 @@ function Tags() {
                                     data: {
                                         id: editTagDialogData.id as number,
                                         name: data.name,
+                                        synonyms: data.synonyms.map(
+                                            (synonym) => synonym.value
+                                        ),
                                     },
                                 });
                             }

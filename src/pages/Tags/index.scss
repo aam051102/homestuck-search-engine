@@ -35,6 +35,52 @@
         }
     }
 
+    .input-synonym-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .input-synonym {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .input-group {
+        margin-top: 1.5rem;
+    }
+
+    .input-group_primary-btn {
+        margin-top: 1rem;
+    }
+
+    .input-btn {
+        border: 1px solid #ffffff;
+        background: transparent;
+        color: $text-color;
+        font: inherit;
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+        box-sizing: border-box;
+        line-height: 1;
+
+        &:hover,
+        &:focus-visible {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        &--square {
+            padding: 0.5rem;
+        }
+    }
+
+    .edit-dialog_note {
+        max-width: 450px;
+        margin-top: 1rem;
+    }
+
     .tags-wrapper {
         background-color: rgba($shadow-color, 0.75);
         max-height: 40rem;

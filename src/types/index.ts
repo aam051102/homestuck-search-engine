@@ -3,6 +3,7 @@ export type ITag = {
     _id: number;
     name: string;
     children?: number[] | undefined;
+    synonyms?: string[];
 };
 
 export type ITags = {

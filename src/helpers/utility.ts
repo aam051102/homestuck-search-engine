@@ -164,3 +164,9 @@ function createTagStructureRecursive(
 
     return tagStructure;
 }
+
+let currUniqueId = 0;
+
+export function getUniqueId() {
+    return (currUniqueId++).toString();
+}
