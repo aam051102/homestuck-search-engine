@@ -565,7 +565,7 @@ function Tags() {
             }
 
             if (!thisIsSignedIn) {
-                navigate(BASE_URL);
+                navigate(`${BASE_URL}login`);
             }
         })();
     }, [isSignedIn, navigate, setIsSignedIn]);
