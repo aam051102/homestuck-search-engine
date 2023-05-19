@@ -1,6 +1,7 @@
 import React, {
     FormEvent,
     lazy,
+    useCallback,
     useEffect,
     useMemo,
     useRef,
@@ -206,7 +207,7 @@ function HomePage() {
         return () => {
             ignore = true;
         };
-    }, []);
+    }, [setIsSignedIn]);
 
     useEffect(() => {
         restructureResultTags(results);
@@ -243,7 +244,7 @@ function HomePage() {
             .catch((e) => {
                 console.error(`Failed to fetch due to error: ${e}`);
             });
-    }, [query, tags]);
+    }, [query, tags, setResults]);
 
     /* Event listeners */
     useEventListener("keydown", (e) => {
@@ -304,18 +305,40 @@ function HomePage() {
         return elements;
     };
 
-    const constructTagElements = (children: ITagStructure[]) => {
-        return children?.map((child) => {
-            const tag = tags.definitions?.[child.id];
+    const constructTagElements = useCallback(
+        (children: ITagStructure[]) => {
+            return children?.map((child) => {
+                const tag = tags.definitions?.[child.id];
 
-            if (!tag) return null;
+                if (!tag) return null;
 
-            return (
-                <li key={tag._id}>
-                    {tag.children?.length ? (
-                        <details className="tag-details">
-                            <summary className="tag-title tag-title_summary">
-                                <MdChevronRight className="tag-dropdown-icon" />
+                return (
+                    <li key={tag._id}>
+                        {tag.children?.length ? (
+                            <details className="tag-details">
+                                <summary className="tag-title tag-title_summary">
+                                    <MdChevronRight className="tag-dropdown-icon" />
+                                    <p className="tag-title_text">{tag.name}</p>
+
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            addTagToSearch(tag.name);
+                                        }}
+                                        type="button"
+                                        className="tag-add-btn"
+                                    >
+                                        <MdAdd />
+                                    </button>
+                                </summary>
+
+                                <ul className="sidebar-text focusable">
+                                    {constructTagElements(child.children)}
+                                </ul>
+                            </details>
+                        ) : (
+                            <div className="tag-title">
                                 <p className="tag-title_text">{tag.name}</p>
 
                                 <button
@@ -329,37 +352,18 @@ function HomePage() {
                                 >
                                     <MdAdd />
                                 </button>
-                            </summary>
-
-                            <ul className="sidebar-text focusable">
-                                {constructTagElements(child.children)}
-                            </ul>
-                        </details>
-                    ) : (
-                        <div className="tag-title">
-                            <p className="tag-title_text">{tag.name}</p>
-
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    addTagToSearch(tag.name);
-                                }}
-                                type="button"
-                                className="tag-add-btn"
-                            >
-                                <MdAdd />
-                            </button>
-                        </div>
-                    )}
-                </li>
-            );
-        });
-    };
+                            </div>
+                        )}
+                    </li>
+                );
+            });
+        },
+        [tags.definitions]
+    );
 
     const tagListElements = useMemo(
         () => (tags.definitions ? constructTagElements(tagStructure) : null),
-        [tags.definitions, tagStructure]
+        [tags.definitions, tagStructure, constructTagElements]
     );
 
     /* Return */

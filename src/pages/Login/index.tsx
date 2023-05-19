@@ -25,7 +25,7 @@ function LoginPage() {
                 navigate(BASE_URL);
             }
         })();
-    }, [isSignedIn]);
+    }, [isSignedIn, setIsSignedIn, navigate]);
 
     return (
         <Layout className="login-page" title="Homestuck Search Engine | Login">
